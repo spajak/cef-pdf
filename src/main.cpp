@@ -1,25 +1,35 @@
 #include "PDFApp.h"
-#include "include/cef_client.h"
-#include "include/cef_browser.h"
-#include <string>
-#include <iostream>
+#include "include/internal/cef_win.h"
 
 int main(int argc, char* argv[])
 {
-    std::string url = "http://www.google.com";
+    // Structure for passing command-line arguments.
+    // The definition of this structure is platform-specific.
+    CefMainArgs mainArgs(GetModuleHandle(NULL));
 
-    // Information used when creating the native window.
-    CefWindowInfo windowInfo;
+    // Optional implementation of the CefApp interface.
+    CefRefPtr<PDFApp> app(new PDFApp);
 
-    windowInfo.SetAsWindowless(NULL, true);
+    // Execute the sub-process logic, if any. This will either return immediately for the browser
+    // process or block until the sub-process should exit.
+    int exit_code = CefExecuteProcess(mainArgs, app.get(), NULL);
+    if (exit_code >= 0) {
+        // The sub-process terminated, exit now.
+        return exit_code;
+    }
 
-    CefRefPtr<CefClient> client;
+    // Populate this structure to customize CEF behavior.
+    CefSettings settings;
+    settings.command_line_args_disabled = true;
 
-    // Specify CEF browser settings here.
-    CefBrowserSettings browserSettings;
+    // Initialize CEF in the main process.
+    CefInitialize(mainArgs, settings, app.get(), NULL);
 
-    // Create the first browser window.
-    CefBrowserHost::CreateBrowser(windowInfo, client, url, browserSettings, NULL);
+    // Run the CEF message loop. This will block until CefQuitMessageLoop() is called.
+    CefRunMessageLoop();
+
+    // Shut down CEF.
+    CefShutdown();
 
     return 0;
 }
