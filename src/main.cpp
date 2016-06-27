@@ -20,6 +20,8 @@ int main(int argc, char* argv[])
 
     // Populate this structure to customize CEF behavior.
     CefSettings settings;
+    settings.no_sandbox = true;
+    settings.windowless_rendering_enabled = true;
     settings.command_line_args_disabled = true;
 
     // Initialize CEF in the main process.

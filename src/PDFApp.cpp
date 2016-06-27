@@ -17,20 +17,20 @@ void PDFApp::OnContextInitialized()
 {
     CEF_REQUIRE_UI_THREAD();
 
-    std::cout << "OnContextInitialized" << std::endl;
-
-    std::string url = "https://pl.wikipedia.org/wiki/Referendum_w_Wielkiej_Brytanii_w_2016_roku";
+    std::string url = "template://load";
 
     // Information used when creating the native window.
     CefWindowInfo windowInfo;
-
-    windowInfo.SetAsWindowless(NULL, true);
+    windowInfo.windowless_rendering_enabled = true;
+    windowInfo.transparent_painting_enabled = false;
 
     CefRefPtr<PDFHandler> client(new PDFHandler);
+
+    CefRegisterSchemeHandlerFactory("template", "", client.get());
 
     // Specify CEF browser settings here.
     CefBrowserSettings browserSettings;
 
     // Create the first browser window.
-    CefBrowserHost::CreateBrowser(windowInfo, client, url, browserSettings, NULL);
+    CefBrowserHost::CreateBrowser(windowInfo, client.get(), url, browserSettings, NULL);
 }

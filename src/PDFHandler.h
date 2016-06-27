@@ -2,11 +2,14 @@
 #define PDFHANDLER_H
 
 #include "include/cef_client.h"
+#include "include/cef_scheme.h"
 
 class PDFHandler : public CefClient,
                    public CefLifeSpanHandler,
                    public CefLoadHandler,
-                   public CefRenderHandler
+                   public CefSchemeHandlerFactory,
+                   public CefRenderHandler,
+                   public CefPdfPrintCallback
 {
     public:
 
@@ -19,7 +22,19 @@ class PDFHandler : public CefClient,
 
     // CefLifeSpanHandler methods:
     virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser) OVERRIDE;
+    virtual bool DoClose(CefRefPtr<CefBrowser> browser) OVERRIDE;
     virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) OVERRIDE;
+
+    // CefSchemeHandlerFactory methods:
+    virtual CefRefPtr<CefResourceHandler> Create(
+        CefRefPtr<CefBrowser> browser,
+        CefRefPtr<CefFrame> frame,
+        const CefString& scheme_name,
+        CefRefPtr<CefRequest> request
+    ) OVERRIDE;
+
+    // CefPdfPrintCallback methods:
+    virtual void OnPdfPrintFinished(const CefString& path, bool ok);
 
     // CefLoadHandler methods:
     virtual void OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode) OVERRIDE;
@@ -44,7 +59,8 @@ class PDFHandler : public CefClient,
 
     private:
 
-    CefRefPtr<CefBrowser> _browser;
+    CefRefPtr<CefBrowser> m_browser;
+    int m_browserCount = 0;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(PDFHandler);
