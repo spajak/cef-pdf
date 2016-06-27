@@ -2,7 +2,6 @@
 #include <iostream>
 #include "include/cef_app.h"
 #include "include/wrapper/cef_helpers.h"
-#include "include/wrapper/cef_stream_resource_handler.h"
 
 PDFHandler::PDFHandler() {}
 
@@ -27,6 +26,8 @@ CefRefPtr<CefRenderHandler> PDFHandler::GetRenderHandler()
 // -------------------------------------------------------------------------
 void PDFHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 {
+    std::cout << "OnAfterCreated\n";
+
     CEF_REQUIRE_UI_THREAD();
 
     if (!m_browser.get()) {
@@ -38,6 +39,8 @@ void PDFHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 
 bool PDFHandler::DoClose(CefRefPtr<CefBrowser> browser)
 {
+    std::cout << "DoClose\n";
+
     CEF_REQUIRE_UI_THREAD();
 
     // Allow the close. For windowed browsers this will result in the OS close
@@ -47,53 +50,39 @@ bool PDFHandler::DoClose(CefRefPtr<CefBrowser> browser)
 
 void PDFHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser)
 {
+    std::cout << "OnBeforeClose\n";
+
     CEF_REQUIRE_UI_THREAD();
+    DCHECK(m_browser.get());
 
-    if (m_browser.get()) {
-        if (m_browser->GetIdentifier() == browser->GetIdentifier()) {
-            // Free the browser pointer so that the browser can be destroyed.
-            m_browser = NULL;
-        }
+    if (browser->IsSame(m_browser)) {
+        // Free the browser pointer so that the browser can be destroyed.
+        m_browser = NULL;
+    }
 
-        if (--m_browserCount == 0) {
-            // All browser windows have closed. Quit the application message loop.
-            CefQuitMessageLoop();
-        }
+    if (--m_browserCount == 0) {
+        // All browser windows have closed. Quit the application message loop.
+        CefQuitMessageLoop();
     }
 }
-
-// CefSchemeHandlerFactory methods:
-// -------------------------------------------------------------------------
-CefRefPtr<CefResourceHandler> PDFHandler::Create(
-    CefRefPtr<CefBrowser> browser,
-    CefRefPtr<CefFrame> frame,
-    const CefString& scheme_name,
-    CefRefPtr<CefRequest> request
-) {
-    std::string body = "<h1>Hello World!!!</h1>";
-
-    // Create a stream reader for body.
-    CefRefPtr<CefStreamReader> stream = CefStreamReader::CreateForData(
-        static_cast<void*>(const_cast<char*>(body.c_str())),
-        body.size()
-    );
-
-    return new CefStreamResourceHandler("text/html", stream);
-};
 
 // CefPdfPrintCallback methods:
 // -------------------------------------------------------------------------
 void PDFHandler::OnPdfPrintFinished(const CefString& path, bool ok)
 {
+    std::cout << "OnPdfPrintFinished\n";
+
     CEF_REQUIRE_UI_THREAD();
 
-    m_browser->GetHost()->CloseBrowser(false);
+    m_browser->GetHost()->CloseBrowser(true);
 }
 
 // CefLoadHandler methods:
 // -------------------------------------------------------------------------
 void PDFHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode)
 {
+    std::cout << "OnLoadEnd\n";
+
     CEF_REQUIRE_UI_THREAD();
 
     CefPdfPrintSettings pdfSettings;
