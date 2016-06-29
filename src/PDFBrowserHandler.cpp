@@ -1,45 +1,55 @@
-#include "PDFHandler.h"
-#include <iostream>
-#include "include/cef_app.h"
-#include "include/wrapper/cef_helpers.h"
+#include "PDFBrowserHandler.h"
+#include "PDFRenderHandler.h"
 
-PDFHandler::PDFHandler() {}
+#include "include\cef_app.h"
+#include "include\wrapper\cef_helpers.h"
+
+PDFBrowserHandler::PDFBrowserHandler() {}
 
 // CefClient methods:
 // -------------------------------------------------------------------------
-CefRefPtr<CefLifeSpanHandler> PDFHandler::GetLifeSpanHandler()
+CefRefPtr<CefLifeSpanHandler> PDFBrowserHandler::GetLifeSpanHandler()
 {
     return this;
 }
 
-CefRefPtr<CefLoadHandler> PDFHandler::GetLoadHandler()
+CefRefPtr<CefLoadHandler> PDFBrowserHandler::GetLoadHandler()
 {
     return this;
 }
 
-CefRefPtr<CefRenderHandler> PDFHandler::GetRenderHandler()
+CefRefPtr<CefRenderHandler> PDFBrowserHandler::GetRenderHandler()
 {
-    return this;
+    return new PDFRenderHandler;
 }
 
 // CefLifeSpanHandler methods:
 // -------------------------------------------------------------------------
-void PDFHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
+void PDFBrowserHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 {
-    std::cout << "OnAfterCreated\n";
+    DLOG(INFO) << "PDFBrowserHandler::OnAfterCreated";
 
     CEF_REQUIRE_UI_THREAD();
 
     if (!m_browser.get()) {
         m_browser = browser;
+
+        // set default string encoding to UTF-8
+        CefRefPtr<CefValue> value = CefValue::Create();
+        value->SetString("utf-8");
+
+        CefString error;
+
+        CefRequestContext::GetGlobalContext()
+            ->SetPreference("intl.charset_default", value, error);
     }
 
     m_browserCount++;
 }
 
-bool PDFHandler::DoClose(CefRefPtr<CefBrowser> browser)
+bool PDFBrowserHandler::DoClose(CefRefPtr<CefBrowser> browser)
 {
-    std::cout << "DoClose\n";
+    DLOG(INFO) << "PDFBrowserHandler::DoClose";
 
     CEF_REQUIRE_UI_THREAD();
 
@@ -48,9 +58,9 @@ bool PDFHandler::DoClose(CefRefPtr<CefBrowser> browser)
     return false;
 }
 
-void PDFHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser)
+void PDFBrowserHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser)
 {
-    std::cout << "OnBeforeClose\n";
+    DLOG(INFO) << "PDFBrowserHandler::OnBeforeClose";
 
     CEF_REQUIRE_UI_THREAD();
     DCHECK(m_browser.get());
@@ -68,9 +78,9 @@ void PDFHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser)
 
 // CefPdfPrintCallback methods:
 // -------------------------------------------------------------------------
-void PDFHandler::OnPdfPrintFinished(const CefString& path, bool ok)
+void PDFBrowserHandler::OnPdfPrintFinished(const CefString& path, bool ok)
 {
-    std::cout << "OnPdfPrintFinished\n";
+    DLOG(INFO) << "PDFBrowserHandler::OnPdfPrintFinished";
 
     CEF_REQUIRE_UI_THREAD();
 
@@ -79,9 +89,9 @@ void PDFHandler::OnPdfPrintFinished(const CefString& path, bool ok)
 
 // CefLoadHandler methods:
 // -------------------------------------------------------------------------
-void PDFHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode)
+void PDFBrowserHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode)
 {
-    std::cout << "OnLoadEnd\n";
+    DLOG(INFO) << "PDFBrowserHandler::OnLoadEnd";
 
     CEF_REQUIRE_UI_THREAD();
 
@@ -91,7 +101,7 @@ void PDFHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> fr
     m_browser->GetHost()->PrintToPDF("test.pdf", pdfSettings, this);
 }
 
-void PDFHandler::OnLoadError(
+void PDFBrowserHandler::OnLoadError(
     CefRefPtr<CefBrowser> browser,
     CefRefPtr<CefFrame> frame,
     ErrorCode errorCode,
@@ -106,25 +116,4 @@ void PDFHandler::OnLoadError(
     }
 
     // TODO: Display a load error message.
-}
-
-
-// CefRenderHandler methods:
-// -------------------------------------------------------------------------
-bool PDFHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect)
-{
-    rect.x = 0;
-    rect.y = 0;
-    rect.width = 0;
-    rect.height = 0;
-    return true;
-}
-
-void PDFHandler::OnPaint(
-    CefRefPtr<CefBrowser> browser,
-    CefRenderHandler::PaintElementType type,
-    const CefRenderHandler::RectList& dirtyRects,
-    const void* buffer, int width, int height
-) {
-
 }

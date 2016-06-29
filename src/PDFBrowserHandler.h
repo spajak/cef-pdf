@@ -1,17 +1,17 @@
-#ifndef PDFHANDLER_H
-#define PDFHANDLER_H
+#ifndef PDF_BROWSER_HANDLER_H_
+#define PDF_BROWSER_HANDLER_H_
 
 #include "include/cef_client.h"
+#include "include/cef_browser.h"
 
-class PDFHandler : public CefClient,
-                   public CefLifeSpanHandler,
-                   public CefLoadHandler,
-                   public CefRenderHandler,
-                   public CefPdfPrintCallback
+class PDFBrowserHandler : public CefClient,
+                          public CefLifeSpanHandler,
+                          public CefLoadHandler,
+                          public CefPdfPrintCallback
 {
     public:
 
-    PDFHandler();
+    PDFBrowserHandler();
 
     // CefClient methods:
     virtual CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() OVERRIDE;
@@ -37,23 +37,13 @@ class PDFHandler : public CefClient,
         const CefString& failedUrl
     ) OVERRIDE;
 
-    // CefRenderHandler methods:
-    virtual bool GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) OVERRIDE;
-
-    virtual void OnPaint(
-        CefRefPtr<CefBrowser> browser,
-        CefRenderHandler::PaintElementType type,
-        const CefRenderHandler::RectList& dirtyRects,
-        const void* buffer, int width, int height
-    ) OVERRIDE;
-
     private:
 
     CefRefPtr<CefBrowser> m_browser;
     int m_browserCount = 0;
 
     // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(PDFHandler);
+    IMPLEMENT_REFCOUNTING(PDFBrowserHandler);
 };
 
-#endif // PDFHANDLER_H
+#endif // PDF_BROWSER_HANDLER_H_

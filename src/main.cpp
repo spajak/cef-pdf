@@ -1,17 +1,20 @@
-#include "PDFApp.h"
-#include "include/internal/cef_win.h"
+#include "PDFApplication.h"
 
 int main(int argc, char* argv[])
 {
-    // Structure for passing command-line arguments.
-    // The definition of this structure is platform-specific.
-    CefMainArgs mainArgs(GetModuleHandle(NULL));
+    // Implementation of the CefApp interface.
+    CefRefPtr<CefCommandLine> commandLine = CefCommandLine::CreateCommandLine();
+#if defined(OS_WIN)
+    commandLine->InitFromString(::GetCommandLineW());
+#else
+    commandLine->InitFromArgv(argc, argv);
+#endif
+    CefRefPtr<PDFApplication> app(new PDFApplication(commandLine));
 
-    // Optional implementation of the CefApp interface.
-    CefRefPtr<PDFApp> app(new PDFApp);
 
     // Execute the sub-process logic, if any. This will either return immediately for the browser
     // process or block until the sub-process should exit.
+    CefMainArgs mainArgs;
     int exit_code = CefExecuteProcess(mainArgs, app.get(), NULL);
     if (exit_code >= 0) {
         // The sub-process terminated, exit now.
