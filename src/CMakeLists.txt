@@ -7,7 +7,7 @@
 #
 
 # cef-pdf sources.
-set(CEFPDF_SRCS main.cpp PDFApplication.cpp PDFApplication.h PDFBrowserHandler.cpp PDFBrowserHandler.h PDFRenderHandler.cpp PDFRenderHandler.h StringSchemeHandlerFactory.cpp StringSchemeHandlerFactory.h)
+set(CEFPDF_SRCS main.cpp PDFApplication.cpp PDFApplication.h PDFBrowserHandler.cpp PDFBrowserHandler.h PDFRenderHandler.cpp PDFRenderHandler.h StdInputSchemeHandlerFactory.cpp StdInputSchemeHandlerFactory.h)
 source_group(cef-pdf FILES ${CEFPDF_SRCS})
 
 #

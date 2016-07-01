@@ -11,6 +11,8 @@ class PDFApplication : public CefApp,
     PDFApplication();
     PDFApplication(CefRefPtr<CefCommandLine> commandLine);
 
+    CefString FetchStdInput();
+
     // CefApp methods:
     virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() OVERRIDE;
 

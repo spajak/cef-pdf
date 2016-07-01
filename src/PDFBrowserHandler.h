@@ -11,6 +11,8 @@ class PDFBrowserHandler : public CefClient,
 {
     public:
 
+    enum Method { WWW, FILE, STRING };
+
     PDFBrowserHandler();
 
     // CefClient methods:
@@ -41,6 +43,8 @@ class PDFBrowserHandler : public CefClient,
 
     CefRefPtr<CefBrowser> m_browser;
     int m_browserCount = 0;
+
+    Method m_method;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(PDFBrowserHandler);
