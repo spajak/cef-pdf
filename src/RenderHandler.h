@@ -1,13 +1,13 @@
-#ifndef PDF_RENDER_HANDLER_H_
-#define PDF_RENDER_HANDLER_H_
+#ifndef RENDER_HANDLER_H_
+#define RENDER_HANDLER_H_
 
 #include "include/cef_render_handler.h"
 
-class PDFRenderHandler : public CefRenderHandler
+class RenderHandler : public CefRenderHandler
 {
     public:
 
-    PDFRenderHandler();
+    RenderHandler();
 
     // CefRenderHandler methods:
     virtual bool GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) OVERRIDE;
@@ -22,7 +22,7 @@ class PDFRenderHandler : public CefRenderHandler
     private:
 
     // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(PDFRenderHandler);
+    IMPLEMENT_REFCOUNTING(RenderHandler);
 };
 
-#endif // PDF_RENDER_HANDLER_H_
+#endif // RENDER_HANDLER_H_

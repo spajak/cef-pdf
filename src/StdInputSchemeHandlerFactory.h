@@ -1,5 +1,5 @@
-#ifndef STDINPUTSCHEMEHANDLERFACTORY_H_
-#define STDINPUTSCHEMEHANDLERFACTORY_H_
+#ifndef STD_INPUT_SCHEME_HANDLER_FACTORY_H_
+#define STD_INPUT_SCHEME_HANDLER_FACTORY_H_
 
 #include "include/cef_scheme.h"
 
@@ -24,4 +24,4 @@ class StdInputSchemeHandlerFactory : public CefSchemeHandlerFactory
     IMPLEMENT_REFCOUNTING(StdInputSchemeHandlerFactory);
 };
 
-#endif // STDINPUTSCHEMEHANDLERFACTORY_H_
+#endif // STD_INPUT_SCHEME_HANDLER_FACTORY_H_

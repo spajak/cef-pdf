@@ -1,15 +1,15 @@
-#ifndef PDF_APPLICATION_H_
-#define PDF_APPLICATION_H_
+#ifndef APPLICATION_H_
+#define APPLICATION_H_
 
 #include "include/cef_app.h"
 
-class PDFApplication : public CefApp,
-                       public CefBrowserProcessHandler
+class Application : public CefApp,
+                    public CefBrowserProcessHandler
 {
     public:
 
-    PDFApplication();
-    PDFApplication(CefRefPtr<CefCommandLine> commandLine);
+    Application();
+    Application(CefRefPtr<CefCommandLine> commandLine);
 
     CefString FetchStdInput();
 
@@ -24,7 +24,7 @@ class PDFApplication : public CefApp,
     CefRefPtr<CefCommandLine> m_commandLine;
 
     // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(PDFApplication);
+    IMPLEMENT_REFCOUNTING(Application);
 };
 
-#endif // PDF_APPLICATION_H_
+#endif // APPLICATION_H_

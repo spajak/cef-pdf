@@ -1,5 +1,5 @@
-#include "PDFApplication.h"
-#include "PDFBrowserHandler.h"
+#include "Application.h"
+#include "BrowserHandler.h"
 #include "StdInputSchemeHandlerFactory.h"
 
 #include <string>
@@ -7,21 +7,21 @@
 #include "include/wrapper/cef_helpers.h"
 
 
-PDFApplication::PDFApplication() {}
+Application::Application() {}
 
-PDFApplication::PDFApplication(CefRefPtr<CefCommandLine> commandLine)
+Application::Application(CefRefPtr<CefCommandLine> commandLine)
 {
     m_commandLine = commandLine;
 }
 
-CefRefPtr<CefBrowserProcessHandler> PDFApplication::GetBrowserProcessHandler()
+CefRefPtr<CefBrowserProcessHandler> Application::GetBrowserProcessHandler()
 {
     return this;
 }
 
-void PDFApplication::OnContextInitialized()
+void Application::OnContextInitialized()
 {
-    DLOG(INFO) << "PDFApplication::OnContextInitialized";
+    DLOG(INFO) << "Application::OnContextInitialized";
 
     CEF_REQUIRE_UI_THREAD();
 
@@ -35,7 +35,7 @@ void PDFApplication::OnContextInitialized()
     windowInfo.windowless_rendering_enabled = true;
     windowInfo.transparent_painting_enabled = false;
 
-    //PDFBrowserHandler::Method method;
+    //BrowserHandler::Method method;
     CefString url;
 
     if (m_commandLine->HasSwitch("url")) {
@@ -44,7 +44,7 @@ void PDFApplication::OnContextInitialized()
         url = "stdin://get";
     }
 
-    CefRefPtr<PDFBrowserHandler> client(new PDFBrowserHandler());
+    CefRefPtr<BrowserHandler> client(new BrowserHandler());
 
     // Specify CEF browser settings here.
     CefBrowserSettings browserSettings;

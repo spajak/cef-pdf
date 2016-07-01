@@ -1,19 +1,19 @@
-#ifndef PDF_BROWSER_HANDLER_H_
-#define PDF_BROWSER_HANDLER_H_
+#ifndef BROWSER_HANDLER_H_
+#define BROWSER_HANDLER_H_
 
 #include "include/cef_client.h"
 #include "include/cef_browser.h"
 
-class PDFBrowserHandler : public CefClient,
-                          public CefLifeSpanHandler,
-                          public CefLoadHandler,
-                          public CefPdfPrintCallback
+class BrowserHandler : public CefClient,
+                       public CefLifeSpanHandler,
+                       public CefLoadHandler,
+                       public CefPdfPrintCallback
 {
     public:
 
     enum Method { WWW, FILE, STRING };
 
-    PDFBrowserHandler();
+    BrowserHandler();
 
     // CefClient methods:
     virtual CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() OVERRIDE;
@@ -47,7 +47,7 @@ class PDFBrowserHandler : public CefClient,
     Method m_method;
 
     // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(PDFBrowserHandler);
+    IMPLEMENT_REFCOUNTING(BrowserHandler);
 };
 
-#endif // PDF_BROWSER_HANDLER_H_
+#endif // BROWSER_HANDLER_H_

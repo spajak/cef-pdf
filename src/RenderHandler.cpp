@@ -1,10 +1,10 @@
-#include "PDFRenderHandler.h"
+#include "RenderHandler.h"
 
-PDFRenderHandler::PDFRenderHandler() {}
+RenderHandler::RenderHandler() {}
 
 // CefRenderHandler methods:
 // -------------------------------------------------------------------------
-bool PDFRenderHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect)
+bool RenderHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect)
 {
     rect.x = 0;
     rect.y = 0;
@@ -13,7 +13,7 @@ bool PDFRenderHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect)
     return true;
 }
 
-void PDFRenderHandler::OnPaint(
+void RenderHandler::OnPaint(
     CefRefPtr<CefBrowser> browser,
     CefRenderHandler::PaintElementType type,
     const CefRenderHandler::RectList& dirtyRects,

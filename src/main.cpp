@@ -1,4 +1,4 @@
-#include "PDFApplication.h"
+#include "Application.h"
 
 int main(int argc, char* argv[])
 {
@@ -9,7 +9,7 @@ int main(int argc, char* argv[])
 #else
     commandLine->InitFromArgv(argc, argv);
 #endif
-    CefRefPtr<PDFApplication> app(new PDFApplication(commandLine));
+    CefRefPtr<Application> app(new Application(commandLine));
 
 
     // Execute the sub-process logic, if any. This will either return immediately for the browser
