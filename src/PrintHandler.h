@@ -7,6 +7,10 @@ class PrintHandler : public CefPrintHandler
 {
     public:
 
+    struct PaperSize { int width; int height; };
+
+    static std::map<CefString, PaperSize> paperSizes;
+
     PrintHandler();
 
     // CefPrintHandler methods:

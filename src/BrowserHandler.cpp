@@ -4,7 +4,10 @@
 #include "include\cef_app.h"
 #include "include\wrapper\cef_helpers.h"
 
-BrowserHandler::BrowserHandler() {}
+BrowserHandler::BrowserHandler(const PDFParameters parameters)
+{
+    m_parameters = parameters;
+}
 
 // CefClient methods:
 // -------------------------------------------------------------------------
@@ -95,14 +98,21 @@ void BrowserHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame
 
     CEF_REQUIRE_UI_THREAD();
 
-    CefPdfPrintSettings pdfSettings;
-    pdfSettings.backgrounds_enabled = true;
-    pdfSettings.page_width = m_paperSizes["A5"].width;
-    pdfSettings.page_height = m_paperSizes["A5"].height;
+    if (frame->GetURL() == m_parameters.url) {
+        PrintHandler::PaperSize paperSize = PrintHandler::paperSizes[m_parameters.paperSize];
 
-    DLOG(INFO) << m_paperSizes["A5"].width << " x " << m_paperSizes["A5"].height;
+        CefPdfPrintSettings pdfSettings;
+        pdfSettings.backgrounds_enabled = true;
+        pdfSettings.page_width = paperSize.width;
+        pdfSettings.page_height = paperSize.height;
+        pdfSettings.landscape = m_parameters.landscape;
 
-    m_browser->GetHost()->PrintToPDF("test.pdf", pdfSettings, this);
+        // Save page to file
+        m_browser->GetHost()->PrintToPDF(m_parameters.output, pdfSettings, this);
+    } else {
+        // Load page from URL
+        m_browser->GetMainFrame()->LoadURL(m_parameters.url);
+    }
 }
 
 void BrowserHandler::OnLoadError(

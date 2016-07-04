@@ -36,22 +36,32 @@ void Application::OnContextInitialized()
     windowInfo.windowless_rendering_enabled = true;
     windowInfo.transparent_painting_enabled = false;
 
-    //BrowserHandler::Method method;
-    CefString url;
+    // PDF parameters
+    BrowserHandler::PDFParameters parameters;
 
     if (m_commandLine->HasSwitch("url")) {
-        url = m_commandLine->GetSwitchValue("url");
-    } else {
-        url = "stdin://get";
+        parameters.url = m_commandLine->GetSwitchValue("url");
     }
 
-    CefRefPtr<BrowserHandler> client(new BrowserHandler());
+    if (m_commandLine->HasSwitch("output")) {
+        parameters.output = m_commandLine->GetSwitchValue("output");
+    }
+
+    if (m_commandLine->HasSwitch("paper-size")) {
+        parameters.paperSize = m_commandLine->GetSwitchValue("paper-size");
+    }
+
+    if (m_commandLine->HasSwitch("landscape")) {
+        parameters.landscape = true;
+    }
+
+    CefRefPtr<BrowserHandler> client(new BrowserHandler(parameters));
 
     // Specify CEF browser settings here.
     CefBrowserSettings browserSettings;
 
     // Create the first browser window.
-    CefBrowserHost::CreateBrowser(windowInfo, client.get(), url, browserSettings, NULL);
+    CefBrowserHost::CreateBrowser(windowInfo, client.get(), "about:blank", browserSettings, NULL);
 }
 
 CefRefPtr<CefPrintHandler> Application::GetPrintHandler()

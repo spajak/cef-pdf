@@ -1,6 +1,7 @@
 #ifndef BROWSER_HANDLER_H_
 #define BROWSER_HANDLER_H_
 
+#include "PrintHandler.h"
 #include "include/cef_client.h"
 #include "include/cef_browser.h"
 
@@ -11,9 +12,15 @@ class BrowserHandler : public CefClient,
 {
     public:
 
-    enum class Orientation { PORTRAIT, LANSCAPE };
+    struct PDFParameters
+    {
+        CefString url = "stdin://get";
+        CefString output = "output.pdf";
+        bool landscape = false;
+        CefString paperSize = "A4";
+    };
 
-    BrowserHandler();
+    BrowserHandler(const PDFParameters parameters);
 
     // CefClient methods:
     virtual CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() OVERRIDE;
@@ -41,21 +48,9 @@ class BrowserHandler : public CefClient,
 
     private:
 
-    struct PaperSize { int width; int height; };
-
-    std::map<CefString, PaperSize> m_paperSizes = {
-        {"A4", {210000, 297000}},
-        {"A5", {148000, 210000}}
-    };
-
     CefRefPtr<CefBrowser> m_browser;
     int m_browserCount = 0;
-
-    Orientation m_orientation = Orientation::PORTRAIT;
-    CefString m_paperSize = "A4";
-
-
-
+    PDFParameters m_parameters;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(BrowserHandler);
