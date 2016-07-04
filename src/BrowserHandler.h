@@ -32,12 +32,9 @@ class BrowserHandler : public CefClient,
     virtual bool DoClose(CefRefPtr<CefBrowser> browser) OVERRIDE;
     virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) OVERRIDE;
 
-    // CefPdfPrintCallback methods:
-    virtual void OnPdfPrintFinished(const CefString& path, bool ok);
-
     // CefLoadHandler methods:
+    virtual void OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame) OVERRIDE;
     virtual void OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode) OVERRIDE;
-
     virtual void OnLoadError(
         CefRefPtr<CefBrowser> browser,
         CefRefPtr<CefFrame> frame,
@@ -45,6 +42,9 @@ class BrowserHandler : public CefClient,
         const CefString& errorText,
         const CefString& failedUrl
     ) OVERRIDE;
+
+    // CefPdfPrintCallback methods:
+    virtual void OnPdfPrintFinished(const CefString& path, bool ok);
 
     private:
 

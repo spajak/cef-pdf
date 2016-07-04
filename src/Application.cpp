@@ -22,7 +22,7 @@ CefRefPtr<CefBrowserProcessHandler> Application::GetBrowserProcessHandler()
 
 void Application::OnContextInitialized()
 {
-    DLOG(INFO) << "Application::OnContextInitialized";
+    DLOG(INFO) << "OnContextInitialized";
 
     CEF_REQUIRE_UI_THREAD();
 
@@ -30,6 +30,13 @@ void Application::OnContextInitialized()
     // stdin://get to be generated from user provided standard input.
     CefRefPtr<StdInputSchemeHandlerFactory> factory(new StdInputSchemeHandlerFactory);
     CefRegisterSchemeHandlerFactory("stdin", "get", factory.get());
+
+    // Set default string encoding to UTF-8
+    CefRefPtr<CefValue> value = CefValue::Create();
+    value->SetString("utf-8");
+    CefString error;
+    CefRequestContext::GetGlobalContext()
+        ->SetPreference("intl.charset_default", value, error);
 
     // Information used when creating the native window.
     CefWindowInfo windowInfo;

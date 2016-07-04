@@ -9,6 +9,8 @@ BrowserHandler::BrowserHandler(const PDFParameters parameters)
     m_parameters = parameters;
 }
 
+//BrowserHandler::CreatePDF()
+
 // CefClient methods:
 // -------------------------------------------------------------------------
 CefRefPtr<CefLifeSpanHandler> BrowserHandler::GetLifeSpanHandler()
@@ -30,21 +32,12 @@ CefRefPtr<CefRenderHandler> BrowserHandler::GetRenderHandler()
 // -------------------------------------------------------------------------
 void BrowserHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 {
-    DLOG(INFO) << "BrowserHandler::OnAfterCreated";
+    DLOG(INFO) << "OnAfterCreated";
 
     CEF_REQUIRE_UI_THREAD();
 
     if (!m_browser.get()) {
         m_browser = browser;
-
-        // set default string encoding to UTF-8
-        CefRefPtr<CefValue> value = CefValue::Create();
-        value->SetString("utf-8");
-
-        CefString error;
-
-        CefRequestContext::GetGlobalContext()
-            ->SetPreference("intl.charset_default", value, error);
     }
 
     m_browserCount++;
@@ -52,7 +45,7 @@ void BrowserHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 
 bool BrowserHandler::DoClose(CefRefPtr<CefBrowser> browser)
 {
-    DLOG(INFO) << "BrowserHandler::DoClose";
+    DLOG(INFO) << "DoClose";
 
     CEF_REQUIRE_UI_THREAD();
 
@@ -63,7 +56,7 @@ bool BrowserHandler::DoClose(CefRefPtr<CefBrowser> browser)
 
 void BrowserHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser)
 {
-    DLOG(INFO) << "BrowserHandler::OnBeforeClose";
+    DLOG(INFO) << "OnBeforeClose";
 
     CEF_REQUIRE_UI_THREAD();
     DCHECK(m_browser.get());
@@ -79,39 +72,37 @@ void BrowserHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser)
     }
 }
 
-// CefPdfPrintCallback methods:
-// -------------------------------------------------------------------------
-void BrowserHandler::OnPdfPrintFinished(const CefString& path, bool ok)
-{
-    DLOG(INFO) << "BrowserHandler::OnPdfPrintFinished";
-
-    CEF_REQUIRE_UI_THREAD();
-
-    m_browser->GetHost()->CloseBrowser(true);
-}
-
 // CefLoadHandler methods:
 // -------------------------------------------------------------------------
+void BrowserHandler::OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame)
+{
+    DLOG(INFO) << "OnLoadStart" << ", url: " << frame->GetURL().ToString();
+
+    CEF_REQUIRE_UI_THREAD();
+}
+
 void BrowserHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode)
 {
-    DLOG(INFO) << "BrowserHandler::OnLoadEnd";
+    DLOG(INFO) << "OnLoadEnd" << ", httpStatusCode: " << httpStatusCode;
 
     CEF_REQUIRE_UI_THREAD();
 
-    if (frame->GetURL() == m_parameters.url) {
-        PrintHandler::PaperSize paperSize = PrintHandler::paperSizes[m_parameters.paperSize];
+    if (frame->IsMain()) {
+        if (frame->GetURL() == m_parameters.url) {
+            PrintHandler::PaperSize paperSize = PrintHandler::paperSizes[m_parameters.paperSize];
 
-        CefPdfPrintSettings pdfSettings;
-        pdfSettings.backgrounds_enabled = true;
-        pdfSettings.page_width = paperSize.width;
-        pdfSettings.page_height = paperSize.height;
-        pdfSettings.landscape = m_parameters.landscape;
+            CefPdfPrintSettings pdfSettings;
+            pdfSettings.backgrounds_enabled = true;
+            pdfSettings.page_width = paperSize.width;
+            pdfSettings.page_height = paperSize.height;
+            pdfSettings.landscape = m_parameters.landscape;
 
-        // Save page to file
-        m_browser->GetHost()->PrintToPDF(m_parameters.output, pdfSettings, this);
-    } else {
-        // Load page from URL
-        m_browser->GetMainFrame()->LoadURL(m_parameters.url);
+            // Save page to file
+            m_browser->GetHost()->PrintToPDF(m_parameters.output, pdfSettings, this);
+        } else {
+            // Load page from URL
+            m_browser->GetMainFrame()->LoadURL(m_parameters.url);
+        }
     }
 }
 
@@ -122,6 +113,14 @@ void BrowserHandler::OnLoadError(
     const CefString& errorText,
     const CefString& failedUrl
 ) {
+    CefString _errorText(errorText.empty() ? "None" : errorText);
+
+    DLOG(INFO)
+        << "OnLoadError"
+        << ", errorCode: " << errorCode
+        << ", errorText: " << _errorText.ToString()
+        << ", failedUrl: " << failedUrl.ToString();
+
     CEF_REQUIRE_UI_THREAD();
 
     // Don't display an error for downloaded files.
@@ -129,5 +128,19 @@ void BrowserHandler::OnLoadError(
         return;
     }
 
-    // TODO: Display a load error message.
+    LOG(ERROR) << _errorText.ToString() << " " << failedUrl.ToString();
+}
+
+// CefPdfPrintCallback methods:
+// -------------------------------------------------------------------------
+void BrowserHandler::OnPdfPrintFinished(const CefString& path, bool ok)
+{
+    DLOG(INFO)
+        << "OnPdfPrintFinished"
+        << ", path: " << path.ToString()
+        << ", ok: " << ok;
+
+    CEF_REQUIRE_UI_THREAD();
+
+    m_browser->GetHost()->CloseBrowser(false);
 }
