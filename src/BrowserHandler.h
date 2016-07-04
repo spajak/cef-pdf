@@ -11,7 +11,7 @@ class BrowserHandler : public CefClient,
 {
     public:
 
-    enum Method { WWW, FILE, STRING };
+    enum class Orientation { PORTRAIT, LANSCAPE };
 
     BrowserHandler();
 
@@ -41,10 +41,21 @@ class BrowserHandler : public CefClient,
 
     private:
 
+    struct PaperSize { int width; int height; };
+
+    std::map<CefString, PaperSize> m_paperSizes = {
+        {"A4", {210000, 297000}},
+        {"A5", {148000, 210000}}
+    };
+
     CefRefPtr<CefBrowser> m_browser;
     int m_browserCount = 0;
 
-    Method m_method;
+    Orientation m_orientation = Orientation::PORTRAIT;
+    CefString m_paperSize = "A4";
+
+
+
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(BrowserHandler);

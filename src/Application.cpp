@@ -1,6 +1,7 @@
 #include "Application.h"
 #include "BrowserHandler.h"
 #include "StdInputSchemeHandlerFactory.h"
+#include "PrintHandler.h"
 
 #include <string>
 #include <iostream>
@@ -51,4 +52,9 @@ void Application::OnContextInitialized()
 
     // Create the first browser window.
     CefBrowserHost::CreateBrowser(windowInfo, client.get(), url, browserSettings, NULL);
+}
+
+CefRefPtr<CefPrintHandler> Application::GetPrintHandler()
+{
+    return new PrintHandler;
 }

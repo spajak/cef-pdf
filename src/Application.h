@@ -11,13 +11,13 @@ class Application : public CefApp,
     Application();
     Application(CefRefPtr<CefCommandLine> commandLine);
 
-    CefString FetchStdInput();
-
     // CefApp methods:
     virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() OVERRIDE;
 
     // CefBrowserProcessHandler methods:
     virtual void OnContextInitialized() OVERRIDE;
+
+    virtual CefRefPtr<CefPrintHandler> GetPrintHandler() OVERRIDE;
 
     private:
 

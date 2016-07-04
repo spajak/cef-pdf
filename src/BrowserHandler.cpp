@@ -97,6 +97,10 @@ void BrowserHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame
 
     CefPdfPrintSettings pdfSettings;
     pdfSettings.backgrounds_enabled = true;
+    pdfSettings.page_width = m_paperSizes["A5"].width;
+    pdfSettings.page_height = m_paperSizes["A5"].height;
+
+    DLOG(INFO) << m_paperSizes["A5"].width << " x " << m_paperSizes["A5"].height;
 
     m_browser->GetHost()->PrintToPDF("test.pdf", pdfSettings, this);
 }
