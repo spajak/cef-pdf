@@ -3,12 +3,78 @@
 #include "StdInputSchemeHandlerFactory.h"
 #include "PrintHandler.h"
 
-#include <string>
-#include <iostream>
 #include "include/wrapper/cef_helpers.h"
+#include <string>
+#include <functional>
+#include <cctype>
 
+template<>
+struct Application::PaperSizeHash<CefString>
+{
+    std::size_t operator()(CefString const& s) const
+    {
+        std::string str = s.ToString();
+        std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c) { return std::tolower(c); });
+        return std::hash<std::string>()(str);
+    }
+};
 
-Application::Application() {}
+template<>
+struct Application::PaperSizeEqKey<CefString>
+{
+    bool operator()(const CefString& lhs, const CefString& rhs) const
+    {
+        if (lhs.size() != rhs.size()) {
+            return false;
+        }
+
+        for (int i = 0; i < lhs.length(); ++i) {
+            if (std::tolower(lhs.ToString()[i]) != std::tolower(rhs.ToString()[i])) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+};
+
+Application::PaperSizes Application::paperSizes = {
+    {"A0",  {841000,  1189000}},
+    {"A1",  {594000,   841000}},
+    {"A2",  {420000,   594000}},
+    {"A3",  {297000,   420000}},
+    {"A4",  {210000,   297000}},
+    {"A5",  {148000,   210000}},
+    {"A6",  {105000,   148000}},
+    {"A7",  {74000,    105000}},
+    {"A8",  {52000,     74000}},
+    {"A9",  {37000,     52000}},
+    {"A10", {26000,     37000}},
+
+    {"B0",  {1000000, 1414000}},
+    {"B1",  {707000,  1000000}},
+    {"B2",  {500000,   707000}},
+    {"B3",  {353000,   500000}},
+    {"B4",  {250000,   353000}},
+    {"B5",  {176000,   250000}},
+    {"B6",  {125000,   176000}},
+    {"B7",  {88000,    125000}},
+    {"B8",  {62000,     88000}},
+    {"B9",  {44000,     62000}},
+    {"B10", {31000,     44000}},
+
+    {"C0",  {917000,  1297000}},
+    {"C1",  {648000,   917000}},
+    {"C2",  {458000,   648000}},
+    {"C3",  {324000,   458000}},
+    {"C4",  {229000,   324000}},
+    {"C5",  {162000,   229000}},
+    {"C6",  {114000,   162000}},
+    {"C7",  {81000,    114000}},
+    {"C8",  {57000,     81000}},
+    {"C9",  {40000,     57000}},
+    {"C10", {28000,     40000}},
+};
 
 Application::Application(CefRefPtr<CefCommandLine> commandLine)
 {
@@ -38,37 +104,64 @@ void Application::OnContextInitialized()
     CefRequestContext::GetGlobalContext()
         ->SetPreference("intl.charset_default", value, error);
 
+    CreatePDF();
+}
+
+void Application::CreatePDF()
+{
+    CefString url = "stdin://get";
+
+    if (m_commandLine->HasSwitch("url")) {
+        url = m_commandLine->GetSwitchValue("url");
+    }
+
+    CefString output = "output.pdf";
+
+    if (m_commandLine->HasSwitch("output")) {
+        output = m_commandLine->GetSwitchValue("output");
+    }
+
+    CefPdfPrintSettings pdfSettings;
+    pdfSettings.backgrounds_enabled = true;
+    pdfSettings.landscape = false;
+
+    CefString paperSize = "A4";
+
+    if (m_commandLine->HasSwitch("paper-size")) {
+        paperSize = m_commandLine->GetSwitchValue("paper-size");
+        if (paperSize.empty()) {
+            LOG(ERROR) << "Paper size not specified";
+            CefQuitMessageLoop();
+            return;
+        }
+    }
+
+    PaperSizes::iterator it = paperSizes.find(paperSize);
+    if (it != paperSizes.end()) {
+        pdfSettings.page_width = it->second.first;
+        pdfSettings.page_height = it->second.second;
+    } else {
+        LOG(ERROR) << "Paper size " << paperSize.ToString() << " is not defined";
+        CefQuitMessageLoop();
+        return;
+    }
+
+    if (m_commandLine->HasSwitch("landscape")) {
+        pdfSettings.landscape = true;
+    }
+
+    CefRefPtr<BrowserHandler> handler(new BrowserHandler(url, output, pdfSettings));
+
     // Information used when creating the native window.
     CefWindowInfo windowInfo;
     windowInfo.windowless_rendering_enabled = true;
     windowInfo.transparent_painting_enabled = false;
 
-    // PDF parameters
-    BrowserHandler::PDFParameters parameters;
-
-    if (m_commandLine->HasSwitch("url")) {
-        parameters.url = m_commandLine->GetSwitchValue("url");
-    }
-
-    if (m_commandLine->HasSwitch("output")) {
-        parameters.output = m_commandLine->GetSwitchValue("output");
-    }
-
-    if (m_commandLine->HasSwitch("paper-size")) {
-        parameters.paperSize = m_commandLine->GetSwitchValue("paper-size");
-    }
-
-    if (m_commandLine->HasSwitch("landscape")) {
-        parameters.landscape = true;
-    }
-
-    CefRefPtr<BrowserHandler> client(new BrowserHandler(parameters));
-
     // Specify CEF browser settings here.
     CefBrowserSettings browserSettings;
 
-    // Create the first browser window.
-    CefBrowserHost::CreateBrowser(windowInfo, client.get(), "about:blank", browserSettings, NULL);
+    // Create the browser window.
+    CefBrowserHost::CreateBrowser(windowInfo, handler.get(), url, browserSettings, NULL);
 }
 
 CefRefPtr<CefPrintHandler> Application::GetPrintHandler()

@@ -1,15 +1,18 @@
 #include "BrowserHandler.h"
 #include "RenderHandler.h"
 
-#include "include\cef_app.h"
-#include "include\wrapper\cef_helpers.h"
+#include "include/cef_app.h"
+#include "include/wrapper/cef_helpers.h"
 
-BrowserHandler::BrowserHandler(const PDFParameters parameters)
-{
-    m_parameters = parameters;
+BrowserHandler::BrowserHandler(
+    const CefString& url,
+    const CefString& output,
+    CefPdfPrintSettings pdfSettings
+) {
+    m_url = url;
+    m_output = output;
+    m_pdfSettings = pdfSettings;
 }
-
-//BrowserHandler::CreatePDF()
 
 // CefClient methods:
 // -------------------------------------------------------------------------
@@ -88,20 +91,12 @@ void BrowserHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame
     CEF_REQUIRE_UI_THREAD();
 
     if (frame->IsMain()) {
-        if (frame->GetURL() == m_parameters.url) {
-            PrintHandler::PaperSize paperSize = PrintHandler::paperSizes[m_parameters.paperSize];
-
-            CefPdfPrintSettings pdfSettings;
-            pdfSettings.backgrounds_enabled = true;
-            pdfSettings.page_width = paperSize.width;
-            pdfSettings.page_height = paperSize.height;
-            pdfSettings.landscape = m_parameters.landscape;
-
+        if (frame->GetURL() == m_url) {
             // Save page to file
-            m_browser->GetHost()->PrintToPDF(m_parameters.output, pdfSettings, this);
+            m_browser->GetHost()->PrintToPDF(m_output, m_pdfSettings, this);
         } else {
             // Load page from URL
-            m_browser->GetMainFrame()->LoadURL(m_parameters.url);
+            m_browser->GetMainFrame()->LoadURL(m_url);
         }
     }
 }
@@ -129,6 +124,9 @@ void BrowserHandler::OnLoadError(
     }
 
     LOG(ERROR) << _errorText.ToString() << " " << failedUrl.ToString();
+
+    m_browser->GetMainFrame()->LoadString("Error loading page", failedUrl);
+    m_browser->GetHost()->PrintToPDF(m_output, m_pdfSettings, this);
 }
 
 // CefPdfPrintCallback methods:
