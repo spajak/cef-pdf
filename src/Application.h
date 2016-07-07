@@ -30,11 +30,15 @@ class Application : public CefApp,
     // CefBrowserProcessHandler methods:
     virtual void OnContextInitialized() OVERRIDE;
 
+    virtual void OnBeforeChildProcessLaunch(CefRefPtr<CefCommandLine> command_line) OVERRIDE;
+
     virtual CefRefPtr<CefPrintHandler> GetPrintHandler() OVERRIDE;
 
     private:
 
     void CreatePDF();
+
+    CefPdfPrintSettings GetPdfSettings();
 
     CefRefPtr<CefCommandLine> m_commandLine;
 

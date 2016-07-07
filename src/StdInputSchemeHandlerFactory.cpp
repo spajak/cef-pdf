@@ -16,8 +16,15 @@ CefRefPtr<CefStreamReader> StdInputSchemeHandlerFactory::GetStdInputStream()
         input.append(line + "\n");
     }
 
-    CefRefPtr<CefStreamReader> stream = CefStreamReader::CreateForData(
-        const_cast<void *>(static_cast<const void *>(input.c_str())), input.size()
+    CefRefPtr<CefStreamReader> stream;
+
+    if (input.size() == 0) {
+        input = "<!DOCTYPE html>\n";
+    }
+
+    stream = CefStreamReader::CreateForData(
+        const_cast<void *>(static_cast<const void *>(input.c_str())),
+        input.size()
     );
 
     return stream;

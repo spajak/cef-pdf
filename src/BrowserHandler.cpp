@@ -3,6 +3,7 @@
 
 #include "include/cef_app.h"
 #include "include/wrapper/cef_helpers.h"
+#include <iostream>
 
 BrowserHandler::BrowserHandler(
     const CefString& url,
@@ -123,7 +124,7 @@ void BrowserHandler::OnLoadError(
         return;
     }
 
-    LOG(ERROR) << _errorText.ToString() << " " << failedUrl.ToString();
+    std::cerr << _errorText.ToString() << " " << failedUrl.ToString();
 
     m_browser->GetMainFrame()->LoadString("Error loading page", failedUrl);
     m_browser->GetHost()->PrintToPDF(m_output, m_pdfSettings, this);
