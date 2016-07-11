@@ -18,7 +18,9 @@ set(CEFPDF_SRCS
     StdInputSchemeHandlerFactory.cpp
     StdInputSchemeHandlerFactory.h
     PrintHandler.cpp
-    PrintHandler.h)
+    PrintHandler.h
+    PdfPrintCallback.cpp
+    PdfPrintCallback.h)
 
 source_group(cef-pdf FILES ${CEFPDF_SRCS})
 
