@@ -1,5 +1,6 @@
 #include "BrowserHandler.h"
 #include "RenderHandler.h"
+#include "PdfPrintCallback.h"
 
 #include "include/cef_app.h"
 #include "include/wrapper/cef_helpers.h"
@@ -13,6 +14,26 @@ BrowserHandler::BrowserHandler(
     m_url = url;
     m_output = output;
     m_pdfSettings = pdfSettings;
+    m_renderHandler = new RenderHandler;
+}
+
+void BrowserHandler::LoadAndSaveToPDF(
+    const CefString& url,
+    const CefString& output,
+    CefPdfPrintSettings pdfSettings
+) {
+    CefRefPtr<CefClient> handler(new BrowserHandler(url, output, pdfSettings));
+
+    // Information used when creating the native window.
+    CefWindowInfo windowInfo;
+    windowInfo.windowless_rendering_enabled = true;
+    windowInfo.transparent_painting_enabled = false;
+
+    // Specify CEF browser settings here.
+    CefBrowserSettings browserSettings;
+
+    // Create the browser window.
+    CefBrowserHost::CreateBrowser(windowInfo, handler.get(), url, browserSettings, NULL);
 }
 
 // CefClient methods:
@@ -29,7 +50,7 @@ CefRefPtr<CefLoadHandler> BrowserHandler::GetLoadHandler()
 
 CefRefPtr<CefRenderHandler> BrowserHandler::GetRenderHandler()
 {
-    return new RenderHandler;
+    return m_renderHandler;
 }
 
 // CefLifeSpanHandler methods:
@@ -39,10 +60,6 @@ void BrowserHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
     DLOG(INFO) << "OnAfterCreated";
 
     CEF_REQUIRE_UI_THREAD();
-
-    if (!m_browser.get()) {
-        m_browser = browser;
-    }
 
     m_browserCount++;
 }
@@ -63,12 +80,6 @@ void BrowserHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser)
     DLOG(INFO) << "OnBeforeClose";
 
     CEF_REQUIRE_UI_THREAD();
-    DCHECK(m_browser.get());
-
-    if (browser->IsSame(m_browser)) {
-        // Free the browser pointer so that the browser can be destroyed.
-        m_browser = NULL;
-    }
 
     if (--m_browserCount == 0) {
         // All browser windows have closed. Quit the application message loop.
@@ -94,10 +105,7 @@ void BrowserHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame
     if (frame->IsMain()) {
         if (frame->GetURL() == m_url) {
             // Save page to file
-            m_browser->GetHost()->PrintToPDF(m_output, m_pdfSettings, this);
-        } else {
-            // Load page from URL
-            m_browser->GetMainFrame()->LoadURL(m_url);
+            browser->GetHost()->PrintToPDF(m_output, m_pdfSettings, new PdfPrintCallback(browser));
         }
     }
 }
@@ -124,22 +132,7 @@ void BrowserHandler::OnLoadError(
         return;
     }
 
-    std::cerr << _errorText.ToString() << " " << failedUrl.ToString();
-
-    m_browser->GetMainFrame()->LoadString("Error loading page", failedUrl);
-    m_browser->GetHost()->PrintToPDF(m_output, m_pdfSettings, this);
-}
-
-// CefPdfPrintCallback methods:
-// -------------------------------------------------------------------------
-void BrowserHandler::OnPdfPrintFinished(const CefString& path, bool ok)
-{
-    DLOG(INFO)
-        << "OnPdfPrintFinished"
-        << ", path: " << path.ToString()
-        << ", ok: " << ok;
-
-    CEF_REQUIRE_UI_THREAD();
-
-    m_browser->GetHost()->CloseBrowser(false);
+    if (frame->IsMain()) {
+        std::cerr << _errorText.ToString() << " " << failedUrl.ToString();
+    }
 }

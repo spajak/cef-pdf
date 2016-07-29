@@ -2,6 +2,11 @@
 #define APPLICATION_H_
 
 #include "include/cef_app.h"
+
+#include "Utils.h"
+#include "PrintHandler.h"
+#include "BrowserHandler.h"
+
 #include <utility>
 #include <unordered_map>
 
@@ -10,14 +15,11 @@ class Application : public CefApp,
 {
     public:
 
-    template <class T> struct PaperSizeHash;
-    template <class T> struct PaperSizeEqKey;
-
     typedef std::unordered_map<
         CefString,
         std::pair<int, int>,
-        PaperSizeHash<CefString>,
-        PaperSizeEqKey<CefString>
+        CIHash,
+        CIEqual
     > PaperSizes;
 
     static PaperSizes paperSizes;
@@ -28,19 +30,22 @@ class Application : public CefApp,
     virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() OVERRIDE;
 
     // CefBrowserProcessHandler methods:
+    virtual CefRefPtr<CefPrintHandler> GetPrintHandler() OVERRIDE;
+
     virtual void OnContextInitialized() OVERRIDE;
 
     virtual void OnBeforeChildProcessLaunch(CefRefPtr<CefCommandLine> command_line) OVERRIDE;
 
-    virtual CefRefPtr<CefPrintHandler> GetPrintHandler() OVERRIDE;
 
     private:
 
-    void CreatePDF();
+    CefRefPtr<CefPrintHandler> m_printHandler;
 
     CefPdfPrintSettings GetPdfSettings();
 
     CefRefPtr<CefCommandLine> m_commandLine;
+
+    CefRefPtr<BrowserHandler> m_handler;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(Application);

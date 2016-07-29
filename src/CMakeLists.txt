@@ -9,6 +9,8 @@
 # cef-pdf sources.
 set(CEFPDF_SRCS
     main.cpp
+    Utils.cpp
+    Utils.h
     Application.cpp
     Application.h
     BrowserHandler.cpp

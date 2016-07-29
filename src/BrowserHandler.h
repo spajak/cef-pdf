@@ -6,12 +6,17 @@
 
 class BrowserHandler : public CefClient,
                        public CefLifeSpanHandler,
-                       public CefLoadHandler,
-                       public CefPdfPrintCallback
+                       public CefLoadHandler
 {
     public:
 
     BrowserHandler(
+        const CefString& url,
+        const CefString& output,
+        CefPdfPrintSettings pdfSettings
+    );
+
+    static void LoadAndSaveToPDF(
         const CefString& url,
         const CefString& output,
         CefPdfPrintSettings pdfSettings
@@ -38,16 +43,13 @@ class BrowserHandler : public CefClient,
         const CefString& failedUrl
     ) OVERRIDE;
 
-    // CefPdfPrintCallback methods:
-    virtual void OnPdfPrintFinished(const CefString& path, bool ok);
-
     private:
 
-    CefRefPtr<CefBrowser> m_browser;
-    int m_browserCount = 0;
+    CefRefPtr<CefRenderHandler> m_renderHandler;
     CefString m_url;
     CefString m_output;
     CefPdfPrintSettings m_pdfSettings;
+    int m_browserCount = 0;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(BrowserHandler);

@@ -4,38 +4,8 @@
 #include "PrintHandler.h"
 
 #include "include/wrapper/cef_helpers.h"
-#include <string>
+
 #include <iostream>
-#include <functional>
-#include <cctype>
-
-template<> struct Application::PaperSizeHash<CefString>
-{
-    std::size_t operator()(CefString const& s) const
-    {
-        std::string str = s.ToString();
-        std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c) { return std::tolower(c); });
-        return std::hash<std::string>()(str);
-    }
-};
-
-template<> struct Application::PaperSizeEqKey<CefString>
-{
-    bool operator()(const CefString& lhs, const CefString& rhs) const
-    {
-        if (lhs.size() != rhs.size()) {
-            return false;
-        }
-
-        for (int i = 0; i < lhs.length(); ++i) {
-            if (std::tolower(lhs.ToString()[i]) != std::tolower(rhs.ToString()[i])) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-};
 
 Application::PaperSizes Application::paperSizes = {
     {"A0",  {841000,  1189000}},
@@ -78,11 +48,17 @@ Application::PaperSizes Application::paperSizes = {
 Application::Application(CefRefPtr<CefCommandLine> commandLine)
 {
     m_commandLine = commandLine;
+    m_printHandler = new PrintHandler;
 }
 
 CefRefPtr<CefBrowserProcessHandler> Application::GetBrowserProcessHandler()
 {
     return this;
+}
+
+CefRefPtr<CefPrintHandler> Application::GetPrintHandler()
+{
+    return m_printHandler;
 }
 
 void Application::OnBeforeChildProcessLaunch(CefRefPtr<CefCommandLine> command_line)
@@ -108,16 +84,11 @@ void Application::OnContextInitialized()
     CefRequestContext::GetGlobalContext()
         ->SetPreference("intl.charset_default", value, error);
 
-    CreatePDF();
-}
-
-void Application::CreatePDF()
-{
     CefString url = "stdin://get";
     CefString output = "output.pdf";
 
     if (m_commandLine->HasArguments()) {
-        std::vector<CefString> args(2);
+        std::vector<CefString> args;
         m_commandLine->GetArguments(args);
         if (args.size() > 0) {
             // Get input url
@@ -138,19 +109,7 @@ void Application::CreatePDF()
         return;
     }
 
-    CefRefPtr<BrowserHandler> handler(new BrowserHandler(url, output, pdfSettings));
-
-    // Information used when creating the native window.
-    CefWindowInfo windowInfo;
-    windowInfo.windowless_rendering_enabled = true;
-    windowInfo.transparent_painting_enabled = false;
-
-    // Specify CEF browser settings here.
-    CefBrowserSettings browserSettings;
-
-    // Create the browser window.
-    CefBrowserHost::CreateBrowser(windowInfo, handler.get(), url, browserSettings, NULL);
-
+    BrowserHandler::LoadAndSaveToPDF(url, output, pdfSettings);
 }
 
 CefPdfPrintSettings Application::GetPdfSettings()
@@ -183,7 +142,3 @@ CefPdfPrintSettings Application::GetPdfSettings()
     return pdfSettings;
 }
 
-CefRefPtr<CefPrintHandler> Application::GetPrintHandler()
-{
-    return new PrintHandler;
-}
