@@ -12,8 +12,8 @@ void PdfPrintCallback::OnPdfPrintFinished(const CefString& path, bool ok)
         << ", path: " << path.ToString()
         << ", ok: " << ok;
 
-    if (m_browser.get()) {
-        m_browser->GetHost()->CloseBrowser(false);
-        m_browser = NULL;
-    }
+    DCHECK(m_browser.get());
+
+    m_browser->GetHost()->CloseBrowser(false);
+    m_browser = NULL;
 }

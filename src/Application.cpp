@@ -63,7 +63,7 @@ CefRefPtr<CefPrintHandler> Application::GetPrintHandler()
 
 void Application::OnBeforeChildProcessLaunch(CefRefPtr<CefCommandLine> command_line)
 {
-    DLOG(INFO) << "OnBeforeChildProcessLaunch: " << command_line->GetCommandLineString().ToString() ;
+    //DLOG(INFO) << "OnBeforeChildProcessLaunch: " << command_line->GetCommandLineString().ToString() ;
 }
 
 void Application::OnContextInitialized()
@@ -77,13 +77,11 @@ void Application::OnContextInitialized()
     CefRefPtr<StdInputSchemeHandlerFactory> factory(new StdInputSchemeHandlerFactory);
     CefRegisterSchemeHandlerFactory("stdin", "get", factory.get());
 
-    // Set default string encoding to UTF-8
-    CefRefPtr<CefValue> value = CefValue::Create();
-    value->SetString("utf-8");
-    CefString error;
-    CefRequestContext::GetGlobalContext()
-        ->SetPreference("intl.charset_default", value, error);
+    CreatePDF();
+}
 
+void Application::CreatePDF()
+{
     CefString url = "stdin://get";
     CefString output = "output.pdf";
 
@@ -109,7 +107,23 @@ void Application::OnContextInitialized()
         return;
     }
 
-    BrowserHandler::LoadAndSaveToPDF(url, output, pdfSettings);
+    CefRefPtr<BrowserHandler> handler(new BrowserHandler(output, pdfSettings));
+
+    // Information used when creating the native window.
+    CefWindowInfo windowInfo;
+    windowInfo.windowless_rendering_enabled = true;
+    windowInfo.transparent_painting_enabled = false;
+
+    // Specify CEF browser settings here.
+    CefBrowserSettings browserSettings;
+    browserSettings.windowless_frame_rate = 1;
+    CefString(&browserSettings.default_encoding).FromString(m_defaultEncoding);
+    browserSettings.javascript_open_windows = STATE_DISABLED;
+    browserSettings.javascript_close_windows = STATE_DISABLED;
+    browserSettings.plugins = STATE_DISABLED;
+
+    // Create the browser window.
+    CefBrowserHost::CreateBrowser(windowInfo, handler.get(), url, browserSettings, NULL);
 }
 
 CefPdfPrintSettings Application::GetPdfSettings()
@@ -141,4 +155,3 @@ CefPdfPrintSettings Application::GetPdfSettings()
 
     return pdfSettings;
 }
-

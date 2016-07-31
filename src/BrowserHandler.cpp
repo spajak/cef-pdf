@@ -4,36 +4,14 @@
 
 #include "include/cef_app.h"
 #include "include/wrapper/cef_helpers.h"
+
 #include <iostream>
 
-BrowserHandler::BrowserHandler(
-    const CefString& url,
-    const CefString& output,
-    CefPdfPrintSettings pdfSettings
-) {
-    m_url = url;
-    m_output = output;
+BrowserHandler::BrowserHandler(const CefString& pdfOutput, CefPdfPrintSettings pdfSettings)
+{
+    m_pdfOutput = pdfOutput;
     m_pdfSettings = pdfSettings;
     m_renderHandler = new RenderHandler;
-}
-
-void BrowserHandler::LoadAndSaveToPDF(
-    const CefString& url,
-    const CefString& output,
-    CefPdfPrintSettings pdfSettings
-) {
-    CefRefPtr<CefClient> handler(new BrowserHandler(url, output, pdfSettings));
-
-    // Information used when creating the native window.
-    CefWindowInfo windowInfo;
-    windowInfo.windowless_rendering_enabled = true;
-    windowInfo.transparent_painting_enabled = false;
-
-    // Specify CEF browser settings here.
-    CefBrowserSettings browserSettings;
-
-    // Create the browser window.
-    CefBrowserHost::CreateBrowser(windowInfo, handler.get(), url, browserSettings, NULL);
 }
 
 // CefClient methods:
@@ -61,7 +39,7 @@ void BrowserHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 
     CEF_REQUIRE_UI_THREAD();
 
-    m_browserCount++;
+    m_browsers.push_back(browser);
 }
 
 bool BrowserHandler::DoClose(CefRefPtr<CefBrowser> browser)
@@ -81,7 +59,15 @@ void BrowserHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser)
 
     CEF_REQUIRE_UI_THREAD();
 
-    if (--m_browserCount == 0) {
+    BrowserList::iterator it = m_browsers.begin();
+    for (; it != m_browsers.end(); ++it) {
+        if ((*it)->IsSame(browser)) {
+            m_browsers.erase(it);
+            break;
+        }
+    }
+
+    if (m_browsers.empty()) {
         // All browser windows have closed. Quit the application message loop.
         CefQuitMessageLoop();
     }
@@ -103,10 +89,8 @@ void BrowserHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame
     CEF_REQUIRE_UI_THREAD();
 
     if (frame->IsMain()) {
-        if (frame->GetURL() == m_url) {
-            // Save page to file
-            browser->GetHost()->PrintToPDF(m_output, m_pdfSettings, new PdfPrintCallback(browser));
-        }
+        // Save page to PDF
+        browser->GetHost()->PrintToPDF(m_pdfOutput, m_pdfSettings, new PdfPrintCallback(browser.get()));
     }
 }
 
@@ -133,6 +117,7 @@ void BrowserHandler::OnLoadError(
     }
 
     if (frame->IsMain()) {
-        std::cerr << _errorText.ToString() << " " << failedUrl.ToString();
+        std::cerr << "Error: " << _errorText.ToString() << " " << failedUrl.ToString() << std::endl;
+        //browser->GetHost()->CloseBrowser(false);
     }
 }

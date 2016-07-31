@@ -11,7 +11,6 @@ int main(int argc, char* argv[])
 #endif
     CefRefPtr<Application> app(new Application(commandLine));
 
-
     // Execute the sub-process logic, if any. This will either return immediately for the browser
     // process or block until the sub-process should exit.
     CefMainArgs mainArgs;
@@ -23,9 +22,10 @@ int main(int argc, char* argv[])
 
     // Populate this structure to customize CEF behavior.
     CefSettings settings;
+    //settings.single_process = true;
     settings.no_sandbox = true;
     settings.windowless_rendering_enabled = true;
-    settings.command_line_args_disabled = true;
+    settings.command_line_args_disabled = false;
 
     // Initialize CEF in the main process.
     CefInitialize(mainArgs, settings, app.get(), NULL);

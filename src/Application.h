@@ -18,13 +18,14 @@ class Application : public CefApp,
     typedef std::unordered_map<
         CefString,
         std::pair<int, int>,
-        CIHash,
-        CIEqual
+        CIHash, CIEqual
     > PaperSizes;
 
     static PaperSizes paperSizes;
 
     Application(CefRefPtr<CefCommandLine> commandLine);
+
+    void CreatePDF();
 
     // CefApp methods:
     virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() OVERRIDE;
@@ -45,7 +46,7 @@ class Application : public CefApp,
 
     CefRefPtr<CefCommandLine> m_commandLine;
 
-    CefRefPtr<BrowserHandler> m_handler;
+    CefString m_defaultEncoding = "utf-8";
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(Application);

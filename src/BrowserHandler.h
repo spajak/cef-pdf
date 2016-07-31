@@ -4,23 +4,15 @@
 #include "include/cef_client.h"
 #include "include/cef_browser.h"
 
+#include <list>
+
 class BrowserHandler : public CefClient,
                        public CefLifeSpanHandler,
                        public CefLoadHandler
 {
     public:
 
-    BrowserHandler(
-        const CefString& url,
-        const CefString& output,
-        CefPdfPrintSettings pdfSettings
-    );
-
-    static void LoadAndSaveToPDF(
-        const CefString& url,
-        const CefString& output,
-        CefPdfPrintSettings pdfSettings
-    );
+    BrowserHandler(const CefString& pdfOutput, CefPdfPrintSettings pdfSettings);
 
     // CefClient methods:
     virtual CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() OVERRIDE;
@@ -45,11 +37,13 @@ class BrowserHandler : public CefClient,
 
     private:
 
+    typedef std::list<CefRefPtr<CefBrowser>> BrowserList;
+    BrowserList m_browsers;
+
     CefRefPtr<CefRenderHandler> m_renderHandler;
-    CefString m_url;
-    CefString m_output;
+
+    CefString m_pdfOutput;
     CefPdfPrintSettings m_pdfSettings;
-    int m_browserCount = 0;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(BrowserHandler);
