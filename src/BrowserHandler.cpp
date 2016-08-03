@@ -39,7 +39,7 @@ void BrowserHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 
     CEF_REQUIRE_UI_THREAD();
 
-    m_browsers.push_back(browser);
+    ++m_browserCount;
 }
 
 bool BrowserHandler::DoClose(CefRefPtr<CefBrowser> browser)
@@ -59,15 +59,7 @@ void BrowserHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser)
 
     CEF_REQUIRE_UI_THREAD();
 
-    BrowserList::iterator it = m_browsers.begin();
-    for (; it != m_browsers.end(); ++it) {
-        if ((*it)->IsSame(browser)) {
-            m_browsers.erase(it);
-            break;
-        }
-    }
-
-    if (m_browsers.empty()) {
+    if (--m_browserCount == 0) {
         // All browser windows have closed. Quit the application message loop.
         CefQuitMessageLoop();
     }
@@ -84,13 +76,22 @@ void BrowserHandler::OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFra
 
 void BrowserHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode)
 {
-    DLOG(INFO) << "OnLoadEnd" << ", httpStatusCode: " << httpStatusCode;
+    DLOG(INFO)
+        << "OnLoadEnd"
+        << ", url: " << frame->GetURL().ToString()
+        << ", httpStatusCode: " << httpStatusCode;
 
     CEF_REQUIRE_UI_THREAD();
 
     if (frame->IsMain()) {
-        // Save page to PDF
         browser->GetHost()->PrintToPDF(m_pdfOutput, m_pdfSettings, new PdfPrintCallback(browser.get()));
+
+        auto err = m_errors.find(frame->GetURL());
+        if (err == m_errors.end()) {
+            browser->GetHost()->PrintToPDF(m_pdfOutput, m_pdfSettings, new PdfPrintCallback(browser.get()));
+        } else {
+            browser->GetHost()->CloseBrowser(false);
+        }
     }
 }
 
@@ -101,12 +102,9 @@ void BrowserHandler::OnLoadError(
     const CefString& errorText,
     const CefString& failedUrl
 ) {
-    CefString _errorText(errorText.empty() ? "None" : errorText);
-
     DLOG(INFO)
         << "OnLoadError"
         << ", errorCode: " << errorCode
-        << ", errorText: " << _errorText.ToString()
         << ", failedUrl: " << failedUrl.ToString();
 
     CEF_REQUIRE_UI_THREAD();
@@ -117,7 +115,7 @@ void BrowserHandler::OnLoadError(
     }
 
     if (frame->IsMain()) {
-        std::cerr << "Error: " << _errorText.ToString() << " " << failedUrl.ToString() << std::endl;
-        //browser->GetHost()->CloseBrowser(false);
+        std::cerr << "Error loading: " << failedUrl.ToString() << std::endl;
+        m_errors[failedUrl] = errorCode;
     }
 }

@@ -1,16 +1,22 @@
 #ifndef BROWSER_HANDLER_H_
 #define BROWSER_HANDLER_H_
 
+#include "Utils.h"
 #include "include/cef_client.h"
 #include "include/cef_browser.h"
 
-#include <list>
+#include <unordered_map>
 
 class BrowserHandler : public CefClient,
                        public CefLifeSpanHandler,
                        public CefLoadHandler
 {
     public:
+
+    typedef std::unordered_map<
+        CefString, int,
+        CIHash, CIEqual
+    > Errors;
 
     BrowserHandler(const CefString& pdfOutput, CefPdfPrintSettings pdfSettings);
 
@@ -37,10 +43,10 @@ class BrowserHandler : public CefClient,
 
     private:
 
-    typedef std::list<CefRefPtr<CefBrowser>> BrowserList;
-    BrowserList m_browsers;
-
     CefRefPtr<CefRenderHandler> m_renderHandler;
+
+    int m_browserCount = 0;
+    Errors m_errors;
 
     CefString m_pdfOutput;
     CefPdfPrintSettings m_pdfSettings;

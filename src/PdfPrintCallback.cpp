@@ -1,5 +1,7 @@
 #include "PdfPrintCallback.h"
 
+#include "include/wrapper/cef_helpers.h"
+
 PdfPrintCallback::PdfPrintCallback(CefRefPtr<CefBrowser> browser)
 {
     m_browser = browser;
