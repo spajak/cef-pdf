@@ -1,6 +1,6 @@
 # cef-pdf
 
-`cef-pdf` is a command line utility for creating PDF documents from HTML content. It uses Google Chrome browser's [Chromium Embedded Framework (CEF)](https://bitbucket.org/chromiumembedded/cef/overview) framework for all it's internal work; loading urls, rendering HTML & CSS  pages and printing directly to (excellent quality) PDF files.
+`cef-pdf` is a command line utility for creating PDF documents from HTML content. It uses Google Chrome browser's [Chromium Embedded Framework (CEF)](https://bitbucket.org/chromiumembedded/cef/overview) framework for all it's internal work; loading urls, rendering HTML & CSS pages and printing directly to (excellent quality) PDF files.
 
 ### Usage:
 
@@ -13,7 +13,8 @@ options:
 
 input:
 
-    Input URL, may be http, file, data, anything supported by Chrome. Special stdin:// scheme is used for inputing html from standard input. Default is stdin://get
+    Input URL, may be http, file, data, anything supported by Chrome.
+    Special stdin:// scheme is used for inputing html from standard input. Default is stdin://get
 
 output:
 
@@ -26,3 +27,7 @@ output:
 ### TODO
 
  - Client-server version
+
+### License
+
+Flow is licensed under the MIT license.
