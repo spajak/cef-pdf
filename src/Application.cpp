@@ -181,7 +181,7 @@ void Application::PrintHelp(CefString name)
     std::cout << std::endl;
     std::cout << "Options:" << std::endl;
     std::cout << "  --help -h            This help screen." << std::endl;
-    std::cout << "  --paper-size <size>  Size (format) of the paper: A3, B2.. Default is A4." << std::endl;
+    std::cout << "  --paper-size=<size>  Size (format) of the paper: A3, B2.. Default is A4." << std::endl;
     std::cout << "  --landscape          Wheather to print with a landscape page orientation. Default is portrait" << std::endl;
     std::cout << std::endl;
     std::cout << "Input:" << std::endl;
