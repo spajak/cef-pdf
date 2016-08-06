@@ -26,3 +26,24 @@ bool CIEqual::operator()(const CefString& lhs, const CefString& rhs) const
 
     return true;
 };
+
+
+CefString GetProgramName(CefString path)
+{
+    std::string program = path.ToString();
+
+    // Remove directory if present.
+    // Do this before extension removal in case directory has a period character.
+    const std::size_t s = program.find_last_of("\\/");
+    if (std::string::npos != s) {
+        program.erase(0, s + 1);
+    }
+
+    // Remove extension if present.
+    const std::size_t e = program.rfind('.');
+    if (std::string::npos != e) {
+        program.erase(e);
+    }
+
+    return program;
+}
