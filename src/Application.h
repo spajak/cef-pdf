@@ -10,7 +10,7 @@
 #include <utility>
 #include <unordered_map>
 
-#define VERSION "0.1.0"
+#define VERSION "0.1.1"
 
 class Application : public CefApp,
                     public CefBrowserProcessHandler
