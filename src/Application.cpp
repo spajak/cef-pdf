@@ -45,9 +45,8 @@ Application::PaperSizes Application::paperSizes = {
     {"C10", {28000,     40000}},
 };
 
-Application::Application(CefRefPtr<CefCommandLine> commandLine)
+Application::Application()
 {
-    m_commandLine = commandLine;
     m_printHandler = new PrintHandler;
 }
 
@@ -63,7 +62,7 @@ CefRefPtr<CefPrintHandler> Application::GetPrintHandler()
 
 void Application::OnBeforeChildProcessLaunch(CefRefPtr<CefCommandLine> command_line)
 {
-    //DLOG(INFO) << "OnBeforeChildProcessLaunch: " << command_line->GetCommandLineString().ToString() ;
+    DLOG(INFO) << "OnBeforeChildProcessLaunch: " << command_line->GetCommandLineString().ToString() ;
 }
 
 void Application::OnContextInitialized()
@@ -77,37 +76,7 @@ void Application::OnContextInitialized()
     CefRefPtr<StdInputSchemeHandlerFactory> factory(new StdInputSchemeHandlerFactory);
     CefRegisterSchemeHandlerFactory("stdin", "get", factory.get());
 
-    CreatePDF();
-}
-
-void Application::CreatePDF()
-{
-    CefString url = "stdin://get";
-    CefString output = "output.pdf";
-
-    if (m_commandLine->HasArguments()) {
-        std::vector<CefString> args;
-        m_commandLine->GetArguments(args);
-        if (args.size() > 0) {
-            // Get input url
-            url = args[0];
-            if (args.size() > 1) {
-                // Get output filename
-                output = args[1];
-            }
-        }
-    }
-
-    CefPdfPrintSettings pdfSettings;
-
-    try {
-        pdfSettings = GetPdfSettings();
-    } catch (std::string error) {
-        std::cerr << "ERROR: " << error << std::endl;
-        return;
-    }
-
-    CefRefPtr<BrowserHandler> handler(new BrowserHandler(output, pdfSettings));
+    CefRefPtr<BrowserHandler> handler(new BrowserHandler(m_pdfOutput, m_pdfSettings));
 
     // Information used when creating the native window.
     CefWindowInfo windowInfo;
@@ -123,35 +92,78 @@ void Application::CreatePDF()
     browserSettings.plugins = STATE_DISABLED;
 
     // Create the browser window.
-    CefBrowserHost::CreateBrowser(windowInfo, handler.get(), url, browserSettings, NULL);
+    CefBrowserHost::CreateBrowser(windowInfo, handler.get(), m_urlInput, browserSettings, NULL);
 }
 
-CefPdfPrintSettings Application::GetPdfSettings()
+bool Application::ParseCommandLine(CefRefPtr<CefCommandLine> commandLine)
 {
-    CefPdfPrintSettings pdfSettings;
-    pdfSettings.backgrounds_enabled = true;
-    pdfSettings.landscape = false;
+    if (commandLine->HasSwitch("help") || commandLine->HasSwitch("h")) {
+        PrintHelp(::GetProgramName(commandLine->GetProgram()));
+        return false;
+    }
 
-    CefString paperSize = "A4";
+    m_pdfSettings.backgrounds_enabled = true;
+    m_pdfSettings.landscape = false;
 
-    if (m_commandLine->HasSwitch("paper-size")) {
-        paperSize = m_commandLine->GetSwitchValue("paper-size");
-        if (paperSize.empty()) {
-            throw "Paper size not specified";
+    try {
+        if (commandLine->HasSwitch("paper-size")) {
+            m_paperSize = commandLine->GetSwitchValue("paper-size");
+            if (m_paperSize.empty()) {
+                throw "Paper size not specified";
+            }
+        }
+
+        PaperSizes::iterator it = paperSizes.find(m_paperSize);
+        if (it != paperSizes.end()) {
+            m_pdfSettings.page_width = it->second.first;
+            m_pdfSettings.page_height = it->second.second;
+        } else {
+            throw "Paper size \"" + m_paperSize.ToString() +"\" is not defined";
+        }
+    } catch (std::string error) {
+        std::cerr << "ERROR: " << error << std::endl;
+        return false;
+    }
+
+    if (commandLine->HasSwitch("landscape")) {
+        m_pdfSettings.landscape = true;
+    }
+
+    if (commandLine->HasArguments()) {
+        std::vector<CefString> args;
+        commandLine->GetArguments(args);
+        if (args.size() > 0) {
+            // Get input url
+            m_urlInput = args[0];
+            if (args.size() > 1) {
+                // Get output filename
+                m_pdfOutput = args[1];
+            }
         }
     }
 
-    PaperSizes::iterator it = paperSizes.find(paperSize);
-    if (it != paperSizes.end()) {
-        pdfSettings.page_width = it->second.first;
-        pdfSettings.page_height = it->second.second;
-    } else {
-        throw "Paper size \"" + paperSize.ToString() +"\" is not defined";
-    }
-
-    if (m_commandLine->HasSwitch("landscape")) {
-        pdfSettings.landscape = true;
-    }
-
-    return pdfSettings;
+    return true;
 }
+
+void Application::PrintHelp(CefString name)
+{
+    std::cout << name.ToString() << " v" << VERSION << std::endl;
+    std::cout << "  Creates PDF files from HTML pages" << std::endl;
+    std::cout << std::endl;
+    std::cout << "Usage:" << std::endl;
+    std::cout << "  cef-pdf [options] [input] [output]" << std::endl;
+    std::cout << std::endl;
+    std::cout << "Options:" << std::endl;
+    std::cout << "  --help -h            This help screen." << std::endl;
+    std::cout << "  --paper-size <size>  Size (format) of the paper: A3, B2.. Default is A4." << std::endl;
+    std::cout << "  --landscape          Wheather to print with a landscape page orientation. Default is portrait" << std::endl;
+    std::cout << std::endl;
+    std::cout << "Input:" << std::endl;
+    std::cout << "  URL to load, may be http, file, data, anything supported by Chrome." << std::endl;
+    std::cout << "  Special url stdin:// scheme is used for inputing html from standard input. Default is stdin://get" << std::endl;
+    std::cout << std::endl;
+    std::cout << "Output:" << std::endl;
+    std::cout << "  PDF file name. Standard output is not supported. Defaults to output.pdf" << std::endl;
+    std::cout << std::endl;
+}
+

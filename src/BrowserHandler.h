@@ -14,8 +14,7 @@ class BrowserHandler : public CefClient,
     public:
 
     typedef std::unordered_map<
-        CefString, int,
-        CIHash, CIEqual
+        int, int
     > Errors;
 
     BrowserHandler(const CefString& pdfOutput, CefPdfPrintSettings pdfSettings);
