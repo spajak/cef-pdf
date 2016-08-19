@@ -1,14 +1,12 @@
 #ifndef BROWSER_HANDLER_H_
 #define BROWSER_HANDLER_H_
 
-#include "Utils.h"
 #include "include/cef_client.h"
 #include "include/cef_browser.h"
 
 #include <unordered_map>
 
-class BrowserHandler : public CefClient,
-                       public CefLifeSpanHandler,
+class BrowserHandler : public CefLifeSpanHandler,
                        public CefLoadHandler
 {
     public:
@@ -17,12 +15,7 @@ class BrowserHandler : public CefClient,
         int, int
     > Errors;
 
-    BrowserHandler(const CefString& pdfOutput, CefPdfPrintSettings pdfSettings);
-
-    // CefClient methods:
-    virtual CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() OVERRIDE;
-    virtual CefRefPtr<CefLoadHandler> GetLoadHandler() OVERRIDE;
-    virtual CefRefPtr<CefRenderHandler> GetRenderHandler() OVERRIDE;
+    BrowserHandler();
 
     // CefLifeSpanHandler methods:
     virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser) OVERRIDE;
@@ -42,13 +35,8 @@ class BrowserHandler : public CefClient,
 
     private:
 
-    CefRefPtr<CefRenderHandler> m_renderHandler;
-
     int m_browserCount = 0;
     Errors m_errors;
-
-    CefString m_pdfOutput;
-    CefPdfPrintSettings m_pdfSettings;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(BrowserHandler);

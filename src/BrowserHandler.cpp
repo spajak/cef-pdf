@@ -1,5 +1,4 @@
 #include "BrowserHandler.h"
-#include "RenderHandler.h"
 #include "PdfPrintCallback.h"
 
 #include "include/cef_app.h"
@@ -7,29 +6,7 @@
 
 #include <iostream>
 
-BrowserHandler::BrowserHandler(const CefString& pdfOutput, CefPdfPrintSettings pdfSettings)
-{
-    m_pdfOutput = pdfOutput;
-    m_pdfSettings = pdfSettings;
-    m_renderHandler = new RenderHandler;
-}
-
-// CefClient methods:
-// -------------------------------------------------------------------------
-CefRefPtr<CefLifeSpanHandler> BrowserHandler::GetLifeSpanHandler()
-{
-    return this;
-}
-
-CefRefPtr<CefLoadHandler> BrowserHandler::GetLoadHandler()
-{
-    return this;
-}
-
-CefRefPtr<CefRenderHandler> BrowserHandler::GetRenderHandler()
-{
-    return m_renderHandler;
-}
+BrowserHandler::BrowserHandler() {}
 
 // CefLifeSpanHandler methods:
 // -------------------------------------------------------------------------
