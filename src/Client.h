@@ -13,7 +13,6 @@
 #define VERSION "0.1.5"
 
 class Client : public CefApp,
-               public CefClient,
                public CefBrowserProcessHandler
 {
     public:
@@ -29,16 +28,11 @@ class Client : public CefApp,
     Client();
 
     void Initialize();
-    void PostPrintJob(const CefString& pdfOutput, CefPdfPrintSettings pdfSettings);
+    void PostPrintJob(PdfPrintJob printJob);
     void Shutdown();
 
     // CefApp methods:
     virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() OVERRIDE;
-
-    // CefClient methods:
-    virtual CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() OVERRIDE;
-    virtual CefRefPtr<CefLoadHandler> GetLoadHandler() OVERRIDE;
-    virtual CefRefPtr<CefRenderHandler> GetRenderHandler() OVERRIDE;
 
     // CefBrowserProcessHandler methods:
     virtual CefRefPtr<CefPrintHandler> GetPrintHandler() OVERRIDE;
@@ -47,8 +41,6 @@ class Client : public CefApp,
 
     private:
 
-    CefRefPtr<BrowserHandler> m_browserHandler;
-    CefRefPtr<CefRenderHandler> m_renderHandler;
     CefRefPtr<CefPrintHandler> m_printHandler;
 
     CefSettings m_settings;

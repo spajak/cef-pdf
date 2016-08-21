@@ -1,7 +1,6 @@
 #include "Client.h"
 #include "StdInputSchemeHandlerFactory.h"
 #include "BrowserHandler.h"
-#include "RenderHandler.h"
 #include "PrintHandler.h"
 
 #include "include/wrapper/cef_helpers.h"
@@ -10,8 +9,6 @@
 
 Client::Client()
 {
-    m_browserHandler = new BrowserHandler;
-    m_renderHandler = new RenderHandler;
     m_printHandler = new PrintHandler;
 
     //m_settings.single_process = true;
@@ -36,9 +33,11 @@ void Client::Initialize()
     CefInitialize(mainArgs, m_settings, this, NULL);
 }
 
-void Client::PostPrintJob(const CefString& pdfOutput, CefPdfPrintSettings pdfSettings)
+void Client::PostPrintJob(PdfPrintJob printJob)
 {
-
+    // Create the browser window.
+    CefRefPtr<CefBrowser> handler = new BrowserHandler(printJob);
+    CefBrowserHost::CreateBrowser(m_windowInfo, handler.get(), "about:blank", m_browserSettings, NULL);
 }
 
 void Client::Shutdown()
@@ -76,26 +75,6 @@ void Client::OnContextInitialized()
     // stdin://get to be generated from user provided standard input.
     CefRefPtr<StdInputSchemeHandlerFactory> factory(new StdInputSchemeHandlerFactory);
     CefRegisterSchemeHandlerFactory("stdin", "get", factory.get());
-
-    // Create the browser window.
-    CefBrowserHost::CreateBrowser(m_windowInfo, this, m_urlInput, m_browserSettings, NULL);
-}
-
-// CefClient methods:
-// -------------------------------------------------------------------------
-CefRefPtr<CefLifeSpanHandler> Client::GetLifeSpanHandler()
-{
-    return m_browserHandler;
-}
-
-CefRefPtr<CefLoadHandler> Client::GetLoadHandler()
-{
-    return m_browserHandler;
-}
-
-CefRefPtr<CefRenderHandler> Client::GetRenderHandler()
-{
-    return m_renderHandler;
 }
 
 Client::PaperSizes Client::paperSizes = {

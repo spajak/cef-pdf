@@ -7,12 +7,43 @@ class PdfPrintJob : public CefBase
 {
     public:
 
-    PdfPrintJob();
+    PdfPrintJob(const CefString& url);
+
+    CefString GetUrl();
+
+    CefString GetOutputPath();
+
+    void SetOutputPath(const CefString& outputPath);
+
+    void SetPaperSize(const CefString& paperSize);
+
+    void SetLandscape(bool flag = true);
+
+    void SetMargin(CefString margin);
+
+    CefRefPtr<ContentProvider> SetContentProvider(CefRefPtr<ContentProvider> contentProvider)
+    {
+        m_contentProvider = contentProvider;
+    }
+
+    CefRefPtr<ContentProvider> GetContentProvider()
+    {
+        return m_contentProvider;
+    };
+
+    // Prepare PDF setting for CEF
+    CefPdfPrintSettings GetCefPdfPrintSettings();
+
+    // Get PDF content from output file
+    CefString GetOutput();
 
     private:
 
-    const CefString& m_pdfOutput;
-    CefPdfPrintSettings m_pdfSettings;
+    CefString m_url;
+    CefString m_urlInput = "stdin://get";
+    CefString m_pdfOutput = "output.pdf";
+    CefString m_paperSize = "A4";
+    CefRefPtr<ContentProvider> m_contentProvider;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(PdfPrintJob);
