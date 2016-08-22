@@ -42,13 +42,35 @@ CefString getStdInput()
     return input;
 }
 
-void getCommandLine(CefRefPtr<CefCommandLine> commandLine, CefRefPtr<PdfPrintJob> job)
+CefRefPtr<PdfPrintJob> getJobFromCommandLine(CefRefPtr<CefCommandLine> commandLine)
 {
+    CefRefPtr<PdfPrintJob> job;
 
+    if (commandLine->HasSwitch("output")) {
+        job->SetOutputPath(commandLine->GetSwitchValue("output"));
+    } else {
+        job->SetOutputPath('output.pdf');
+    }
 
+    if (commandLine->HasSwitch("url")) {
+        job->SetUrl(commandLine->GetSwitchValue("paper-size"));
+    } else {
+        job->SetContent(getStdInput());
+    }
 
+    if (commandLine->HasSwitch("paper-size")) {
+        job->SetPaperSize(commandLine->GetSwitchValue("paper-size"));
+    }
 
-    return true;
+    if (commandLine->HasSwitch("margin")) {
+        job->SetMargin(commandLine->GetSwitchValue("margin"));
+    }
+
+    if (commandLine->HasSwitch("landscape")) {
+        job->SetLandscape();
+    }
+
+    return job;
 }
 
 int main(int argc, char* argv[])
@@ -62,52 +84,24 @@ int main(int argc, char* argv[])
         return exitCode;
     }
 
-    // Implementation of the CefApp interface.
-    CefRefPtr<Application> app = new Application;
-
     CefRefPtr<CefCommandLine> commandLine = CefCommandLine::CreateCommandLine();
     commandLine->InitFromArgv(argc, argv);
 
     if (commandLine->HasSwitch("help") || commandLine->HasSwitch("h")) {
-        printHelp(::GetProgramName(commandLine->GetProgram().ToString()));
+        printHelp(::GetProgramName(commandLine->GetProgram()).ToString());
         return 0;
     }
 
-    CefString url;
-
-    if (commandLine->HasSwitch("url")) {
-        job = new PdfPrintJob('stdin://get');
-    } else {
-
-    }
-
-    CefRefPtr<PdfPrintJob> job = new PdfPrintJob(url);
-
-    if (!commandLine->HasArguments()) {
-
-    } else {
-        std::vector<CefString> args;
-        commandLine->GetArguments(args);
-        job = new PdfPrintJob(args[0]);
-
-        if (args.size() > 1) {
-            // Custom output filename
-            job->SetOutputPath(args[1]);
-        }
-    }
-
     try {
-        if (commandLine->HasSwitch("paper-size")) {
-            job->SetPaperSize(commandLine->GetSwitchValue("paper-size"));
-        }
-
-        if (commandLine->HasSwitch("landscape")) {
-            job->SetLandscape();
-        }
+        CefRefPtr<PdfPrintJob> job = getJobFromCommandLine(commandLine);
     } catch (std::string error) {
         std::cerr << "ERROR: " << error << std::endl;
         return 1;
     }
+
+    // Implementation of the CefApp interface.
+    CefRefPtr<Application> app = new Application;
+    app->PostPrintJob(job);
 
     app->Run();
 

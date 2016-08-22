@@ -8,7 +8,7 @@ class PdfPrintJob : public CefBase
     public:
 
     enum struct Type {
-        URL /* print from URL (GetUrl) */, STRING /* print from string (GetContent) */
+        URL, STRING
     };
 
     struct PaperSize {
@@ -74,12 +74,14 @@ class PdfPrintJob : public CefBase
 
     PaperMargin parseMargin(const CefString& margin);
 
+    Type type = Type::URL;
     CefString m_url;
-    CefString m_outputPath = "output.pdf";
+    CefString m_content;
+
+    CefString m_outputPath;
     CefString m_paperSize = "A4";
     Orientation m_orientation = PaperOrientation::PORTRAIT;
     CefString m_margin;
-    CefString m_content;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(PdfPrintJob);

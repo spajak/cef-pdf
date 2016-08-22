@@ -6,12 +6,18 @@
 
 PdfPrintJob::PdfPrintJob(const CefString& url)
 {
+    m_type = Type::URL;
     m_url = url;
 }
 
 const CefString& PdfPrintJob::GetUrl()
 {
     return m_url;
+}
+
+void PdfPrintJob::SetContent(const CefString& content)
+{
+    m_content = content;
 }
 
 const CefString& PdfPrintJob::GetOutputPath()
@@ -41,10 +47,7 @@ void PdfPrintJob::SetMargin(const CefString& margin)
     m_margin = margin;
 }
 
-void PdfPrintJob::SetContent(const CefString& content)
-{
-    m_content = content;
-}
+
 
 bool PdfPrintJob::HasContent()
 {

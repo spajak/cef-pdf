@@ -88,6 +88,6 @@ void Client::OnContextInitialized()
 
     // Register scheme handler factory for "stdin" scheme. Allows response for url
     // stdin://get to be generated from user provided standard input.
-    CefRefPtr<StdInputSchemeHandlerFactory> factory(new StdInputSchemeHandlerFactory);
-    CefRegisterSchemeHandlerFactory("stdin", "get", factory.get());
+    //CefRefPtr<StdInputSchemeHandlerFactory> factory(new StdInputSchemeHandlerFactory);
+    //CefRegisterSchemeHandlerFactory("stdin", "get", factory.get());
 }
