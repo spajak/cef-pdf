@@ -6,7 +6,8 @@
 
 #include <unordered_map>
 
-class BrowserHandler : public CefLifeSpanHandler,
+class BrowserHandler : public CefClient,
+                       public CefLifeSpanHandler,
                        public CefLoadHandler
 {
     public:

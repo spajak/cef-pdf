@@ -1,6 +1,6 @@
-#include "internal/cef_string.h";
+#include "internal/cef_base.h";
 
-class ContentProvider
+class ContentProvider : public CefBase
 {
     virtual ~ContentProvider();
     virtual const CefString& GetContent() = 0;

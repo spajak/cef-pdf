@@ -17,19 +17,14 @@ class Client : public CefApp,
 {
     public:
 
-    typedef std::unordered_map<
-        CefString,
-        std::pair<int, int>,
-        CIHash, CIEqual
-    > PaperSizes;
-
-    static PaperSizes paperSizes;
-
     Client();
 
     void Initialize();
-    void PostPrintJob(PdfPrintJob printJob);
+    void Run();
+    void Stop();
     void Shutdown();
+
+    void PostPrintJob(PdfPrintJob printJob);
 
     // CefApp methods:
     virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() OVERRIDE;
@@ -46,12 +41,7 @@ class Client : public CefApp,
     CefSettings m_settings;
     CefWindowInfo m_windowInfo;
     CefBrowserSettings m_browserSettings;
-
-    CefPdfPrintSettings m_pdfSettings;
     CefString m_defaultEncoding = "utf-8";
-    CefString m_urlInput = "stdin://get";
-    CefString m_pdfOutput = "output.pdf";
-    CefString m_paperSize = "A4";
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(Client);

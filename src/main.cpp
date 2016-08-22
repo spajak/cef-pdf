@@ -1,10 +1,11 @@
 #include "Application.h"
 
+#include <string>
 #include <iostream>
 
-void printHelp(CefString name)
+void printHelp(std::string name)
 {
-    std::cout << name.ToString() << " v" << VERSION << std::endl;
+    std::cout << name << " v" << VERSION << std::endl;
     std::cout << "  Creates PDF files from HTML pages" << std::endl;
     std::cout << std::endl;
     std::cout << "Usage:" << std::endl;
@@ -24,52 +25,28 @@ void printHelp(CefString name)
     std::cout << std::endl;
 }
 
-bool parseCommandLine(CefRefPtr<CefCommandLine> commandLine)
+CefString getStdInput()
 {
-    if (commandLine->HasSwitch("help") || commandLine->HasSwitch("h")) {
-        printHelp(::GetProgramName(commandLine->GetProgram()));
-        return false;
+    std::string input;
+
+    std::cout << "Waiting for input until EOF (Unix: Ctrl+D, Windows: Ctrl+Z)" << std::endl;
+
+    for (std::string line; std::getline(std::cin, line);) {
+        input.append(line + "\n");
     }
 
-    m_pdfSettings.backgrounds_enabled = true;
-    m_pdfSettings.landscape = false;
-
-    try {
-        if (commandLine->HasSwitch("paper-size")) {
-            m_paperSize = commandLine->GetSwitchValue("paper-size");
-            if (m_paperSize.empty()) {
-                throw "Paper size not specified";
-            }
-        }
-
-        PaperSizes::iterator it = paperSizes.find(m_paperSize);
-        if (it != paperSizes.end()) {
-            m_pdfSettings.page_width = it->second.first * 1000;
-            m_pdfSettings.page_height = it->second.second * 1000;
-        } else {
-            throw "Paper size \"" + m_paperSize.ToString() +"\" is not defined";
-        }
-    } catch (std::string error) {
-        std::cerr << "ERROR: " << error << std::endl;
-        return false;
+    if (input.size() == 0) {
+        input = "<!DOCTYPE html>\n";
     }
 
-    if (commandLine->HasSwitch("landscape")) {
-        m_pdfSettings.landscape = true;
-    }
+    return input;
+}
 
-    if (commandLine->HasArguments()) {
-        std::vector<CefString> args;
-        commandLine->GetArguments(args);
-        if (args.size() > 0) {
-            // Get input url
-            m_urlInput = args[0];
-            if (args.size() > 1) {
-                // Get output filename
-                m_pdfOutput = args[1];
-            }
-        }
-    }
+void getCommandLine(CefRefPtr<CefCommandLine> commandLine, CefRefPtr<PdfPrintJob> job)
+{
+
+
+
 
     return true;
 }
@@ -86,32 +63,53 @@ int main(int argc, char* argv[])
     }
 
     // Implementation of the CefApp interface.
-    CefRefPtr<Application> app(new Application);
+    CefRefPtr<Application> app = new Application;
 
     CefRefPtr<CefCommandLine> commandLine = CefCommandLine::CreateCommandLine();
-#if defined(OS_WIN)
-    commandLine->InitFromString(::GetCommandLineW());
-#else
     commandLine->InitFromArgv(argc, argv);
-#endif
 
-    if (app->ParseCommandLine(commandLine)) {
-        // Populate this structure to customize CEF behavior.
-        CefSettings settings;
-        //settings.single_process = true;
-        settings.no_sandbox = true;
-        settings.windowless_rendering_enabled = true;
-        settings.command_line_args_disabled = false;
-
-        // Initialize CEF in the main process.
-        CefInitialize(mainArgs, settings, app.get(), NULL);
-
-        // Run the CEF message loop. This will block until CefQuitMessageLoop() is called.
-        CefRunMessageLoop();
-
-        // Shut down CEF.
-        CefShutdown();
+    if (commandLine->HasSwitch("help") || commandLine->HasSwitch("h")) {
+        printHelp(::GetProgramName(commandLine->GetProgram().ToString()));
+        return 0;
     }
+
+    CefString url;
+
+    if (commandLine->HasSwitch("url")) {
+        job = new PdfPrintJob('stdin://get');
+    } else {
+
+    }
+
+    CefRefPtr<PdfPrintJob> job = new PdfPrintJob(url);
+
+    if (!commandLine->HasArguments()) {
+
+    } else {
+        std::vector<CefString> args;
+        commandLine->GetArguments(args);
+        job = new PdfPrintJob(args[0]);
+
+        if (args.size() > 1) {
+            // Custom output filename
+            job->SetOutputPath(args[1]);
+        }
+    }
+
+    try {
+        if (commandLine->HasSwitch("paper-size")) {
+            job->SetPaperSize(commandLine->GetSwitchValue("paper-size"));
+        }
+
+        if (commandLine->HasSwitch("landscape")) {
+            job->SetLandscape();
+        }
+    } catch (std::string error) {
+        std::cerr << "ERROR: " << error << std::endl;
+        return 1;
+    }
+
+    app->Run();
 
     return 0;
 }

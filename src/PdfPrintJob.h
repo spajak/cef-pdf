@@ -7,31 +7,62 @@ class PdfPrintJob : public CefBase
 {
     public:
 
+    enum struct Type {
+        URL /* print from URL (GetUrl) */, STRING /* print from string (GetContent) */
+    };
+
+    struct PaperSize {
+        int width, height;
+    };
+
+    struct PaperMargin {
+        int top, right, bottom, left;
+    };
+
+    enum struct PaperOrientation {
+        PORTRAIT, LANDSCAPE
+    };
+
+    typedef std::unordered_map<
+        CefString,
+        PaperSize,
+        CIHash, CIEqual
+    > PaperSizesMap;
+
+    static PaperSizesMap paperSizesMap;
+
+    PdfPrintJob();
+
+    PdfPrintJob(Type type);
+
     PdfPrintJob(const CefString& url);
 
-    CefString GetUrl();
+    Type GetType();
 
-    CefString GetOutputPath();
+    const CefString& GetUrl();
+
+    const CefString& GetContent();
+
+    void SetUrl(const CefString&);
+
+    void SetContent(const CefString& content);
+
+
+    const CefString& GetOutputPath();
 
     void SetOutputPath(const CefString& outputPath);
+
 
     void SetPaperSize(const CefString& paperSize);
 
     void SetLandscape(bool flag = true);
 
-    void SetMargin(CefString margin);
+    void SetMargin(const CefString& margin);
 
-    CefRefPtr<ContentProvider> SetContentProvider(CefRefPtr<ContentProvider> contentProvider)
-    {
-        m_contentProvider = contentProvider;
-    }
 
-    CefRefPtr<ContentProvider> GetContentProvider()
-    {
-        return m_contentProvider;
-    };
 
-    // Prepare PDF setting for CEF
+
+    // Get prepared PDF setting for CEF
     CefPdfPrintSettings GetCefPdfPrintSettings();
 
     // Get PDF content from output file
@@ -39,11 +70,16 @@ class PdfPrintJob : public CefBase
 
     private:
 
+    PaperSize parsePaperSize(const CefString& paperSize);
+
+    PaperMargin parseMargin(const CefString& margin);
+
     CefString m_url;
-    CefString m_urlInput = "stdin://get";
-    CefString m_pdfOutput = "output.pdf";
+    CefString m_outputPath = "output.pdf";
     CefString m_paperSize = "A4";
-    CefRefPtr<ContentProvider> m_contentProvider;
+    Orientation m_orientation = PaperOrientation::PORTRAIT;
+    CefString m_margin;
+    CefString m_content;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(PdfPrintJob);
