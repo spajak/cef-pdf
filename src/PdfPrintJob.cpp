@@ -6,15 +6,21 @@
 #include <cctype>
 #include <fstream>
 #include <string>
+#include <algorithm>
 
 namespace cefpdf {
 
 PdfPrintJob::PdfPrintJob()
 {
     m_url = constants::scheme + "://input";
+    SetPageSize(constants::pageSize);
 }
 
-PdfPrintJob::PdfPrintJob(const CefString& url) : m_url(url) {}
+PdfPrintJob::PdfPrintJob(const CefString& url)
+{
+    m_url = url;
+    SetPageSize(constants::pageSize);
+}
 
 const CefString& PdfPrintJob::GetUrl()
 {
@@ -49,8 +55,7 @@ void PdfPrintJob::SetOutputPath(const CefString& outputPath)
 
 void PdfPrintJob::SetPageSize(const CefString& pageSize)
 {
-    parsePageSize(pageSize);
-    m_pageSize = pageSize;
+    m_pageSize = parsePageSize(pageSize);
 }
 
 void PdfPrintJob::SetLandscape(bool flag)
@@ -58,10 +63,9 @@ void PdfPrintJob::SetLandscape(bool flag)
     m_orientation = (flag ? PageOrientation::LANDSCAPE : PageOrientation::PORTRAIT);
 }
 
-void PdfPrintJob::SetMargin(const CefString& margin)
+void PdfPrintJob::SetPageMargin(const CefString& pageMargin)
 {
-    parseMargin(margin);
-    m_margin = margin;
+    m_margin = parsePageMargin(pageMargin);
 }
 
 CefPdfPrintSettings PdfPrintJob::GetCefPdfPrintSettings()
@@ -96,18 +100,26 @@ CefString PdfPrintJob::GetOutputContent()
 
 PageSize PdfPrintJob::parsePageSize(const CefString& paperSize)
 {
-    PaperSizesMap::iterator it = paperSizesMap.find(paperSize);
+    std::list<PageSize>::const_iterator it = paperSizesMap.find(paperSize);
+    auto tolower = [](unsigned char c) { return std::tolower(c); };
+    std::string lhs = paperSize.ToString();
+    std::transform(lhs.begin(), lhs.end(), lhs.begin(), tolower);
 
-    if (it == paperSizesMap.end()) {
-        throw "Paper size \"" + paperSize.ToString() +"\" is not defined";
+    for (it = paperSizesMap.begin(); it != paperSizesMap.end(); ++it) {
+        std::string rhs = it->name;
+        std::transform(rhs.begin(), rhs.end(), rhs.begin(), tolower);
+
+        if (lhs == rhs) {
+            return *it;
+        }
     }
 
-    return it->second;
+    throw "Paper size \"" + paperSize.ToString() +"\" is not defined";
 }
 
 PageMargin PdfPrintJob::parsePageMargin(const CefString& margin)
 {
-    PageMargin pageMargin;
+    PageMargin pageMargin = {PDF_PRINT_MARGIN_CUSTOM, 0, 0, 0, 0};
 
     enum {
         PENDING = 0, TOP, RIGHT, BOTTOM, LEFT
@@ -118,6 +130,10 @@ PageMargin PdfPrintJob::parsePageMargin(const CefString& margin)
     std::string value;
     Iter begin = margin.ToString().begin();
     Iter end = margin.ToString().end();
+
+    if (begin == end) {
+        throw "Invalid margin format";
+    }
 
     for (Iter i = begin; i != end; ++i) {
         char c = *i;

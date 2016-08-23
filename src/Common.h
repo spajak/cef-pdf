@@ -10,15 +10,25 @@
 namespace cefpdf {
 
 namespace constants {
+    // cef-pdf version number
     const std::string version = "0.1.5";
+    // Internal scheme
     const std::string scheme = "cefpdf";
+    // Default page size
+    const std::string pageSize = "A4";
+    // Default character encoding
+    const std::string encoding = "utf-8";
 }
 
-struct PageSize {
+struct PageSize
+{
+    std::string name;
     int width, height;
 };
 
-struct PageMargin {
+struct PageMargin
+{
+    int type;
     int top, right, bottom, left;
 };
 
@@ -26,23 +36,7 @@ enum struct PageOrientation {
     PORTRAIT, LANDSCAPE
 };
 
-struct CIHash
-{
-    std::size_t operator()(CefString const& s) const;
-};
-
-struct CIEqual
-{
-    bool operator()(const CefString& lhs, const CefString& rhs) const;
-};
-
-typedef std::unordered_map<
-    CefString,
-    PageSize,
-    CIHash, CIEqual
-> PageSizesMap;
-
-extern PageSizesMap pageSizesMap;
+extern std::list<PageSize> pageSizesMap;
 
 } // namespace cefpdf
 

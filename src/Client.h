@@ -48,7 +48,6 @@ class Client : public CefApp,
     CefSettings m_settings;
     CefWindowInfo m_windowInfo;
     CefBrowserSettings m_browserSettings;
-    CefString m_defaultEncoding = "utf-8";
 
     bool m_shouldStop = false;
 

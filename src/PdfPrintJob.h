@@ -32,7 +32,7 @@ class PdfPrintJob : public CefRequestHandler
 
     void SetLandscape(bool flag = true);
 
-    void SetMargin(const CefString& margin);
+    void SetPageMargin(const CefString& margin);
 
 
     // Get prepared PDF setting for CEF
@@ -58,9 +58,9 @@ class PdfPrintJob : public CefRequestHandler
     CefString m_content;
     CefString m_outputPath;
 
-    CefString m_pageSize = "A4";
+    PageSize m_pageSize;
     PageOrientation m_pageOrientation = PageOrientation::PORTRAIT;
-    CefString m_pageMargin;
+    PaperMargin m_pageMargin;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(PdfPrintJob);
