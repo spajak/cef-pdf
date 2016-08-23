@@ -3,31 +3,35 @@
 
 #include "include/cef_app.h"
 
-#include "Utils.h"
 #include "PrintHandler.h"
 #include "BrowserHandler.h"
 
 #include <utility>
 #include <unordered_map>
+#include <queue>
 
-#define VERSION "0.1.5"
+namespace cefpdf {
 
 class Client : public CefApp,
                public CefBrowserProcessHandler
 {
     public:
 
+    typedef std::queue<CefRefPtr<PdfPrintJob>> JobsQueue;
+
     Client();
 
-    void Initialize();
+    // Run message loop
     void Run();
-    void Stop();
-    void Shutdown();
 
-    void PostPrintJob(PdfPrintJob printJob);
+    // Stop message loop
+    void Stop();
+
+    void PostPrintJob(CefRefPtr<PdfPrintJob> printJob);
 
     // CefApp methods:
     virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() OVERRIDE;
+    virtual void OnRegisterCustomSchemes(CefRefPtr<CefSchemeRegistrar> registrar) OVERRIDE;
 
     // CefBrowserProcessHandler methods:
     virtual CefRefPtr<CefPrintHandler> GetPrintHandler() OVERRIDE;
@@ -36,6 +40,9 @@ class Client : public CefApp,
 
     private:
 
+    JobsQueue m_jobsQueue;
+
+    CefRefPtr<CefRenderHandler> m_renderHandler;
     CefRefPtr<CefPrintHandler> m_printHandler;
 
     CefSettings m_settings;
@@ -43,8 +50,12 @@ class Client : public CefApp,
     CefBrowserSettings m_browserSettings;
     CefString m_defaultEncoding = "utf-8";
 
+    bool m_shouldStop = false;
+
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(Client);
 };
+
+} // namespace cefpdf
 
 #endif // CLIENT_H_

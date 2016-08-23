@@ -1,16 +1,19 @@
 #ifndef RESPONSE_HANDLER_H_
 #define RESPONSE_HANDLER_H_
 
+#include <cstdlib>
+
 #include "include/cef_scheme.h"
 
-class ResponseHandler : public CefResourceHandler,
-                        public CefSchemeHandlerFactory
+namespace cefpdf {
+
+class ResponseHandler : public CefResourceHandler
 {
     public:
 
-    ResponseHandler(CefRefPtr<PdfPrintJob> job);
+    ResponseHandler(const CefString& data);
 
-    void Register();
+    virtual void Cancel() OVERRIDE;
 
     ///
     // Begin processing the request. To handle the request return true and call
@@ -55,18 +58,15 @@ class ResponseHandler : public CefResourceHandler,
         CefRefPtr<CefCallback> callback
     ) OVERRIDE;
 
-
-    virtual CefRefPtr<CefResourceHandler> Create(
-        CefRefPtr<CefBrowser> browser,
-        CefRefPtr<CefFrame> frame,
-        const CefString& scheme_name,
-        CefRefPtr<CefRequest> request
-    ) OVERRIDE;
-
     private:
+
+    CefString m_data;
+    std::size_t m_offset, m_length;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(ResponseHandler);
 };
+
+} // namespace cefpdf
 
 #endif // RESPONSE_HANDLER_H_

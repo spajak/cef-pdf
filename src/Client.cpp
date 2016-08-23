@@ -1,14 +1,18 @@
 #include "Client.h"
-#include "StdInputSchemeHandlerFactory.h"
+#include "Common.h"
 #include "BrowserHandler.h"
+#include "RenderHandler.h"
 #include "PrintHandler.h"
 
 #include "include/wrapper/cef_helpers.h"
 
 #include <iostream>
 
+namespace cefpdf {
+
 Client::Client()
 {
+    m_renderHandler = new RenderHandler;
     m_printHandler = new PrintHandler;
 
     //m_settings.single_process = true;
@@ -26,50 +30,62 @@ Client::Client()
     m_browserSettings.plugins = STATE_DISABLED;
 }
 
-void Client::Initialize()
+void Client::Run()
 {
     CefMainArgs mainArgs;
     // Initialize CEF in the main process.
     CefInitialize(mainArgs, m_settings, this, NULL);
-}
 
-void Client::Run()
-{
-    Initialize();
-    // Run the CEF message loop. This will block until CefQuitMessageLoop() is called.
-    CefRunMessageLoop();
-    Shutdown();
+    int pp = 0;
+
+    while (true) {
+        if (!m_jobsQueue.empty()) {
+            auto printJob = m_jobsQueue.front();
+            m_jobsQueue.pop();
+            // Create the browser window.
+            CefRefPtr<BrowserHandler> handler = new BrowserHandler(printJob, m_renderHandler);
+            CefBrowserHost::CreateBrowser(m_windowInfo, handler.get(), "", m_browserSettings, NULL);
+        }
+
+        if (true == m_shouldStop) {
+            m_shouldStop = false;
+            break;
+        }
+
+        ++pp;
+
+        CefDoMessageLoopWork();
+    }
+
+    std::cout << pp;
+    CefShutdown();
 }
 
 void Client::Stop()
 {
-    // Stop message loop
-    CefQuitMessageLoop();
+    m_shouldStop = true;
 }
 
-void Client::Shutdown()
+void Client::PostPrintJob(CefRefPtr<PdfPrintJob> printJob)
 {
-    // Shut down CEF.
-    CefShutdown();
-}
-
-void Client::PostPrintJob(PdfPrintJob printJob)
-{
-    // Create the browser window.
-    CefRefPtr<CefBrowser> handler = new BrowserHandler(printJob);
-    CefBrowserHost::CreateBrowser(m_windowInfo, handler.get(), "about:blank", m_browserSettings, NULL);
+    m_jobsQueue.push(printJob);
 }
 
 
 // CefApp methods:
-// -------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 CefRefPtr<CefBrowserProcessHandler> Client::GetBrowserProcessHandler()
 {
     return this;
 }
 
+void Client::OnRegisterCustomSchemes(CefRefPtr<CefSchemeRegistrar> registrar)
+{
+    registrar->AddCustomScheme(constants::scheme, false, true, false);
+}
+
 // CefBrowserProcessHandler methods:
-// -------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 CefRefPtr<CefPrintHandler> Client::GetPrintHandler()
 {
     return m_printHandler;
@@ -85,9 +101,6 @@ void Client::OnContextInitialized()
     DLOG(INFO) << "OnContextInitialized";
 
     CEF_REQUIRE_UI_THREAD();
-
-    // Register scheme handler factory for "stdin" scheme. Allows response for url
-    // stdin://get to be generated from user provided standard input.
-    //CefRefPtr<StdInputSchemeHandlerFactory> factory(new StdInputSchemeHandlerFactory);
-    //CefRegisterSchemeHandlerFactory("stdin", "get", factory.get());
 }
+
+} // namespace cefpdf

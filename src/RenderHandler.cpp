@@ -1,5 +1,7 @@
 #include "RenderHandler.h"
 
+namespace cefpdf {
+
 RenderHandler::RenderHandler() {}
 
 // CefRenderHandler methods:
@@ -21,3 +23,5 @@ void RenderHandler::OnPaint(
 ) {
 
 }
+
+} // namespace cefpdf

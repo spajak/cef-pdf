@@ -3,6 +3,8 @@
 
 #include "include/cef_render_handler.h"
 
+namespace cefpdf {
+
 class RenderHandler : public CefRenderHandler
 {
     public:
@@ -24,5 +26,7 @@ class RenderHandler : public CefRenderHandler
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(RenderHandler);
 };
+
+} // namespace cefpdf
 
 #endif // RENDER_HANDLER_H_

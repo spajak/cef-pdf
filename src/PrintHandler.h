@@ -3,6 +3,8 @@
 
 #include "include/cef_print_handler.h"
 
+namespace cefpdf {
+
 class PrintHandler : public CefPrintHandler
 {
     public:
@@ -27,5 +29,7 @@ class PrintHandler : public CefPrintHandler
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(PrintHandler);
 };
+
+} // namespace cefpdf
 
 #endif // PRINT_HANDLER_H_

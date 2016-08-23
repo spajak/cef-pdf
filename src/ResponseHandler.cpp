@@ -1,41 +1,65 @@
 #include "ResponseHandler.h"
 
+#include "include/wrapper/cef_helpers.h"
+
 #include <string>
 #include <iostream>
-#include "include/wrapper/cef_stream_resource_handler.h"
 
-ResponseHandler::ResponseHandler() {}
+namespace cefpdf {
 
-CefRefPtr<CefStreamReader> ResponseHandler::GetStdInputStream()
+ResponseHandler::ResponseHandler(const CefString& data)
 {
-    std::string input;
-
-    std::cout << "Waiting for input until EOF (Unix: Ctrl+D, Windows: Ctrl+Z)" << std::endl;
-
-    for (std::string line; std::getline(std::cin, line);) {
-        input.append(line + "\n");
-    }
-
-    CefRefPtr<CefStreamReader> stream;
-
-    if (input.size() == 0) {
-        input = "<!DOCTYPE html>\n";
-    }
-
-    stream = CefStreamReader::CreateForData(
-        const_cast<void *>(static_cast<const void *>(input.c_str())),
-        input.size()
-    );
-
-    return stream;
+    m_data = data;
+    m_offset = 0;
+    m_length = data.ToString().length();
 }
 
-CefRefPtr<CefResourceHandler> ResponseHandler::Create(
-    CefRefPtr<CefBrowser> browser,
-    CefRefPtr<CefFrame> frame,
-    const CefString& scheme_name,
-    CefRefPtr<CefRequest> request
+void ResponseHandler::Cancel() {}
+
+bool ResponseHandler::ProcessRequest(
+    CefRefPtr<CefRequest> request,
+    CefRefPtr<CefCallback> callback
 ) {
-    CefRefPtr<CefStreamReader> stream = GetStdInputStream();
-    return new CefStreamResourceHandler("text/html", stream);
+    callback->Continue();
+    return true;
 }
+
+void ResponseHandler::GetResponseHeaders(
+    CefRefPtr<CefResponse> response,
+    int64& response_length,
+    CefString& redirectUrl
+) {
+    DCHECK(!m_data.empty());
+
+    response->SetMimeType("text/html");
+    response->SetStatus(200);
+
+    // Set the resulting response length
+    response_length = m_data.length();
+}
+
+bool ResponseHandler::ReadResponse(
+    void* data_out,
+    int bytes_to_read,
+    int& bytes_read,
+    CefRefPtr<CefCallback> callback
+) {
+    CEF_REQUIRE_IO_THREAD();
+
+    bool has_data = false;
+    bytes_read = 0;
+
+    if (m_offset < m_length) {
+        // Copy the next block of data into the buffer.
+        int transfer_size = std::min(bytes_to_read, static_cast<int>(m_length - m_offset));
+        std::memcpy(data_out, m_data.ToString().c_str() + m_offset, transfer_size);
+        m_offset += transfer_size;
+
+        bytes_read = transfer_size;
+        has_data = true;
+    }
+
+    return has_data;
+}
+
+} // namespace cefpdf
