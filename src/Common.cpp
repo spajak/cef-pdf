@@ -1,6 +1,8 @@
 #include "Common.h"
 
 #include <list>
+#include <cctype>
+#include <algorithm>
 
 namespace cefpdf {
 
@@ -65,7 +67,14 @@ std::list<PageSize> pageSizesMap = {
     {"8R",  203, 254},
     {"10R", 254, 305},
     {"11R", 279, 356},
-    {"12R", 305, 381}}
+    {"12R", 305, 381}
 };
+
+std::string strtolower(std::string s)
+{
+    auto tolower = [](unsigned char c) { return std::tolower(c); };
+    std::transform(s.begin(), s.end(), s.begin(), tolower);
+    return s;
+}
 
 } // namespace cefpdf

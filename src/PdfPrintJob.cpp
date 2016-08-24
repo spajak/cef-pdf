@@ -3,10 +3,11 @@
 
 #include "include/wrapper/cef_helpers.h"
 
+#include <cstdlib>
+#include <cstdio>
 #include <cctype>
 #include <fstream>
 #include <string>
-#include <algorithm>
 
 namespace cefpdf {
 
@@ -14,12 +15,14 @@ PdfPrintJob::PdfPrintJob()
 {
     m_url = constants::scheme + "://input";
     SetPageSize(constants::pageSize);
+    m_pageMargin.type = PDF_PRINT_MARGIN_DEFAULT;
 }
 
 PdfPrintJob::PdfPrintJob(const CefString& url)
 {
     m_url = url;
     SetPageSize(constants::pageSize);
+    m_pageMargin.type = PDF_PRINT_MARGIN_DEFAULT;
 }
 
 const CefString& PdfPrintJob::GetUrl()
@@ -55,17 +58,40 @@ void PdfPrintJob::SetOutputPath(const CefString& outputPath)
 
 void PdfPrintJob::SetPageSize(const CefString& pageSize)
 {
-    m_pageSize = parsePageSize(pageSize);
+    std::string lhs = strtolower(pageSize.ToString());
+    std::list<PageSize>::const_iterator it;
+
+    for (it = pageSizesMap.begin(); it != pageSizesMap.end(); ++it) {
+        std::string rhs = strtolower(it->name);
+        if (lhs == rhs) {
+            m_pageSize = *it;
+            return;
+        }
+    }
+
+    m_pageSize.name = "Custom";
+    ParsePageSize(pageSize);
 }
 
 void PdfPrintJob::SetLandscape(bool flag)
 {
-    m_orientation = (flag ? PageOrientation::LANDSCAPE : PageOrientation::PORTRAIT);
+    m_pageOrientation = (flag ? PageOrientation::LANDSCAPE : PageOrientation::PORTRAIT);
 }
 
 void PdfPrintJob::SetPageMargin(const CefString& pageMargin)
 {
-    m_margin = parsePageMargin(pageMargin);
+    std::string margin = strtolower(pageMargin.ToString());
+
+    if ("default" == margin) {
+        m_pageMargin.type = PDF_PRINT_MARGIN_DEFAULT;
+    } else if ("none" == margin) {
+        m_pageMargin.type = PDF_PRINT_MARGIN_NONE;
+    } else if ("minimum" == margin) {
+        m_pageMargin.type = PDF_PRINT_MARGIN_MINIMUM;
+    } else { // Custom
+        m_pageMargin.type = PDF_PRINT_MARGIN_CUSTOM;
+        ParsePageMargin(pageMargin);
+    }
 }
 
 CefPdfPrintSettings PdfPrintJob::GetCefPdfPrintSettings()
@@ -73,16 +99,12 @@ CefPdfPrintSettings PdfPrintJob::GetCefPdfPrintSettings()
     CefPdfPrintSettings pdfSettings;
 
     pdfSettings.backgrounds_enabled = true;
-    pdfSettings.landscape = (m_orientation == PageOrientation::LANDSCAPE);
+    pdfSettings.landscape = (m_pageOrientation == PageOrientation::LANDSCAPE);
 
-    auto pageSize = parsePageSize(m_pageSize);
-    pdfSettings.page_width  = pageSize.width * 1000;
-    pdfSettings.page_height = pageSize.height * 1000;
+    pdfSettings.page_width  = m_pageSize.width * 1000;
+    pdfSettings.page_height = m_pageSize.height * 1000;
 
-    if (!m_margin.empty()) {
-        auto paperMargin = parseMargin(m_margin);
-        // TODO: Set margins
-    }
+    // TODO: Set margins
 
     return pdfSettings;
 }
@@ -98,75 +120,59 @@ CefString PdfPrintJob::GetOutputContent()
     return content;
 }
 
-PageSize PdfPrintJob::parsePageSize(const CefString& paperSize)
+void PdfPrintJob::ParsePageSize(const CefString& paperSize)
 {
-    std::list<PageSize>::const_iterator it = paperSizesMap.find(paperSize);
-    auto tolower = [](unsigned char c) { return std::tolower(c); };
-    std::string lhs = paperSize.ToString();
-    std::transform(lhs.begin(), lhs.end(), lhs.begin(), tolower);
-
-    for (it = paperSizesMap.begin(); it != paperSizesMap.end(); ++it) {
-        std::string rhs = it->name;
-        std::transform(rhs.begin(), rhs.end(), rhs.begin(), tolower);
-
-        if (lhs == rhs) {
-            return *it;
-        }
-    }
-
+    // TODO: Parse custom page size
     throw "Paper size \"" + paperSize.ToString() +"\" is not defined";
 }
 
-PageMargin PdfPrintJob::parsePageMargin(const CefString& margin)
+void PdfPrintJob::ParsePageMargin(const CefString& pageMargin)
 {
-    PageMargin pageMargin = {PDF_PRINT_MARGIN_CUSTOM, 0, 0, 0, 0};
+    m_pageMargin.type = PDF_PRINT_MARGIN_CUSTOM;
 
-    enum {
-        PENDING = 0, TOP, RIGHT, BOTTOM, LEFT
-    };
-
-    typedef std::string::const_iterator Iter;
-    int state = PENDING;
+    std::string input = pageMargin.ToString() + "+";
+    enum State { PENDING = 0, TOP, RIGHT, BOTTOM, LEFT };
+    int state = State::PENDING;
     std::string value;
-    Iter begin = margin.ToString().begin();
-    Iter end = margin.ToString().end();
+    bool hasValue = false;
 
-    if (begin == end) {
-        throw "Invalid margin format";
-    }
-
-    for (Iter i = begin; i != end; ++i) {
+    for (std::string::const_iterator i = input.begin(); i != input.end(); ++i) {
         char c = *i;
         if (0 != std::isdigit(c)) {
             value.push_back(c);
-        } else if (0 != std::isspace(c)) {
-            if (!value.empty()) {
-                int v = std::atoi(value.c_str());
-                switch (++state) {
-                    case TOP:
-                        pageMargin.top = pageMargin.right = pageMargin.bottom = pageMargin.left = v;
-                        break;
-                    case RIGHT:
-                        pageMargin.right = pageMargin.left = v;
-                        break;
-                    case BOTTOM:
-                        pageMargin.bottom = v;
-                        break;
-                    case LEFT:
-                        pageMargin.left = v;
-                        break;
-                    default:
-                        throw "Invalid margin format";
-                }
-
-                value.erase();
+        } else if ('+' == c) {
+            if (value.empty()) {
+                continue;
             }
+
+            int v = std::atoi(value.c_str());
+            switch (++state) {
+                case State::TOP:
+                    m_pageMargin.top = m_pageMargin.right = m_pageMargin.bottom = m_pageMargin.left = v;
+                    break;
+                case State::RIGHT:
+                    m_pageMargin.right = m_pageMargin.left = v;
+                    break;
+                case State::BOTTOM:
+                    m_pageMargin.bottom = v;
+                    break;
+                case State::LEFT:
+                    m_pageMargin.left = v;
+                    break;
+                default:
+                    throw "Too many values in margin";
+            }
+
+            hasValue = true;
+            value.erase();
         } else {
-            throw "Invalid margin format";
+            throw "Invalid character \"" + std::string(&c) + "\" in margin";
         }
     }
 
-    return pageMargin;
+    if (!hasValue) {
+        throw "Invalid margin format";
+    }
 }
 
 // CefRequestHandler methods:
@@ -180,12 +186,12 @@ CefRefPtr<CefResourceHandler> PdfPrintJob::GetResourceHandler(
         << "GetResourceHandler"
         << ", request->url:" << request->GetURL().ToString();
 
-    if (m_content.empty()) {
-        // Allow the resource to load normally
-        return NULL;
+    if (!m_content.empty()) {
+        return new ResponseHandler(m_content);
     }
 
-    return new ResponseHandler(m_content);
+    // Allow the resource to load normally
+    return NULL;
 }
 
 } // namespace cefpdf

@@ -50,9 +50,9 @@ class PdfPrintJob : public CefRequestHandler
 
     private:
 
-    PageSize parsePageSize(const CefString& pageSize);
+    void ParsePageSize(const CefString& pageSize);
 
-    PageMargin parsePageMargin(const CefString& pageMargin);
+    void ParsePageMargin(const CefString& pageMargin);
 
     CefString m_url;
     CefString m_content;
@@ -60,7 +60,7 @@ class PdfPrintJob : public CefRequestHandler
 
     PageSize m_pageSize;
     PageOrientation m_pageOrientation = PageOrientation::PORTRAIT;
-    PaperMargin m_pageMargin;
+    PageMargin m_pageMargin;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(PdfPrintJob);

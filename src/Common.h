@@ -3,9 +3,8 @@
 
 #include "include/cef_base.h"
 
-#include <cstdlib>
 #include <string>
-#include <unordered_map>
+#include <list>
 
 namespace cefpdf {
 
@@ -37,6 +36,8 @@ enum struct PageOrientation {
 };
 
 extern std::list<PageSize> pageSizesMap;
+
+std::string strtolower(std::string s);
 
 } // namespace cefpdf
 

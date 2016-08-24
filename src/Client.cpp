@@ -81,7 +81,9 @@ CefRefPtr<CefBrowserProcessHandler> Client::GetBrowserProcessHandler()
 
 void Client::OnRegisterCustomSchemes(CefRefPtr<CefSchemeRegistrar> registrar)
 {
-    registrar->AddCustomScheme(constants::scheme, false, true, false);
+    DLOG(INFO) << "OnRegisterCustomSchemes";
+
+    registrar->AddCustomScheme(constants::scheme, true, true, false);
 }
 
 // CefBrowserProcessHandler methods:

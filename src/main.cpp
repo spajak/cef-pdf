@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
     }
 
     // Implementation of the CefApp interface.
-    CefRefPtr<Client> app = new cefpdf::Client;
+    CefRefPtr<cefpdf::Client> app = new cefpdf::Client;
     app->PostPrintJob(job);
 
     app->Run();
