@@ -72,8 +72,13 @@ std::list<PageSize> pageSizesMap = {
 
 std::string strtolower(std::string s)
 {
-    auto tolower = [](unsigned char c) { return std::tolower(c); };
-    std::transform(s.begin(), s.end(), s.begin(), tolower);
+    std::transform(
+        s.begin(),
+        s.end(),
+        s.begin(),
+        [](unsigned char c) { return std::tolower(c); }
+    );
+
     return s;
 }
 

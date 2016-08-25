@@ -26,11 +26,6 @@ CefRefPtr<CefLoadHandler> BrowserHandler::GetLoadHandler()
     return this;
 }
 
-CefRefPtr<CefRequestHandler> BrowserHandler::GetRequestHandler()
-{
-    return m_job;
-}
-
 CefRefPtr<CefRenderHandler> BrowserHandler::GetRenderHandler()
 {
     return m_renderHandler;
@@ -43,13 +38,10 @@ void BrowserHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
     DLOG(INFO) << "OnAfterCreated";
 
     CEF_REQUIRE_UI_THREAD();
+    DCHECK(!m_browser.get());
 
-    if (!m_browser.get()) {
-        m_browser = browser;
-        m_browser->GetMainFrame()->LoadURL(m_job->GetUrl());
-    }
-
-    ++m_browserCount;
+    m_browser = browser;
+    m_browser->GetMainFrame()->LoadURL(m_job->GetUrl());
 }
 
 bool BrowserHandler::DoClose(CefRefPtr<CefBrowser> browser)
@@ -68,15 +60,10 @@ void BrowserHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser)
     DLOG(INFO) << "OnBeforeClose";
 
     CEF_REQUIRE_UI_THREAD();
+    DCHECK(m_browser.get());
 
-    if (m_browser.get()) {
-        m_browser = NULL;
-    }
-
-    if (--m_browserCount == 0) {
-        // All browser windows have closed. Quit the application message loop.
-        CefQuitMessageLoop();
-    }
+    m_browser = NULL;
+    m_job->OnDone(m_loadError, m_printError);
 }
 
 // CefLoadHandler methods:
@@ -96,13 +83,18 @@ void BrowserHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame
         << ", httpStatusCode: " << httpStatusCode;
 
     CEF_REQUIRE_UI_THREAD();
+    DCHECK(m_browser->IsSame(browser));
 
     if (frame->IsMain()) {
-        browser->GetHost()->PrintToPDF(
-            m_job->GetOutputPath(),
-            m_job->GetCefPdfPrintSettings(),
-            this
-        );
+        if (ERR_NONE != m_loadError) {
+            m_browser->GetHost()->CloseBrowser(true);
+        } else {
+            m_browser->GetHost()->PrintToPDF(
+                m_job->GetOutputPath(),
+                m_job->GetCefPdfPrintSettings(),
+                this
+            );
+        }
     }
 }
 
@@ -127,7 +119,7 @@ void BrowserHandler::OnLoadError(
 
     if (frame->IsMain()) {
         std::cerr << "Error loading: " << failedUrl.ToString() << std::endl;
-        m_errors[browser->GetIdentifier()] = errorCode;
+        m_loadError = errorCode;
     }
 }
 
@@ -142,7 +134,8 @@ void BrowserHandler::OnPdfPrintFinished(const CefString& path, bool ok)
 
     DCHECK(m_browser.get());
 
-    m_browser->GetHost()->CloseBrowser(false);
+    m_printError = !ok;
+    m_browser->GetHost()->CloseBrowser(true);
 }
 
 } // namespace cefpdf

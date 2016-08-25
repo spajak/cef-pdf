@@ -6,8 +6,6 @@
 #include "include/cef_client.h"
 #include "include/cef_browser.h"
 
-#include <unordered_map>
-
 namespace cefpdf {
 
 class BrowserHandler : public CefClient,
@@ -17,16 +15,11 @@ class BrowserHandler : public CefClient,
 {
     public:
 
-    typedef std::unordered_map<
-        int, int
-    > Errors;
-
     BrowserHandler(CefRefPtr<PdfPrintJob> printJob, CefRefPtr<CefRenderHandler> renderHandler);
 
     // CefClient methods:
     virtual CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler();
     virtual CefRefPtr<CefLoadHandler> GetLoadHandler();
-    virtual CefRefPtr<CefRequestHandler> GetRequestHandler();
     virtual CefRefPtr<CefRenderHandler> GetRenderHandler();
 
     // CefLifeSpanHandler methods:
@@ -61,8 +54,8 @@ class BrowserHandler : public CefClient,
     CefRefPtr<PdfPrintJob> m_job;
     CefRefPtr<CefRenderHandler> m_renderHandler;
 
-    int m_browserCount = 0;
-    Errors m_errors;
+    CefLoadHandler::ErrorCode m_loadError = ERR_NONE;
+    bool m_printError = false;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(BrowserHandler);

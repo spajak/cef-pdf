@@ -9,12 +9,9 @@ namespace cefpdf {
 
 ResponseHandler::ResponseHandler(const CefString& data)
 {
-    m_data = data;
+    m_data = data.ToString();
     m_offset = 0;
-    m_length = data.ToString().length();
 }
-
-void ResponseHandler::Cancel() {}
 
 bool ResponseHandler::ProcessRequest(
     CefRefPtr<CefRequest> request,
@@ -29,8 +26,6 @@ void ResponseHandler::GetResponseHeaders(
     int64& response_length,
     CefString& redirectUrl
 ) {
-    DCHECK(!m_data.empty());
-
     response->SetMimeType("text/html");
     response->SetStatus(200);
 
@@ -49,10 +44,10 @@ bool ResponseHandler::ReadResponse(
     bool has_data = false;
     bytes_read = 0;
 
-    if (m_offset < m_length) {
+    if (m_offset < m_data.length()) {
         // Copy the next block of data into the buffer.
-        int transfer_size = std::min(bytes_to_read, static_cast<int>(m_length - m_offset));
-        std::memcpy(data_out, m_data.ToString().c_str() + m_offset, transfer_size);
+        int transfer_size = std::min(bytes_to_read, static_cast<int>(m_data.length() - m_offset));
+        std::memcpy(data_out, m_data.c_str() + m_offset, transfer_size);
         m_offset += transfer_size;
 
         bytes_read = transfer_size;
@@ -60,6 +55,17 @@ bool ResponseHandler::ReadResponse(
     }
 
     return has_data;
+}
+
+void ResponseHandler::Cancel() {}
+
+CefRefPtr<CefResourceHandler> ResponseHandler::Create(
+    CefRefPtr<CefBrowser> browser,
+    CefRefPtr<CefFrame> frame,
+    const CefString& scheme_name,
+    CefRefPtr<CefRequest> request
+) {
+    return this;
 }
 
 } // namespace cefpdf

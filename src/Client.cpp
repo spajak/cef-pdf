@@ -1,5 +1,6 @@
 #include "Client.h"
 #include "Common.h"
+#include "ResponseHandler.h"
 #include "BrowserHandler.h"
 #include "RenderHandler.h"
 #include "PrintHandler.h"
@@ -36,15 +37,13 @@ void Client::Run()
     // Initialize CEF in the main process.
     CefInitialize(mainArgs, m_settings, this, NULL);
 
-    int pp = 0;
+    //int pp = 0;
 
     while (true) {
         if (!m_jobsQueue.empty()) {
             auto printJob = m_jobsQueue.front();
             m_jobsQueue.pop();
-            // Create the browser window.
-            CefRefPtr<BrowserHandler> handler = new BrowserHandler(printJob, m_renderHandler);
-            CefBrowserHost::CreateBrowser(m_windowInfo, handler.get(), "", m_browserSettings, NULL);
+            ExecutePrintJob(printJob);
         }
 
         if (true == m_shouldStop) {
@@ -52,12 +51,12 @@ void Client::Run()
             break;
         }
 
-        ++pp;
+        //++pp;
 
         CefDoMessageLoopWork();
     }
 
-    std::cout << pp;
+    //std::cout << std::string(pp);
     CefShutdown();
 }
 
@@ -71,6 +70,16 @@ void Client::PostPrintJob(CefRefPtr<PdfPrintJob> printJob)
     m_jobsQueue.push(printJob);
 }
 
+void Client::ExecutePrintJob(CefRefPtr<PdfPrintJob> printJob)
+{
+    CefRefPtr<CefRequestContext> context = CefRequestContext::CreateContext(m_contextSettings, NULL);
+    context->RegisterSchemeHandlerFactory(constants::scheme, "", new ResponseHandler(printJob->GetContent()));
+
+    // Create the browser window.
+    CefRefPtr<BrowserHandler> handler = new BrowserHandler(printJob, m_renderHandler);
+    CefBrowserHost::CreateBrowser(m_windowInfo, handler.get(), "", m_browserSettings, context);
+}
+
 
 // CefApp methods:
 // -----------------------------------------------------------------------------
@@ -81,9 +90,7 @@ CefRefPtr<CefBrowserProcessHandler> Client::GetBrowserProcessHandler()
 
 void Client::OnRegisterCustomSchemes(CefRefPtr<CefSchemeRegistrar> registrar)
 {
-    DLOG(INFO) << "OnRegisterCustomSchemes";
-
-    registrar->AddCustomScheme(constants::scheme, true, true, false);
+    registrar->AddCustomScheme(constants::scheme, true, false, false);
 }
 
 // CefBrowserProcessHandler methods:
@@ -95,7 +102,7 @@ CefRefPtr<CefPrintHandler> Client::GetPrintHandler()
 
 void Client::OnBeforeChildProcessLaunch(CefRefPtr<CefCommandLine> command_line)
 {
-    DLOG(INFO) << "OnBeforeChildProcessLaunch: " << command_line->GetCommandLineString().ToString() ;
+    //DLOG(INFO) << "OnBeforeChildProcessLaunch: " << command_line->GetCommandLineString().ToString() ;
 }
 
 void Client::OnContextInitialized()

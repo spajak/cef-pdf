@@ -1,5 +1,4 @@
 #include "PdfPrintJob.h"
-#include "ResponseHandler.h"
 
 #include "include/wrapper/cef_helpers.h"
 
@@ -175,23 +174,9 @@ void PdfPrintJob::ParsePageMargin(const CefString& pageMargin)
     }
 }
 
-// CefRequestHandler methods:
-// -----------------------------------------------------------------------------
-CefRefPtr<CefResourceHandler> PdfPrintJob::GetResourceHandler(
-    CefRefPtr<CefBrowser> browser,
-    CefRefPtr<CefFrame> frame,
-    CefRefPtr<CefRequest> request
-) {
-    DLOG(INFO)
-        << "GetResourceHandler"
-        << ", request->url:" << request->GetURL().ToString();
+void PdfPrintJob::OnDone(CefLoadHandler::ErrorCode loadError, bool printError)
+{
 
-    if (!m_content.empty()) {
-        return new ResponseHandler(m_content);
-    }
-
-    // Allow the resource to load normally
-    return NULL;
 }
 
 } // namespace cefpdf

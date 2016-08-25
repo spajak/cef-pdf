@@ -6,8 +6,6 @@
 #include "PrintHandler.h"
 #include "BrowserHandler.h"
 
-#include <utility>
-#include <unordered_map>
 #include <queue>
 
 namespace cefpdf {
@@ -47,9 +45,12 @@ class Client : public CefApp,
 
     CefSettings m_settings;
     CefWindowInfo m_windowInfo;
+    CefRequestContextSettings m_contextSettings;
     CefBrowserSettings m_browserSettings;
 
     bool m_shouldStop = false;
+
+    void ExecutePrintJob(CefRefPtr<PdfPrintJob> printJob);
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(Client);

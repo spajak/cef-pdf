@@ -3,11 +3,11 @@
 
 #include "Common.h"
 
-#include "include/cef_request_handler.h"
+#include "include/cef_load_handler.h"
 
 namespace cefpdf {
 
-class PdfPrintJob : public CefRequestHandler
+class PdfPrintJob : public CefBase
 {
     public:
 
@@ -41,12 +41,7 @@ class PdfPrintJob : public CefRequestHandler
     // Get PDF content from output file
     CefString GetOutputContent();
 
-    // CefRequestHandler methods:
-    virtual CefRefPtr<CefResourceHandler> GetResourceHandler(
-        CefRefPtr<CefBrowser> browser,
-        CefRefPtr<CefFrame> frame,
-        CefRefPtr<CefRequest> request
-    ) OVERRIDE;
+    void OnDone(CefLoadHandler::ErrorCode loadError, bool printError);
 
     private:
 
