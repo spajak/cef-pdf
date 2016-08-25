@@ -41,8 +41,6 @@ class PdfPrintJob : public CefBase
     // Get PDF content from output file
     CefString GetOutputContent();
 
-    void OnDone(CefLoadHandler::ErrorCode loadError, bool printError);
-
     private:
 
     void ParsePageSize(const CefString& pageSize);

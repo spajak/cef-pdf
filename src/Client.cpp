@@ -2,7 +2,6 @@
 #include "Common.h"
 #include "ResponseHandler.h"
 #include "BrowserHandler.h"
-#include "RenderHandler.h"
 #include "PrintHandler.h"
 
 #include "include/wrapper/cef_helpers.h"
@@ -13,7 +12,6 @@ namespace cefpdf {
 
 Client::Client()
 {
-    m_renderHandler = new RenderHandler;
     m_printHandler = new PrintHandler;
 
     //m_settings.single_process = true;
@@ -40,11 +38,7 @@ void Client::Run()
     //int pp = 0;
 
     while (true) {
-        if (!m_jobsQueue.empty()) {
-            auto printJob = m_jobsQueue.front();
-            m_jobsQueue.pop();
-            ExecutePrintJob(printJob);
-        }
+        m_browserHandler->Process();
 
         if (true == m_shouldStop) {
             m_shouldStop = false;
@@ -67,19 +61,8 @@ void Client::Stop()
 
 void Client::PostPrintJob(CefRefPtr<PdfPrintJob> printJob)
 {
-    m_jobsQueue.push(printJob);
+    m_browserHandler.Queue(printJob);
 }
-
-void Client::ExecutePrintJob(CefRefPtr<PdfPrintJob> printJob)
-{
-    CefRefPtr<CefRequestContext> context = CefRequestContext::CreateContext(m_contextSettings, NULL);
-    context->RegisterSchemeHandlerFactory(constants::scheme, "", new ResponseHandler(printJob->GetContent()));
-
-    // Create the browser window.
-    CefRefPtr<BrowserHandler> handler = new BrowserHandler(printJob, m_renderHandler);
-    CefBrowserHost::CreateBrowser(m_windowInfo, handler.get(), "", m_browserSettings, context);
-}
-
 
 // CefApp methods:
 // -----------------------------------------------------------------------------
@@ -110,6 +93,8 @@ void Client::OnContextInitialized()
     DLOG(INFO) << "OnContextInitialized";
 
     CEF_REQUIRE_UI_THREAD();
+
+    CefRegisterSchemeHandlerFactory(constants::scheme, "none", m_browserHandler);
 }
 
 } // namespace cefpdf

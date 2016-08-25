@@ -15,8 +15,6 @@ class Client : public CefApp,
 {
     public:
 
-    typedef std::queue<CefRefPtr<PdfPrintJob>> JobsQueue;
-
     Client();
 
     // Run message loop
@@ -40,7 +38,6 @@ class Client : public CefApp,
 
     JobsQueue m_jobsQueue;
 
-    CefRefPtr<CefRenderHandler> m_renderHandler;
     CefRefPtr<CefPrintHandler> m_printHandler;
 
     CefSettings m_settings;

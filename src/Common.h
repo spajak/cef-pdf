@@ -15,6 +15,8 @@ namespace constants {
     const std::string pageSize = "A4";
     // Default character encoding
     const std::string encoding = "utf-8";
+    // Max number of concurrent processes (browsers)
+    const int maxProcesses = 10;
 }
 
 struct PageSize

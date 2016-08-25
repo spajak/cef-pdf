@@ -1,5 +1,6 @@
 #include "BrowserHandler.h"
 #include "PdfPrintJob.h"
+#include "RenderHandler.h"
 
 #include "include/cef_app.h"
 #include "include/wrapper/cef_helpers.h"
@@ -8,10 +9,34 @@
 
 namespace cefpdf {
 
-BrowserHandler::BrowserHandler(CefRefPtr<PdfPrintJob> printJob, CefRefPtr<CefRenderHandler> renderHandler)
+BrowserHandler::BrowserHandler(CefRefPtr<PdfPrintJob> printJob)
 {
     m_job = printJob;
-    m_renderHandler = renderHandler;
+    m_renderHandler = new RenderHandler;
+}
+
+void BrowserHandler::Queue(CefRefPtr<PdfPrintJob> printJob)
+{
+    m_jobsQueue.push(printJob);
+}
+
+bool BrowserHandler::Process()
+{
+    if (m_processCount >= constants::maxProcesses) {
+        return false;
+    }
+
+    if (m_jobsQueue.empty()) {
+        return false;
+    }
+
+    ++m_processCount;
+
+    // Create the browser window.
+    CefRefPtr<CefRequestContext> context = CefRequestContext::CreateContext(m_contextSettings, NULL);
+    CefBrowserHost::CreateBrowser(m_windowInfo, this, "", m_browserSettings, context);
+
+    return true;
 }
 
 // CefClient methods:
@@ -38,10 +63,17 @@ void BrowserHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
     DLOG(INFO) << "OnAfterCreated";
 
     CEF_REQUIRE_UI_THREAD();
-    DCHECK(!m_browser.get());
 
-    m_browser = browser;
+    auto printJob = m_jobsQueue.front();
+    m_jobsQueue.pop();
+
+    browser->GetHost()
+        ->GetRequestContext()
+        ->RegisterSchemeHandlerFactory(constants::scheme, "", this);
+
     m_browser->GetMainFrame()->LoadURL(m_job->GetUrl());
+
+    ++m_browserCount;
 }
 
 bool BrowserHandler::DoClose(CefRefPtr<CefBrowser> browser)
@@ -60,10 +92,12 @@ void BrowserHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser)
     DLOG(INFO) << "OnBeforeClose";
 
     CEF_REQUIRE_UI_THREAD();
-    DCHECK(m_browser.get());
 
     m_browser = NULL;
     m_job->OnDone(m_loadError, m_printError);
+
+    --m_browserCount;
+    --m_processCount;
 }
 
 // CefLoadHandler methods:
@@ -83,18 +117,10 @@ void BrowserHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame
         << ", httpStatusCode: " << httpStatusCode;
 
     CEF_REQUIRE_UI_THREAD();
-    DCHECK(m_browser->IsSame(browser));
 
     if (frame->IsMain()) {
-        if (ERR_NONE != m_loadError) {
-            m_browser->GetHost()->CloseBrowser(true);
-        } else {
-            m_browser->GetHost()->PrintToPDF(
-                m_job->GetOutputPath(),
-                m_job->GetCefPdfPrintSettings(),
-                this
-            );
-        }
+        auto jobContainer = findJob(browser.get());
+        jobContainer->Print();
     }
 }
 
@@ -119,23 +145,48 @@ void BrowserHandler::OnLoadError(
 
     if (frame->IsMain()) {
         std::cerr << "Error loading: " << failedUrl.ToString() << std::endl;
-        m_loadError = errorCode;
+        auto jobContainer = findJob(browser.get());
+        jobContainer->loadError = errorCode;
     }
+}
+
+// CefSchemeHandlerFactory methods:
+// -----------------------------------------------------------------------------
+CefRefPtr<CefResourceHandler> BrowserHandler::Create(
+    CefRefPtr<CefBrowser> browser,
+    CefRefPtr<CefFrame> frame,
+    const CefString& scheme_name,
+    CefRefPtr<CefRequest> request
+) {
+    auto jobContainer = findJob(browser.get());
+    return new ResponseHandler(jobContainer->job->GetContent());
 }
 
 // CefPdfPrintCallback methods:
 // -----------------------------------------------------------------------------
-void BrowserHandler::OnPdfPrintFinished(const CefString& path, bool ok)
+void BrowserHandler::PdfPrintJobContainer::OnPdfPrintFinished(const CefString& path, bool ok)
 {
     DLOG(INFO)
         << "OnPdfPrintFinished"
         << ", path: " << path.ToString()
         << ", ok: " << ok;
 
-    DCHECK(m_browser.get());
+    DCHECK(browser.get());
+    printError = !ok;
+    browser->GetHost()->CloseBrowser(true);
+}
 
-    m_printError = !ok;
-    m_browser->GetHost()->CloseBrowser(true);
+void BrowserHandler::PdfPrintJobContainer::Print()
+{
+    if (ERR_NONE != loadError) {
+        browser->GetHost()->CloseBrowser(true);
+    } else {
+        browser->GetHost()->PrintToPDF(
+            job->GetOutputPath(),
+            job->GetCefPdfPrintSettings(),
+            this
+        );
+    }
 }
 
 } // namespace cefpdf

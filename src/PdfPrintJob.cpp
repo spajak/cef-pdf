@@ -174,9 +174,4 @@ void PdfPrintJob::ParsePageMargin(const CefString& pageMargin)
     }
 }
 
-void PdfPrintJob::OnDone(CefLoadHandler::ErrorCode loadError, bool printError)
-{
-
-}
-
 } // namespace cefpdf

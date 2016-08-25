@@ -5,12 +5,10 @@
 #include <string>
 
 #include "include/cef_resource_handler.h"
-#include "include/cef_scheme.h"
 
 namespace cefpdf {
 
-class ResponseHandler : public CefResourceHandler,
-                        public CefSchemeHandlerFactory
+class ResponseHandler : public CefResourceHandler
 {
     public:
 
@@ -36,14 +34,6 @@ class ResponseHandler : public CefResourceHandler,
     ) OVERRIDE;
 
     virtual void Cancel() OVERRIDE;
-
-    // CefSchemeHandlerFactory methods:
-    virtual CefRefPtr<CefResourceHandler> Create(
-        CefRefPtr<CefBrowser> browser,
-        CefRefPtr<CefFrame> frame,
-        const CefString& scheme_name,
-        CefRefPtr<CefRequest> request
-    ) OVERRIDE;
 
     private:
 

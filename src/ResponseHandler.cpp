@@ -59,13 +59,4 @@ bool ResponseHandler::ReadResponse(
 
 void ResponseHandler::Cancel() {}
 
-CefRefPtr<CefResourceHandler> ResponseHandler::Create(
-    CefRefPtr<CefBrowser> browser,
-    CefRefPtr<CefFrame> frame,
-    const CefString& scheme_name,
-    CefRefPtr<CefRequest> request
-) {
-    return this;
-}
-
 } // namespace cefpdf

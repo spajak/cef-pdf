@@ -5,17 +5,21 @@
 
 #include "include/cef_client.h"
 #include "include/cef_browser.h"
+#include "include/cef_scheme.h"
 
 namespace cefpdf {
 
 class BrowserHandler : public CefClient,
                        public CefLifeSpanHandler,
                        public CefLoadHandler,
-                       public CefPdfPrintCallback
+                       public CefSchemeHandlerFactory
 {
     public:
 
-    BrowserHandler(CefRefPtr<PdfPrintJob> printJob, CefRefPtr<CefRenderHandler> renderHandler);
+    BrowserHandler();
+
+    void Queue(CefRefPtr<PdfPrintJob> printJob);
+    bool Process();
 
     // CefClient methods:
     virtual CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler();
@@ -45,17 +49,35 @@ class BrowserHandler : public CefClient,
         const CefString& failedUrl
     ) OVERRIDE;
 
-    // CefPdfPrintCallback methods:
-    void OnPdfPrintFinished(const CefString& path, bool ok) OVERRIDE;
+    // CefSchemeHandlerFactory methods:
+    virtual CefRefPtr<CefResourceHandler> Create(
+        CefRefPtr<CefBrowser> browser,
+        CefRefPtr<CefFrame> frame,
+        const CefString& scheme_name,
+        CefRefPtr<CefRequest> request
+    ) OVERRIDE;
 
     private:
 
-    CefRefPtr<CefBrowser> m_browser;
-    CefRefPtr<PdfPrintJob> m_job;
-    CefRefPtr<CefRenderHandler> m_renderHandler;
+    std::queue<CefRefPtr<PdfPrintJob>> m_jobsQueue;
 
-    CefLoadHandler::ErrorCode m_loadError = ERR_NONE;
-    bool m_printError = false;
+    class PdfPrintJobContainer : public CefPdfPrintCallback {
+        CefRefPtr<PdfPrintJob> job;
+        CefRefPtr<CefBrowser> browser;
+        CefLoadHandler::ErrorCode loadError = ERR_NONE;
+        bool printError = false;
+        void Print();
+        void OnPdfPrintFinished(const CefString& path, bool ok) OVERRIDE;
+    };
+
+    std::vector<PdfPrintJobContainer> m_jobs;
+
+    std::vector<PdfPrintJobContainer>::iterator findJob(CefRefPtr<CefBrowser> browser);
+
+    int m_processCount = 0;
+    int m_browserCount = 0;
+
+    CefRefPtr<CefRenderHandler> m_renderHandler;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(BrowserHandler);
