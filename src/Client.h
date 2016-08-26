@@ -2,16 +2,20 @@
 #define CLIENT_H_
 
 #include "include/cef_app.h"
+#include "include/cef_client.h"
+#include "include/cef_browser.h"
 
-#include "PrintHandler.h"
-#include "BrowserHandler.h"
+#include "JobsManager.h"
 
 #include <queue>
 
 namespace cefpdf {
 
 class Client : public CefApp,
-               public CefBrowserProcessHandler
+               public CefBrowserProcessHandler,
+               public CefClient,
+               public CefLifeSpanHandler,
+               public CefLoadHandler
 {
     public:
 
@@ -20,10 +24,11 @@ class Client : public CefApp,
     // Run message loop
     void Run();
 
-    // Stop message loop
+    // Stop message loop and shutdown
     void Stop();
 
-    void PostPrintJob(CefRefPtr<PdfPrintJob> printJob);
+    // Queue new job to process
+    void QueueJob(CefRefPtr<Job> job);
 
     // CefApp methods:
     virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() OVERRIDE;
@@ -34,11 +39,38 @@ class Client : public CefApp,
     virtual void OnContextInitialized() OVERRIDE;
     virtual void OnBeforeChildProcessLaunch(CefRefPtr<CefCommandLine> command_line) OVERRIDE;
 
+    // CefClient methods:
+    virtual CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler();
+    virtual CefRefPtr<CefLoadHandler> GetLoadHandler();
+    virtual CefRefPtr<CefRenderHandler> GetRenderHandler();
+
+    // CefLifeSpanHandler methods:
+    virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser) OVERRIDE;
+    virtual bool DoClose(CefRefPtr<CefBrowser> browser) OVERRIDE;
+    virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) OVERRIDE;
+
+    // CefLoadHandler methods:
+    virtual void OnLoadStart(
+        CefRefPtr<CefBrowser> browser,
+        CefRefPtr<CefFrame> frame
+    ) OVERRIDE;
+    virtual void OnLoadEnd(
+        CefRefPtr<CefBrowser> browser,
+        CefRefPtr<CefFrame> frame,
+        int httpStatusCode
+    ) OVERRIDE;
+    virtual void OnLoadError(
+        CefRefPtr<CefBrowser> browser,
+        CefRefPtr<CefFrame> frame,
+        ErrorCode errorCode,
+        const CefString& errorText,
+        const CefString& failedUrl
+    ) OVERRIDE;
+
     private:
 
-    JobsQueue m_jobsQueue;
-
     CefRefPtr<CefPrintHandler> m_printHandler;
+    CefRefPtr<CefRenderHandler> m_renderHandler;
 
     CefSettings m_settings;
     CefWindowInfo m_windowInfo;
@@ -47,7 +79,16 @@ class Client : public CefApp,
 
     bool m_shouldStop = false;
 
-    void ExecutePrintJob(CefRefPtr<PdfPrintJob> printJob);
+    bool ProcessJob();
+
+    // Jobs waiting to be processed
+    std::queue<CefRefPtr<Job>> m_jobsQueue;
+
+    // Jobs currently processed
+    CefRefPtr<JobsManager> m_jobsManager;
+
+    int m_processCount = 0;
+    int m_browserCount = 0;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(Client);

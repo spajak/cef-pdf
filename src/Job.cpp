@@ -1,4 +1,4 @@
-#include "PdfPrintJob.h"
+#include "Job.h"
 
 #include "include/wrapper/cef_helpers.h"
 
@@ -10,52 +10,52 @@
 
 namespace cefpdf {
 
-PdfPrintJob::PdfPrintJob()
+Job::Job()
 {
     m_url = constants::scheme + "://input";
     SetPageSize(constants::pageSize);
     m_pageMargin.type = PDF_PRINT_MARGIN_DEFAULT;
 }
 
-PdfPrintJob::PdfPrintJob(const CefString& url)
+Job::Job(const CefString& url)
 {
     m_url = url;
     SetPageSize(constants::pageSize);
     m_pageMargin.type = PDF_PRINT_MARGIN_DEFAULT;
 }
 
-const CefString& PdfPrintJob::GetUrl()
+const CefString& Job::GetUrl()
 {
     return m_url;
 }
 
-void PdfPrintJob::SetUrl(const CefString& url)
+void Job::SetUrl(const CefString& url)
 {
     m_url = url;
 }
 
-const CefString& PdfPrintJob::GetContent()
+const CefString& Job::GetContent()
 {
     return m_content;
 }
 
-void PdfPrintJob::SetContent(const CefString& content)
+void Job::SetContent(const CefString& content)
 {
     m_content = content;
 }
 
-const CefString& PdfPrintJob::GetOutputPath()
+const CefString& Job::GetOutputPath()
 {
     return m_outputPath;
 }
 
-void PdfPrintJob::SetOutputPath(const CefString& outputPath)
+void Job::SetOutputPath(const CefString& outputPath)
 {
     m_outputPath = outputPath;
 }
 
 
-void PdfPrintJob::SetPageSize(const CefString& pageSize)
+void Job::SetPageSize(const CefString& pageSize)
 {
     std::string lhs = strtolower(pageSize.ToString());
     std::list<PageSize>::const_iterator it;
@@ -72,12 +72,12 @@ void PdfPrintJob::SetPageSize(const CefString& pageSize)
     ParsePageSize(pageSize);
 }
 
-void PdfPrintJob::SetLandscape(bool flag)
+void Job::SetLandscape(bool flag)
 {
     m_pageOrientation = (flag ? PageOrientation::LANDSCAPE : PageOrientation::PORTRAIT);
 }
 
-void PdfPrintJob::SetPageMargin(const CefString& pageMargin)
+void Job::SetPageMargin(const CefString& pageMargin)
 {
     std::string margin = strtolower(pageMargin.ToString());
 
@@ -93,7 +93,7 @@ void PdfPrintJob::SetPageMargin(const CefString& pageMargin)
     }
 }
 
-CefPdfPrintSettings PdfPrintJob::GetCefPdfPrintSettings()
+CefPdfPrintSettings Job::GetCefPdfPrintSettings()
 {
     CefPdfPrintSettings pdfSettings;
 
@@ -108,7 +108,7 @@ CefPdfPrintSettings PdfPrintJob::GetCefPdfPrintSettings()
     return pdfSettings;
 }
 
-CefString PdfPrintJob::GetOutputContent()
+CefString Job::GetOutputContent()
 {
     std::string content;
     if (!m_outputPath.empty()) {
@@ -119,13 +119,13 @@ CefString PdfPrintJob::GetOutputContent()
     return content;
 }
 
-void PdfPrintJob::ParsePageSize(const CefString& paperSize)
+void Job::ParsePageSize(const CefString& paperSize)
 {
     // TODO: Parse custom page size
     throw "Paper size \"" + paperSize.ToString() +"\" is not defined";
 }
 
-void PdfPrintJob::ParsePageMargin(const CefString& pageMargin)
+void Job::ParsePageMargin(const CefString& pageMargin)
 {
     m_pageMargin.type = PDF_PRINT_MARGIN_CUSTOM;
 

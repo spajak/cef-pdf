@@ -1,8 +1,8 @@
 #include "Client.h"
 #include "Common.h"
-#include "ResponseHandler.h"
-#include "BrowserHandler.h"
 #include "PrintHandler.h"
+#include "RenderHandler.h"
+#include "ResponseHandler.h"
 
 #include "include/wrapper/cef_helpers.h"
 
@@ -13,6 +13,7 @@ namespace cefpdf {
 Client::Client()
 {
     m_printHandler = new PrintHandler;
+    m_renderHandler = new RenderHandler;
 
     //m_settings.single_process = true;
     m_settings.no_sandbox = true;
@@ -32,25 +33,18 @@ Client::Client()
 void Client::Run()
 {
     CefMainArgs mainArgs;
-    // Initialize CEF in the main process.
     CefInitialize(mainArgs, m_settings, this, NULL);
 
-    //int pp = 0;
-
     while (true) {
-        m_browserHandler->Process();
-
-        if (true == m_shouldStop) {
+        if (m_shouldStop) {
             m_shouldStop = false;
             break;
         }
 
-        //++pp;
-
+        ProcessJob();
         CefDoMessageLoopWork();
     }
 
-    //std::cout << std::string(pp);
     CefShutdown();
 }
 
@@ -59,9 +53,28 @@ void Client::Stop()
     m_shouldStop = true;
 }
 
-void Client::PostPrintJob(CefRefPtr<PdfPrintJob> printJob)
+void Client::QueueJob(CefRefPtr<Job> job)
 {
-    m_browserHandler.Queue(printJob);
+    m_jobsQueue.push(job);
+}
+
+bool Client::ProcessJob()
+{
+    if (m_processCount >= constants::maxProcesses) {
+        return false;
+    }
+
+    if (m_jobsQueue.empty()) {
+        return false;
+    }
+
+    ++m_processCount;
+
+    // Create the browser window.
+    CefRefPtr<CefRequestContext> context = CefRequestContext::CreateContext(m_contextSettings, NULL);
+    CefBrowserHost::CreateBrowser(m_windowInfo, this, "", m_browserSettings, context);
+
+    return true;
 }
 
 // CefApp methods:
@@ -94,7 +107,118 @@ void Client::OnContextInitialized()
 
     CEF_REQUIRE_UI_THREAD();
 
-    CefRegisterSchemeHandlerFactory(constants::scheme, "none", m_browserHandler);
+    CefRegisterSchemeHandlerFactory(constants::scheme, "none", m_jobsManager);
+}
+
+// CefClient methods:
+// -----------------------------------------------------------------------------
+CefRefPtr<CefLifeSpanHandler> Client::GetLifeSpanHandler()
+{
+    return this;
+}
+
+CefRefPtr<CefLoadHandler> Client::GetLoadHandler()
+{
+    return this;
+}
+
+CefRefPtr<CefRenderHandler> Client::GetRenderHandler()
+{
+    return m_renderHandler;
+}
+
+// CefLifeSpanHandler methods:
+// -----------------------------------------------------------------------------
+void Client::OnAfterCreated(CefRefPtr<CefBrowser> browser)
+{
+    DLOG(INFO) << "OnAfterCreated";
+
+    CEF_REQUIRE_UI_THREAD();
+
+    CefRefPtr<Job> job = m_jobsQueue.front();
+
+    if (job.get()) {
+        m_jobsQueue.pop();
+
+        browser->GetHost()
+            ->GetRequestContext()
+            ->RegisterSchemeHandlerFactory(constants::scheme, "", this);
+
+        m_jobsManager->Add(browser, job);
+    }
+
+    ++m_browserCount;
+}
+
+bool Client::DoClose(CefRefPtr<CefBrowser> browser)
+{
+    DLOG(INFO) << "DoClose";
+
+    CEF_REQUIRE_UI_THREAD();
+
+    // Allow the close. For windowed browsers this will result in the OS close
+    // event being sent.
+    return false;
+}
+
+void Client::OnBeforeClose(CefRefPtr<CefBrowser> browser)
+{
+    DLOG(INFO) << "OnBeforeClose";
+
+    CEF_REQUIRE_UI_THREAD();
+
+    m_jobsManager.Remove(browser);
+
+    --m_browserCount;
+    --m_processCount;
+}
+
+// CefLoadHandler methods:
+// -----------------------------------------------------------------------------
+void Client::OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame)
+{
+    DLOG(INFO) << "OnLoadStart" << ", url: " << frame->GetURL().ToString();
+
+    CEF_REQUIRE_UI_THREAD();
+}
+
+void Client::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode)
+{
+    DLOG(INFO)
+        << "OnLoadEnd"
+        << ", url: " << frame->GetURL().ToString()
+        << ", httpStatusCode: " << httpStatusCode;
+
+    CEF_REQUIRE_UI_THREAD();
+
+    if (frame->IsMain()) {
+        m_jobsManager->OnReady(browser);
+    }
+}
+
+void Client::OnLoadError(
+    CefRefPtr<CefBrowser> browser,
+    CefRefPtr<CefFrame> frame,
+    ErrorCode errorCode,
+    const CefString& errorText,
+    const CefString& failedUrl
+) {
+    DLOG(INFO)
+        << "OnLoadError"
+        << ", errorCode: " << errorCode
+        << ", failedUrl: " << failedUrl.ToString();
+
+    CEF_REQUIRE_UI_THREAD();
+
+    // Don't display an error for downloaded files.
+    if (errorCode == ERR_ABORTED) {
+        return;
+    }
+
+    if (frame->IsMain()) {
+        std::cerr << "Error loading: " << failedUrl.ToString() << std::endl;
+        m_jobsManager->OnError(browser);
+    }
 }
 
 } // namespace cefpdf

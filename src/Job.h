@@ -1,5 +1,5 @@
-#ifndef PDF_PRINT_JOB_H_
-#define PDF_PRINT_JOB_H_
+#ifndef JOB_H_
+#define JOB_H_
 
 #include "Common.h"
 
@@ -7,13 +7,12 @@
 
 namespace cefpdf {
 
-class PdfPrintJob : public CefBase
+class Job : public CefBase
 {
     public:
 
-    PdfPrintJob();
-
-    PdfPrintJob(const CefString& url);
+    Job();
+    Job(const CefString& url);
 
     const CefString& GetUrl();
 
@@ -56,9 +55,9 @@ class PdfPrintJob : public CefBase
     PageMargin m_pageMargin;
 
     // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(PdfPrintJob);
+    IMPLEMENT_REFCOUNTING(Job);
 };
 
 } // namespace cefpdf
 
-#endif // PDF_PRINT_JOB_H_
+#endif // JOB_H_
