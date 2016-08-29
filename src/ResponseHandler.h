@@ -18,22 +18,22 @@ class ResponseHandler : public CefResourceHandler
     virtual bool ProcessRequest(
         CefRefPtr<CefRequest> request,
         CefRefPtr<CefCallback> callback
-    ) OVERRIDE;
+    ) override;
 
     virtual void GetResponseHeaders(
         CefRefPtr<CefResponse> response,
         int64& response_length,
         CefString& redirectUrl
-    ) OVERRIDE;
+    ) override;
 
     virtual bool ReadResponse(
         void* data_out,
         int bytes_to_read,
         int& bytes_read,
         CefRefPtr<CefCallback> callback
-    ) OVERRIDE;
+    ) override;
 
-    virtual void Cancel() OVERRIDE;
+    virtual void Cancel() override;
 
     private:
 

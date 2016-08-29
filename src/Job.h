@@ -42,9 +42,9 @@ class Job : public CefBase
 
     private:
 
-    void ParsePageSize(const CefString& pageSize);
+    void ParseCustomPageSize(const CefString& pageSize);
 
-    void ParsePageMargin(const CefString& pageMargin);
+    void ParseCustomPageMargin(const CefString& pageMargin);
 
     CefString m_url;
     CefString m_content;

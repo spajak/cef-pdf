@@ -12,14 +12,14 @@ class RenderHandler : public CefRenderHandler
     RenderHandler();
 
     // CefRenderHandler methods:
-    virtual bool GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) OVERRIDE;
+    virtual bool GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) override;
 
     virtual void OnPaint(
         CefRefPtr<CefBrowser> browser,
         CefRenderHandler::PaintElementType type,
         const CefRenderHandler::RectList& dirtyRects,
         const void* buffer, int width, int height
-    ) OVERRIDE;
+    ) override;
 
     private:
 

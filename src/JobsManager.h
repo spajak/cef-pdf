@@ -4,60 +4,47 @@
 #include "Job.h"
 
 #include "include/cef_browser.h"
-#include "include/cef_scheme.h"
 
 namespace cefpdf {
 
-class JobsManager : public CefSchemeHandlerFactory
+class JobsManager : public CefBase
 {
     public:
 
-    JobsManager();
+    typedef CefLoadHandler::ErrorCode ErrorCode;
+
+    friend class SchemeHandlerFactory;
+
+    JobsManager() {};
 
     void Add(CefRefPtr<CefBrowser> browser, CefRefPtr<Job> job);
 
-    void OnError(CefRefPtr<CefBrowser> browser, CefLoadHandler::ErrorCode errorCode);
+    void OnError(CefRefPtr<CefBrowser> browser, ErrorCode errorCode);
 
-    void OnReady(CefRefPtr<CefBrowser> browser);
+    void OnReady(CefRefPtr<CefBrowser> browser, int httpStatusCode);
 
-    CefRefPtr<Job> Remove(CefRefPtr<CefBrowser> browser);
-
+    void Remove(CefRefPtr<CefBrowser> browser);
 
     void OnFinish(CefRefPtr<CefBrowser> browser, const CefString& path, bool ok);
 
-    // CefSchemeHandlerFactory methods:
-    virtual CefRefPtr<CefResourceHandler> Create(
-        CefRefPtr<CefBrowser> browser,
-        CefRefPtr<CefFrame> frame,
-        const CefString& scheme_name,
-        CefRefPtr<CefRequest> request
-    ) OVERRIDE;
-
     private:
 
-    enum struct Status { LOADING = 0, ERROR, PRINTING, PRINT_FAILED, DONE };
+    enum struct Status { Loading, Error, Printing, Done };
 
     struct JobContainer {
         CefRefPtr<CefBrowser> browser;
         CefRefPtr<Job> job;
-        Status status = Status::LOADING;
-        CefLoadHandler::ErrorCode errorCode = ERR_NONE;
-    };
-
-    class PdfPrintCallback {
-        public:
-        PdfPrintCallback(CefRefPtr<JobsManager> manager, CefRefPtr<CefBrowser> browser);
-        void OnPdfPrintFinished(const CefString& path, bool ok) OVERRIDE;
-        private:
-        CefRefPtr<JobsManager> m_manager;
-        CefRefPtr<CefBrowser> m_browser;
+        Status status;
+        ErrorCode errorCode;
     };
 
     std::vector<JobContainer> m_jobs;
 
-    std::vector<JobContainer>::iterator FindJob(CefRefPtr<CefBrowser> browser);
+    typedef std::vector<JobContainer>::iterator JCI;
 
-    bool Exists(CefRefPtr<CefBrowser> browser);
+    JCI GetJobContainer(CefRefPtr<CefBrowser> browser);
+
+    JCI FindJobContainer(CefRefPtr<CefBrowser> browser);
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(JobsManager);
@@ -65,4 +52,4 @@ class JobsManager : public CefSchemeHandlerFactory
 
 } // namespace cefpdf
 
-#endif // BROWSER_HANDLER_H_
+#endif // JOBS_MANAGER_H_

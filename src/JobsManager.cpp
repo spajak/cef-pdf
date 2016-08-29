@@ -1,125 +1,84 @@
-#include "BrowserHandler.h"
-#include "PdfPrintJob.h"
+#include "JobsManager.h"
 #include "RenderHandler.h"
+#include "PdfPrintCallback.h"
 
 #include "include/cef_app.h"
 #include "include/wrapper/cef_helpers.h"
 
-#include <iostream>
-
 namespace cefpdf {
 
-JobsManager::JobsManager();
-
-void JobsManager::Add(CefRefPtr<CefBrowser> browser, CefRefPtr<Job> job);
+void JobsManager::Add(CefRefPtr<CefBrowser> browser, CefRefPtr<Job> job)
 {
-    if (Exists(browser)) {
-        throw "Browser already added";
-    }
+    DCHECK(FindJobContainer(browser) == m_jobs.end());
 
-    JobContainer container;
-    container.browser = browser;
-    container.job = job;
-    m_jobs.push_back(container);
+    auto j = JobContainer({browser, job, Status::Loading, ErrorCode::ERR_NONE});
+    m_jobs.push_back(j);
 
     // Load URL
     browser->GetMainFrame()->LoadURL(job->GetUrl());
 }
 
-void JobsManager::OnError(CefRefPtr<CefBrowser> browser, CefLoadHandler::ErrorCode errorCode)
+void JobsManager::OnError(CefRefPtr<CefBrowser> browser, ErrorCode errorCode)
 {
-    auto j = FindJob(browser);
+    auto j = GetJobContainer(browser);
+    DCHECK(Status::Loading == j->status);
 
-    j->status = Status::ERROR;
+    j->status = Status::Error;
     j->errorCode = errorCode;
 }
 
-void JobsManager::OnReady(CefRefPtr<CefBrowser> browser)
+void JobsManager::OnReady(CefRefPtr<CefBrowser> browser, int httpStatusCode)
 {
-    auto j = FindJob(browser);
+    auto j = GetJobContainer(browser);
 
-    if (Status::ERROR == j->status) {
+    if (Status::Error == j->status) {
         j->browser->GetHost()->CloseBrowser(true);
         return;
     }
 
-    j->status = Status::PRINTING;
+    DCHECK(Status::Loading == j->status);
+
+    j->status = Status::Printing;
     j->browser->GetHost()->PrintToPDF(
         j->job->GetOutputPath(),
         j->job->GetCefPdfPrintSettings(),
-        new PdfPrintCallback(this)
+        new PdfPrintCallback(this, j->browser)
     );
 }
 
-bool JobsManager::Remove(CefRefPtr<CefBrowser> browser)
+void JobsManager::Remove(CefRefPtr<CefBrowser> browser)
 {
-    auto j = FindJob(browser);
-
+    auto j = GetJobContainer(browser);
+    DCHECK(Status::Loading != j->status);
+    DCHECK(Status::Printing != j->status);
     m_jobs.erase(j);
-    return true;
 }
 
 void JobsManager::OnFinish(CefRefPtr<CefBrowser> browser, const CefString& path, bool ok)
 {
-    auto j = FindJob(browser);
+    auto j = GetJobContainer(browser);
+    DCHECK(Status::Printing == j->status);
 
+    j->status = Status::Done;
     j->browser->GetHost()->CloseBrowser(true);
-    j->status = ok ? Status::DONE : Status::PRINT_FAILED;
 }
 
-bool JobsManager::Exists(CefRefPtr<CefBrowser> browser)
+JobsManager::JCI JobsManager::GetJobContainer(CefRefPtr<CefBrowser> browser)
 {
-    try {
-        FindJob(browser);
-    } catch (std::string e) {
-        return false;
-    }
-
-    return true;
+    auto j = FindJobContainer(browser);
+    DCHECK(j != m_jobs.end());
+    return j;
 }
 
-std::vector<PdfPrintJobContainer>::iterator JobsManager::FindJob(CefRefPtr<CefBrowser> browser)
+JobsManager::JCI JobsManager::FindJobContainer(CefRefPtr<CefBrowser> browser)
 {
-    for (it = m_jobs.begin(); it != m_jobs.end(); ++it) {
+    for (auto it = m_jobs.begin(); it != m_jobs.end(); ++it) {
         if (it->browser->IsSame(browser)) {
             return it;
         }
     }
 
-    throw "Browser not registered in this manager";
-}
-
-
-// CefSchemeHandlerFactory methods:
-// -----------------------------------------------------------------------------
-CefRefPtr<CefResourceHandler> BrowserHandler::Create(
-    CefRefPtr<CefBrowser> browser,
-    CefRefPtr<CefFrame> frame,
-    const CefString& scheme_name,
-    CefRefPtr<CefRequest> request
-) {
-    auto jobContainer = findJob(browser.get());
-    return new ResponseHandler(jobContainer->job->GetContent());
-}
-
-
-JobsManager::PdfPrintCallback::PdfPrintCallback(CefRefPtr<JobsManager> manager, CefRefPtr<CefBrowser> browser)
-{
-
-}
-
-// CefPdfPrintCallback methods:
-// -----------------------------------------------------------------------------
-void JobsManager::PdfPrintCallback::OnPdfPrintFinished(const CefString& path, bool ok)
-{
-    DLOG(INFO)
-        << "OnPdfPrintFinished"
-        << ", path: " << path.ToString()
-        << ", ok: " << ok;
-
-    DCHECK(browser.get());
-
-    manager->OnFinish(browser, path, ok);
+    return m_jobs.end();
 }
 
 } // namespace cefpdf

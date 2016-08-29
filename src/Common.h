@@ -1,6 +1,8 @@
 #ifndef COMMON_H_
 #define COMMON_H_
 
+#include "include/internal/cef_types.h"
+
 #include <string>
 #include <list>
 
@@ -25,9 +27,11 @@ struct PageSize
     int width, height;
 };
 
+typedef cef_pdf_print_margin_type_t PageMarginType;
+
 struct PageMargin
 {
-    int type;
+    PageMarginType type;
     int top, right, bottom, left;
 };
 
@@ -38,6 +42,10 @@ enum struct PageOrientation {
 extern std::list<PageSize> pageSizesMap;
 
 std::string strtolower(std::string s);
+
+PageSize getPageSize(const CefString& str);
+
+PageMargin getPageMargin(const CefString& str);
 
 } // namespace cefpdf
 

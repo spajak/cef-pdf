@@ -1,24 +1,29 @@
 #include "Client.h"
 #include "Common.h"
+#include "SchemeHandlerFactory.h"
 #include "PrintHandler.h"
 #include "RenderHandler.h"
-#include "ResponseHandler.h"
 
 #include "include/wrapper/cef_helpers.h"
 
 #include <iostream>
+#include <chrono>
+#include <thread>
 
 namespace cefpdf {
 
-Client::Client()
+Client::Client(bool exitOnDone)
 {
+    m_exitOnDone = exitOnDone;
+
+    m_jobsManager = new JobsManager;
     m_printHandler = new PrintHandler;
     m_renderHandler = new RenderHandler;
 
     //m_settings.single_process = true;
     m_settings.no_sandbox = true;
     m_settings.windowless_rendering_enabled = true;
-    m_settings.command_line_args_disabled = false;
+    m_settings.command_line_args_disabled = true;
 
     m_windowInfo.windowless_rendering_enabled = true;
     m_windowInfo.transparent_painting_enabled = false;
@@ -41,8 +46,20 @@ void Client::Run()
             break;
         }
 
-        ProcessJob();
+        StartProcess();
+
+        // TODO: Implement exiting
+        if (m_processCount > 0) {
+            // pass
+        } else {
+            if (m_exitOnDone) {
+                // break;
+            }
+        }
+
         CefDoMessageLoopWork();
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
 
     CefShutdown();
@@ -58,7 +75,7 @@ void Client::QueueJob(CefRefPtr<Job> job)
     m_jobsQueue.push(job);
 }
 
-bool Client::ProcessJob()
+bool Client::StartProcess()
 {
     if (m_processCount >= constants::maxProcesses) {
         return false;
@@ -71,8 +88,7 @@ bool Client::ProcessJob()
     ++m_processCount;
 
     // Create the browser window.
-    CefRefPtr<CefRequestContext> context = CefRequestContext::CreateContext(m_contextSettings, NULL);
-    CefBrowserHost::CreateBrowser(m_windowInfo, this, "", m_browserSettings, context);
+    CefBrowserHost::CreateBrowser(m_windowInfo, this, "", m_browserSettings, NULL);
 
     return true;
 }
@@ -98,7 +114,7 @@ CefRefPtr<CefPrintHandler> Client::GetPrintHandler()
 
 void Client::OnBeforeChildProcessLaunch(CefRefPtr<CefCommandLine> command_line)
 {
-    //DLOG(INFO) << "OnBeforeChildProcessLaunch: " << command_line->GetCommandLineString().ToString() ;
+    DLOG(INFO) << "OnBeforeChildProcessLaunch: " << command_line->GetCommandLineString().ToString() ;
 }
 
 void Client::OnContextInitialized()
@@ -107,7 +123,7 @@ void Client::OnContextInitialized()
 
     CEF_REQUIRE_UI_THREAD();
 
-    CefRegisterSchemeHandlerFactory(constants::scheme, "none", m_jobsManager);
+    CefRegisterSchemeHandlerFactory(constants::scheme, "", new SchemeHandlerFactory(m_jobsManager));
 }
 
 // CefClient methods:
@@ -139,11 +155,6 @@ void Client::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 
     if (job.get()) {
         m_jobsQueue.pop();
-
-        browser->GetHost()
-            ->GetRequestContext()
-            ->RegisterSchemeHandlerFactory(constants::scheme, "", this);
-
         m_jobsManager->Add(browser, job);
     }
 
@@ -167,7 +178,7 @@ void Client::OnBeforeClose(CefRefPtr<CefBrowser> browser)
 
     CEF_REQUIRE_UI_THREAD();
 
-    m_jobsManager.Remove(browser);
+    m_jobsManager->Remove(browser);
 
     --m_browserCount;
     --m_processCount;
@@ -192,7 +203,7 @@ void Client::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
     CEF_REQUIRE_UI_THREAD();
 
     if (frame->IsMain()) {
-        m_jobsManager->OnReady(browser);
+        m_jobsManager->OnReady(browser, httpStatusCode);
     }
 }
 
@@ -217,7 +228,7 @@ void Client::OnLoadError(
 
     if (frame->IsMain()) {
         std::cerr << "Error loading: " << failedUrl.ToString() << std::endl;
-        m_jobsManager->OnError(browser);
+        m_jobsManager->OnError(browser, errorCode);
     }
 }
 

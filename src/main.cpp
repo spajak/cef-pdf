@@ -1,8 +1,16 @@
 #include "Client.h"
-#include "PdfPrintJob.h"
 
 #include <string>
 #include <iostream>
+
+void printSizes()
+{
+    std::list<PageSize>::const_iterator it;
+
+    for (it = pageSizesMap.begin(); it != pageSizesMap.end(); ++it) {
+        std::cout << it->name <<  " " << it->width << "x" << it->height << std::endl;
+    }
+}
 
 void printHelp(std::string name)
 {
@@ -13,10 +21,13 @@ void printHelp(std::string name)
     std::cout << "  cef-pdf [options] [input] [output]" << std::endl;
     std::cout << std::endl;
     std::cout << "Options:" << std::endl;
-    std::cout << "  --help -h             This help screen." << std::endl;
-    std::cout << "  --paper-size=<size>   Size (format) of the paper: A3, B2.. Default is A4." << std::endl;
-    std::cout << "  --landscape           Wheather to print with a landscape page orientation. Default is portrait" << std::endl;
-    std::cout << "  --margin=<css-margin> Paper margins. CSS-like syntax without units, which defaults to mm" << std::endl;
+    std::cout << "  --help -h           This help screen." << std::endl;
+    std::cout << "  --size=<size>       Size (format) of the paper: A3, B2.. or custom <width>x<height> in mm." << std::endl;
+    std::cout << "                      Without <size> list available sizes. A4 is the default." << std::endl;
+    std::cout << "  --landscape         Wheather to print with a landscape page orientation." << std::endl;
+    std::cout << "                      Default is portrait" << std::endl;
+    std::cout << "  --margin=<margin>   Paper margins in mm (much like CSS margin but without units)" << std::endl;
+    std::cout << "                      If omitted default margin is applied." << std::endl;
     std::cout << std::endl;
     std::cout << "Input:" << std::endl;
     std::cout << "  URL to load, may be http, file, data, anything supported by Chrome." << std::endl;
@@ -65,10 +76,12 @@ std::string getExecutableName(CefString path)
 
 int main(int argc, char* argv[])
 {
+    CefRefPtr<cefpdf::Client> app = new cefpdf::Client(true);
+
     // Execute the sub-process logic, if any. This will either return immediately for the browser
     // process or block until the sub-process should exit.
     CefMainArgs mainArgs;
-    int exitCode = CefExecuteProcess(mainArgs, NULL, NULL);
+    int exitCode = CefExecuteProcess(mainArgs, app, NULL);
     if (exitCode >= 0) {
         // The sub-process terminated, exit now.
         return exitCode;
@@ -87,7 +100,7 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    CefRefPtr<cefpdf::PdfPrintJob> job = new cefpdf::PdfPrintJob;
+    CefRefPtr<cefpdf::Job> job = new cefpdf::Job;
 
     try {
         if (commandLine->HasSwitch("output")) {
@@ -118,10 +131,7 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    // Implementation of the CefApp interface.
-    CefRefPtr<cefpdf::Client> app = new cefpdf::Client;
-    app->PostPrintJob(job);
-
+    app->QueueJob(job);
     app->Run();
 
     return 0;

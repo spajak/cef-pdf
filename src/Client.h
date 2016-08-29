@@ -19,7 +19,7 @@ class Client : public CefApp,
 {
     public:
 
-    Client();
+    Client(bool exitOnDone = false);
 
     // Run message loop
     void Run();
@@ -31,13 +31,13 @@ class Client : public CefApp,
     void QueueJob(CefRefPtr<Job> job);
 
     // CefApp methods:
-    virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() OVERRIDE;
-    virtual void OnRegisterCustomSchemes(CefRefPtr<CefSchemeRegistrar> registrar) OVERRIDE;
+    virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() override;
+    virtual void OnRegisterCustomSchemes(CefRefPtr<CefSchemeRegistrar> registrar) override;
 
     // CefBrowserProcessHandler methods:
-    virtual CefRefPtr<CefPrintHandler> GetPrintHandler() OVERRIDE;
-    virtual void OnContextInitialized() OVERRIDE;
-    virtual void OnBeforeChildProcessLaunch(CefRefPtr<CefCommandLine> command_line) OVERRIDE;
+    virtual CefRefPtr<CefPrintHandler> GetPrintHandler() override;
+    virtual void OnContextInitialized() override;
+    virtual void OnBeforeChildProcessLaunch(CefRefPtr<CefCommandLine> command_line) override;
 
     // CefClient methods:
     virtual CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler();
@@ -45,27 +45,27 @@ class Client : public CefApp,
     virtual CefRefPtr<CefRenderHandler> GetRenderHandler();
 
     // CefLifeSpanHandler methods:
-    virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser) OVERRIDE;
-    virtual bool DoClose(CefRefPtr<CefBrowser> browser) OVERRIDE;
-    virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) OVERRIDE;
+    virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser) override;
+    virtual bool DoClose(CefRefPtr<CefBrowser> browser) override;
+    virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) override;
 
     // CefLoadHandler methods:
     virtual void OnLoadStart(
         CefRefPtr<CefBrowser> browser,
         CefRefPtr<CefFrame> frame
-    ) OVERRIDE;
+    ) override;
     virtual void OnLoadEnd(
         CefRefPtr<CefBrowser> browser,
         CefRefPtr<CefFrame> frame,
         int httpStatusCode
-    ) OVERRIDE;
+    ) override;
     virtual void OnLoadError(
         CefRefPtr<CefBrowser> browser,
         CefRefPtr<CefFrame> frame,
         ErrorCode errorCode,
         const CefString& errorText,
         const CefString& failedUrl
-    ) OVERRIDE;
+    ) override;
 
     private:
 
@@ -77,9 +77,10 @@ class Client : public CefApp,
     CefRequestContextSettings m_contextSettings;
     CefBrowserSettings m_browserSettings;
 
+    bool m_exitOnDone = false;
     bool m_shouldStop = false;
 
-    bool ProcessJob();
+    bool StartProcess();
 
     // Jobs waiting to be processed
     std::queue<CefRefPtr<Job>> m_jobsQueue;

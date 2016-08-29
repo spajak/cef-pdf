@@ -1,7 +1,9 @@
 #include "Common.h"
 
-#include <list>
+#include <cstdlib>
+#include <cstdio>
 #include <cctype>
+#include <list>
 #include <algorithm>
 
 namespace cefpdf {
@@ -80,6 +82,132 @@ std::string strtolower(std::string s)
     );
 
     return s;
+}
+
+void parseCustomPageSize(PageSize& pageSize, const std::string& str)
+{
+    std::string input = str + "x";
+    enum State { Pending = 0, Width, Height };
+    int state = State::Pending;
+    std::string value;
+    bool hasValue = false;
+
+    for (std::string::const_iterator i = input.begin(); i != input.end(); ++i) {
+        char c = *i;
+        if (0 != std::isdigit(c)) {
+            value.push_back(c);
+        } else if ('x' == c || 0 != std::isspace(c)) {
+            if (value.empty()) {
+                continue;
+            }
+
+            int v = std::atoi(value.c_str());
+            switch (++state) {
+                case State::Width:
+                    pageSize.width = pageSize.height = v;
+                    break;
+                case State::Height:
+                    pageSize.height = v;
+                    break;
+                default:
+                    throw "Too many values in page size";
+            }
+
+            hasValue = true;
+            value.erase();
+        } else {
+            throw "Invalid character \"" + std::string(1, c) + "\" in page size";
+        }
+    }
+
+    if (!hasValue) {
+        throw "Invalid page size format: \"" + str + "\"";
+    }
+}
+
+PageSize getPageSize(const CefString& str)
+{
+    std::string lhs = strtolower(str.ToString());
+    std::list<PageSize>::const_iterator it;
+
+    for (it = pageSizesMap.begin(); it != pageSizesMap.end(); ++it) {
+        std::string rhs = strtolower(it->name);
+        if (lhs == rhs) {
+            return *it;
+        }
+    }
+
+    PageSize pageSize;
+    pageSize.name = "Custom";
+    parseCustomPageSize(pageSize, lhs);
+    return pageSize;
+}
+
+void parseCustomPageMargin(PageMargin& pageMargin, const std::string& str)
+{
+    std::string input = str + "+";
+    enum State { Pending = 0, Top, Right, Bottom, Left };
+    int state = State::Pending;
+    std::string value;
+    bool hasValue = false;
+
+    for (std::string::const_iterator i = input.begin(); i != input.end(); ++i) {
+        char c = *i;
+        if (0 != std::isdigit(c)) {
+            value.push_back(c);
+        } else if ('+' == c || 0 != std::isspace(c)) {
+            if (value.empty()) {
+                continue;
+            }
+
+            int v = std::atoi(value.c_str());
+            switch (++state) {
+                case State::Top:
+                    pageMargin.top = pageMargin.right = pageMargin.bottom = pageMargin.left = v;
+                    break;
+                case State::Right:
+                    pageMargin.right = pageMargin.left = v;
+                    break;
+                case State::Bottom:
+                    pageMargin.bottom = v;
+                    break;
+                case State::Left:
+                    pageMargin.left = v;
+                    break;
+                default:
+                    throw "Too many values in margin";
+            }
+
+            hasValue = true;
+            value.erase();
+        } else {
+            throw "Invalid character \"" + std::string(1, c) + "\" in margin";
+        }
+    }
+
+    if (!hasValue) {
+        throw "Invalid margin format: \"" + str + "\"";
+    }
+}
+
+PageMargin getPageMargin(const CefString& str)
+{
+    PageMargin pageMargin;
+
+    std::string input = strtolower(str.ToString());
+
+    if ("default" == input) {
+        pageMargin.type = PDF_PRINT_MARGIN_DEFAULT;
+    } else if ("minimum" == input) {
+        pageMargin.type = PDF_PRINT_MARGIN_MINIMUM;
+    } else if ("none" == input) {
+        pageMargin.type = PDF_PRINT_MARGIN_NONE;
+    } else { // Custom
+        pageMargin.type = PDF_PRINT_MARGIN_CUSTOM;
+        parseCustomPageMargin(pageMargin, input);
+    }
+
+    return pageMargin;
 }
 
 } // namespace cefpdf
