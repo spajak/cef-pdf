@@ -11,40 +11,30 @@ class JobsManager : public CefBase
 {
     public:
 
-    typedef CefLoadHandler::ErrorCode ErrorCode;
-
-    friend class SchemeHandlerFactory;
-
     JobsManager() {};
+
+    CefRefPtr<Job> Get(CefRefPtr<CefBrowser> browser);
+
+    CefRefPtr<Job> Find(CefRefPtr<CefBrowser> browser);
 
     void Add(CefRefPtr<CefBrowser> browser, CefRefPtr<Job> job);
 
-    void OnError(CefRefPtr<CefBrowser> browser, ErrorCode errorCode);
+    void OnError(CefRefPtr<CefBrowser> browser, Job::ErrorCode errorCode);
 
     void OnReady(CefRefPtr<CefBrowser> browser, int httpStatusCode);
 
-    void Remove(CefRefPtr<CefBrowser> browser);
-
     void OnFinish(CefRefPtr<CefBrowser> browser, const CefString& path, bool ok);
+
+    void Remove(CefRefPtr<CefBrowser> browser);
 
     private:
 
-    enum struct Status { Loading, Error, Printing, Done };
-
-    struct JobContainer {
+    struct BrowserJob {
         CefRefPtr<CefBrowser> browser;
         CefRefPtr<Job> job;
-        Status status;
-        ErrorCode errorCode;
     };
 
-    std::vector<JobContainer> m_jobs;
-
-    typedef std::vector<JobContainer>::iterator JCI;
-
-    JCI GetJobContainer(CefRefPtr<CefBrowser> browser);
-
-    JCI FindJobContainer(CefRefPtr<CefBrowser> browser);
+    std::vector<BrowserJob> m_jobs;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(JobsManager);

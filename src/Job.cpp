@@ -2,26 +2,42 @@
 
 #include "include/wrapper/cef_helpers.h"
 
-#include <fstream>
 #include <string>
 
 namespace cefpdf {
 
+int Job::counter = 0;
+
 Job::Job()
 {
-    m_url = constants::scheme + "://input";
-    SetPageSize(constants::pageSize);
-    SetPageMargin("default");
+    Init();
+    m_url = constants::scheme + "://job-" + std::to_string(GetID());
 }
 
 Job::Job(const CefString& url)
 {
+    Init();
     m_url = url;
-    SetPageSize(constants::pageSize);
-    SetPageMargin("default");
 }
 
-const CefString& Job::GetUrl()
+void Job::Init()
+{
+    m_id = ++counter;
+
+    m_status = Status::Pending;
+    m_errorCode = ErrorCode::ERR_NONE;
+
+    SetPageSize(constants::pageSize);
+    SetPageMargin("default");
+    m_outputPath = getTempPath() + "/cefpdf_" + std::to_string(GetID()) + ".pdf";
+}
+
+int Job::GetID() const
+{
+    return m_id;
+}
+
+const CefString& Job::GetUrl() const
 {
     return m_url;
 }
@@ -33,6 +49,12 @@ void Job::SetUrl(const CefString& url)
 
 const CefString& Job::GetContent()
 {
+    if (m_content.empty()) {
+        if (nullptr != m_contentProvider) {
+            m_content = m_contentProvider();
+        }
+    }
+
     return m_content;
 }
 
@@ -41,7 +63,12 @@ void Job::SetContent(const CefString& content)
     m_content = content;
 }
 
-const CefString& Job::GetOutputPath()
+void Job::SetContentProvider(ContentProvider const& provider)
+{
+    m_contentProvider = provider;
+}
+
+const CefString& Job::GetOutputPath() const
 {
     return m_outputPath;
 }
@@ -66,7 +93,7 @@ void Job::SetPageMargin(const CefString& pageMargin)
     m_pageMargin = getPageMargin(pageMargin);
 }
 
-CefPdfPrintSettings Job::GetCefPdfPrintSettings()
+CefPdfPrintSettings Job::GetCefPdfPrintSettings() const
 {
     CefPdfPrintSettings pdfSettings;
 
@@ -85,15 +112,37 @@ CefPdfPrintSettings Job::GetCefPdfPrintSettings()
     return pdfSettings;
 }
 
-CefString Job::GetOutputContent()
+Job::Status Job::GetStatus() const
 {
-    std::string content;
-    if (!m_outputPath.empty()) {
-        std::ifstream output(m_outputPath.ToString());
-        content.assign((std::istreambuf_iterator<char>(output)), std::istreambuf_iterator<char>());
-    }
+    return m_status;
+}
 
-    return content;
+Job::ErrorCode Job::GetStatusError() const
+{
+    return m_errorCode;
+}
+
+void Job::OnStatus(StatusCallback const& callback)
+{
+    m_statusCallback = callback;
+}
+
+void Job::SetStatus(Status status, ErrorCode errorCode)
+{
+    DCHECK(status >= m_status);
+    m_errorCode = errorCode;
+
+    if (status != m_status) {
+        m_status = status;
+        if (nullptr != m_statusCallback) {
+            m_statusCallback(m_status, m_errorCode);
+        }
+    }
+}
+
+void Job::SetStatus(Status status)
+{
+    SetStatus(status, ErrorCode::ERR_NONE);
 }
 
 } // namespace cefpdf

@@ -5,10 +5,11 @@
 #include <cctype>
 #include <list>
 #include <algorithm>
+#include <fstream>
 
 namespace cefpdf {
 
-std::list<PageSize> pageSizesMap = {
+PageSizesMap pageSizesMap = {
     {"A0", 841,  1189},
     {"A1", 594,   841},
     {"A2", 420,   594},
@@ -128,7 +129,7 @@ void parseCustomPageSize(PageSize& pageSize, const std::string& str)
 PageSize getPageSize(const CefString& str)
 {
     std::string lhs = strtolower(str.ToString());
-    std::list<PageSize>::const_iterator it;
+    PageSizesMap::const_iterator it;
 
     for (it = pageSizesMap.begin(); it != pageSizesMap.end(); ++it) {
         std::string rhs = strtolower(it->name);
@@ -209,5 +210,47 @@ PageMargin getPageMargin(const CefString& str)
 
     return pageMargin;
 }
+
+std::string getTempPath()
+{
+    const char* vars[] = {"TMPDIR", "TMP", "TEMP", "TEMPDIR"};
+    char* temp;
+    for (int i = 0; i < 4; ++i) {
+        temp = std::getenv(vars[i]);
+        if (NULL != temp) {
+            return std::string(temp);
+        }
+    }
+
+    throw "Temp directory not defined in environment";
+}
+
+namespace file {
+
+std::string load(const CefString& path, bool removeFile)
+{
+    std::string content;
+    std::ifstream output;
+
+    output.open(path.ToString(), std::ifstream::binary);
+    if (output.good()) {
+        content.assign((std::istreambuf_iterator<char>(output)), std::istreambuf_iterator<char>());
+        output.close();
+        if (removeFile) {
+            remove(path);
+        }
+
+        return content;
+    }
+
+    throw "Cannot open file: \"" + path.ToString() + "\"";
+}
+
+bool remove(const CefString& path)
+{
+    return 0 == std::remove(path.ToString().c_str());
+}
+
+} // namespace file
 
 } // namespace cefpdf

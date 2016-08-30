@@ -39,13 +39,22 @@ enum struct PageOrientation {
     PORTRAIT, LANDSCAPE
 };
 
-extern std::list<PageSize> pageSizesMap;
+typedef std::list<PageSize> PageSizesMap;
+
+extern PageSizesMap pageSizesMap;
 
 std::string strtolower(std::string s);
 
 PageSize getPageSize(const CefString& str);
 
 PageMargin getPageMargin(const CefString& str);
+
+std::string getTempPath();
+
+namespace file {
+    std::string load(const CefString& path, bool remove = false);
+    bool remove(const CefString& path);
+}
 
 } // namespace cefpdf
 

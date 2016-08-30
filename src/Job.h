@@ -5,16 +5,30 @@
 
 #include "include/cef_load_handler.h"
 
+#include <functional>
+
 namespace cefpdf {
 
 class Job : public CefBase
 {
     public:
 
+    friend class JobsManager;
+
+    enum struct Status { Pending = 0, Loading, LoadError, Printing, Failed, Success };
+
+    typedef CefLoadHandler::ErrorCode ErrorCode;
+
+    typedef std::function<std::string()> ContentProvider;
+
+    typedef std::function<void(Status, ErrorCode)> StatusCallback;
+
     Job();
     Job(const CefString& url);
 
-    const CefString& GetUrl();
+    int GetID() const;
+
+    const CefString& GetUrl() const;
 
     void SetUrl(const CefString& url);
 
@@ -22,7 +36,9 @@ class Job : public CefBase
 
     void SetContent(const CefString& content);
 
-    const CefString& GetOutputPath();
+    void SetContentProvider(ContentProvider const& provider);
+
+    const CefString& GetOutputPath() const;
 
     void SetOutputPath(const CefString& outputPath);
 
@@ -33,22 +49,37 @@ class Job : public CefBase
 
     void SetPageMargin(const CefString& margin);
 
-
     // Get prepared PDF setting for CEF
-    CefPdfPrintSettings GetCefPdfPrintSettings();
+    CefPdfPrintSettings GetCefPdfPrintSettings() const;
 
-    // Get PDF content from output file
-    CefString GetOutputContent();
+    Status GetStatus() const;
+    ErrorCode GetStatusError() const;
+    void OnStatus(StatusCallback const& callback);
 
     private:
+
+    void Init();
+
+    void SetStatus(Status status);
+
+    void SetStatus(Status status, ErrorCode errorCode);
 
     void ParseCustomPageSize(const CefString& pageSize);
 
     void ParseCustomPageMargin(const CefString& pageMargin);
 
+    static int counter;
+    int m_id;
+
+    Status m_status;
+    ErrorCode m_errorCode;
+    StatusCallback m_statusCallback;
+
     CefString m_url;
     CefString m_content;
     CefString m_outputPath;
+
+    ContentProvider m_contentProvider;
 
     PageSize m_pageSize;
     PageOrientation m_pageOrientation = PageOrientation::PORTRAIT;

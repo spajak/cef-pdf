@@ -7,78 +7,83 @@
 
 namespace cefpdf {
 
+CefRefPtr<Job> JobsManager::Get(CefRefPtr<CefBrowser> browser)
+{
+    auto job = Find(browser);
+    DCHECK(job.get());
+    return job;
+}
+
+CefRefPtr<Job> JobsManager::Find(CefRefPtr<CefBrowser> browser)
+{
+    for (auto it = m_jobs.begin(); it != m_jobs.end(); ++it) {
+        if (it->browser->IsSame(browser)) {
+            return it->job;
+        }
+    }
+
+    return NULL;
+}
+
 void JobsManager::Add(CefRefPtr<CefBrowser> browser, CefRefPtr<Job> job)
 {
-    DCHECK(FindJobContainer(browser) == m_jobs.end());
+    DCHECK(!Find(browser).get());
 
-    auto j = JobContainer({browser, job, Status::Loading, ErrorCode::ERR_NONE});
-    m_jobs.push_back(j);
+    m_jobs.push_back(BrowserJob({browser, job}));
+
+    job->SetStatus(Job::Status::Loading);
 
     // Load URL
     browser->GetMainFrame()->LoadURL(job->GetUrl());
 }
 
-void JobsManager::OnError(CefRefPtr<CefBrowser> browser, ErrorCode errorCode)
+void JobsManager::OnError(CefRefPtr<CefBrowser> browser, Job::ErrorCode errorCode)
 {
-    auto j = GetJobContainer(browser);
-    DCHECK(Status::Loading == j->status);
+    auto job = Get(browser);
+    DCHECK(Job::Status::Loading == job->GetStatus());
 
-    j->status = Status::Error;
-    j->errorCode = errorCode;
+    job->SetStatus(Job::Status::LoadError, errorCode);
 }
 
 void JobsManager::OnReady(CefRefPtr<CefBrowser> browser, int httpStatusCode)
 {
-    auto j = GetJobContainer(browser);
+    auto job = Get(browser);
 
-    if (Status::Error == j->status) {
-        j->browser->GetHost()->CloseBrowser(true);
+    if (Job::Status::LoadError == job->GetStatus()) {
+        browser->GetHost()->CloseBrowser(true);
         return;
     }
 
-    DCHECK(Status::Loading == j->status);
+    DCHECK(Job::Status::Loading == job->GetStatus());
 
-    j->status = Status::Printing;
-    j->browser->GetHost()->PrintToPDF(
-        j->job->GetOutputPath(),
-        j->job->GetCefPdfPrintSettings(),
-        new PdfPrintCallback(this, j->browser)
+    job->SetStatus(Job::Status::Printing);
+
+    browser->GetHost()->PrintToPDF(
+        job->GetOutputPath(),
+        job->GetCefPdfPrintSettings(),
+        new PdfPrintCallback(this, browser)
     );
-}
-
-void JobsManager::Remove(CefRefPtr<CefBrowser> browser)
-{
-    auto j = GetJobContainer(browser);
-    DCHECK(Status::Loading != j->status);
-    DCHECK(Status::Printing != j->status);
-    m_jobs.erase(j);
 }
 
 void JobsManager::OnFinish(CefRefPtr<CefBrowser> browser, const CefString& path, bool ok)
 {
-    auto j = GetJobContainer(browser);
-    DCHECK(Status::Printing == j->status);
+    auto job = Get(browser);
+    DCHECK(Job::Status::Printing == job->GetStatus());
 
-    j->status = Status::Done;
-    j->browser->GetHost()->CloseBrowser(true);
+    job->SetStatus(ok ? Job::Status::Success : Job::Status::Failed);
+    browser->GetHost()->CloseBrowser(true);
 }
 
-JobsManager::JCI JobsManager::GetJobContainer(CefRefPtr<CefBrowser> browser)
-{
-    auto j = FindJobContainer(browser);
-    DCHECK(j != m_jobs.end());
-    return j;
-}
-
-JobsManager::JCI JobsManager::FindJobContainer(CefRefPtr<CefBrowser> browser)
+void JobsManager::Remove(CefRefPtr<CefBrowser> browser)
 {
     for (auto it = m_jobs.begin(); it != m_jobs.end(); ++it) {
         if (it->browser->IsSame(browser)) {
-            return it;
+            DCHECK(Job::Status::Loading != it->job->GetStatus());
+            DCHECK(Job::Status::Printing != it->job->GetStatus());
+            m_jobs.erase(it);
+            break;
         }
     }
-
-    return m_jobs.end();
 }
 
 } // namespace cefpdf

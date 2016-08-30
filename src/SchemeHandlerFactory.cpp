@@ -17,7 +17,7 @@ CefRefPtr<CefResourceHandler> SchemeHandlerFactory::Create(
     CefRefPtr<CefRequest> request
 ) {
     return new ResponseHandler(
-        m_jobsManager->GetJobContainer(browser)->job->GetContent()
+        m_jobsManager->Get(browser)->GetContent()
     );
 }
 

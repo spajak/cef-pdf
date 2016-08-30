@@ -227,7 +227,6 @@ void Client::OnLoadError(
     }
 
     if (frame->IsMain()) {
-        std::cerr << "Error loading: " << failedUrl.ToString() << std::endl;
         m_jobsManager->OnError(browser, errorCode);
     }
 }

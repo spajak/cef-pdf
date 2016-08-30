@@ -1,13 +1,14 @@
 #include "Client.h"
 
 #include <string>
+#include <list>
 #include <iostream>
 
 void printSizes()
 {
-    std::list<PageSize>::const_iterator it;
+    cefpdf::PageSizesMap::const_iterator it;
 
-    for (it = pageSizesMap.begin(); it != pageSizesMap.end(); ++it) {
+    for (it = cefpdf::pageSizesMap.begin(); it != cefpdf::pageSizesMap.end(); ++it) {
         std::cout << it->name <<  " " << it->width << "x" << it->height << std::endl;
     }
 }
@@ -18,22 +19,22 @@ void printHelp(std::string name)
     std::cout << "  Creates PDF files from HTML pages" << std::endl;
     std::cout << std::endl;
     std::cout << "Usage:" << std::endl;
-    std::cout << "  cef-pdf [options] [input] [output]" << std::endl;
+    std::cout << "  cef-pdf [options] [--url=<input>] [output]" << std::endl;
     std::cout << std::endl;
     std::cout << "Options:" << std::endl;
-    std::cout << "  --help -h           This help screen." << std::endl;
-    std::cout << "  --size=<size>       Size (format) of the paper: A3, B2.. or custom <width>x<height> in mm." << std::endl;
-    std::cout << "                      Without <size> list available sizes. A4 is the default." << std::endl;
-    std::cout << "  --landscape         Wheather to print with a landscape page orientation." << std::endl;
-    std::cout << "                      Default is portrait" << std::endl;
-    std::cout << "  --margin=<margin>   Paper margins in mm (much like CSS margin but without units)" << std::endl;
-    std::cout << "                      If omitted default margin is applied." << std::endl;
-    std::cout << std::endl;
-    std::cout << "Input:" << std::endl;
-    std::cout << "  URL to load, may be http, file, data, anything supported by Chrome." << std::endl;
+    std::cout << "  --help -h          This help screen." << std::endl;
+    std::cout << "  --url=<input>      URL to load, may be http, file, data, anything supported by Chromium." << std::endl;
+    std::cout << "                     If omitted standard input is read." << std::endl;
+    std::cout << "  --size=<size>      Size (format) of the paper: A3, B2.. or custom <width>x<height> in mm." << std::endl;
+    std::cout << "                     A4 is the default." << std::endl;
+    std::cout << "  --list-sizes       Show all defined page sizes." << std::endl;
+    std::cout << "  --landscape        Wheather to print with a landscape page orientation." << std::endl;
+    std::cout << "                     Default is portrait" << std::endl;
+    std::cout << "  --margin=<margin>  Paper margins in mm (much like CSS margin but without units)" << std::endl;
+    std::cout << "                     If omitted default margin is applied." << std::endl;
     std::cout << std::endl;
     std::cout << "Output:" << std::endl;
-    std::cout << "  PDF file name. Standard output is not supported. Defaults to output.pdf" << std::endl;
+    std::cout << "  PDF file name to write. Default is output.pdf" << std::endl;
     std::cout << std::endl;
 }
 
@@ -100,11 +101,19 @@ int main(int argc, char* argv[])
         return 0;
     }
 
+    if (commandLine->HasSwitch("list-sizes")) {
+        printSizes();
+        return 0;
+    }
+
     CefRefPtr<cefpdf::Job> job = new cefpdf::Job;
 
     try {
-        if (commandLine->HasSwitch("output")) {
-            job->SetOutputPath(commandLine->GetSwitchValue("output"));
+        // Set output file
+        CefCommandLine::ArgumentList args;
+        commandLine->GetArguments(args);
+        if (!args.empty()) {
+            job->SetOutputPath(args[0]);
         } else {
             job->SetOutputPath("output.pdf");
         }
@@ -112,7 +121,7 @@ int main(int argc, char* argv[])
         if (commandLine->HasSwitch("url")) {
             job->SetUrl(commandLine->GetSwitchValue("url"));
         } else {
-            job->SetContent(getStdInput());
+            job->SetContentProvider([] { return getStdInput(); });
         }
 
         if (commandLine->HasSwitch("size")) {
@@ -130,6 +139,10 @@ int main(int argc, char* argv[])
         std::cerr << "ERROR: " << error << std::endl;
         return 1;
     }
+
+    job->OnStatus([](auto status, auto errorCode) {
+        std::cout << "Status changed: " << std::endl;
+    });
 
     app->QueueJob(job);
     app->Run();
