@@ -31,7 +31,7 @@ void JobsManager::Add(CefRefPtr<CefBrowser> browser, CefRefPtr<Job> job)
 
     m_jobs.push_back(BrowserJob({browser, job}));
 
-    job->SetStatus(Job::Status::Loading);
+    job->ChangeStatus(Job::Status::Loading);
 
     // Load URL
     browser->GetMainFrame()->LoadURL(job->GetUrl());
@@ -42,7 +42,7 @@ void JobsManager::OnError(CefRefPtr<CefBrowser> browser, Job::ErrorCode errorCod
     auto job = Get(browser);
     DCHECK(Job::Status::Loading == job->GetStatus());
 
-    job->SetStatus(Job::Status::LoadError, errorCode);
+    job->ChangeStatus(Job::Status::LoadError, errorCode);
 }
 
 void JobsManager::OnReady(CefRefPtr<CefBrowser> browser, int httpStatusCode)
@@ -56,7 +56,7 @@ void JobsManager::OnReady(CefRefPtr<CefBrowser> browser, int httpStatusCode)
 
     DCHECK(Job::Status::Loading == job->GetStatus());
 
-    job->SetStatus(Job::Status::Printing);
+    job->ChangeStatus(Job::Status::Printing);
 
     browser->GetHost()->PrintToPDF(
         job->GetOutputPath(),
@@ -70,7 +70,7 @@ void JobsManager::OnFinish(CefRefPtr<CefBrowser> browser, const CefString& path,
     auto job = Get(browser);
     DCHECK(Job::Status::Printing == job->GetStatus());
 
-    job->SetStatus(ok ? Job::Status::Success : Job::Status::Failed);
+    job->ChangeStatus(ok ? Job::Status::Success : Job::Status::Failed);
     browser->GetHost()->CloseBrowser(true);
 }
 

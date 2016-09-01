@@ -40,6 +40,8 @@ void Client::Run()
     CefMainArgs mainArgs;
     CefInitialize(mainArgs, m_settings, this, NULL);
 
+    //CefRunMessageLoop();
+
     while (true) {
         if (m_shouldStop) {
             m_shouldStop = false;
@@ -59,8 +61,9 @@ void Client::Run()
 
         CefDoMessageLoopWork();
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        //std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
+
 
     CefShutdown();
 }

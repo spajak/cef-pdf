@@ -127,7 +127,7 @@ void Job::OnStatus(StatusCallback const& callback)
     m_statusCallback = callback;
 }
 
-void Job::SetStatus(Status status, ErrorCode errorCode)
+void Job::ChangeStatus(Status status, ErrorCode errorCode)
 {
     DCHECK(status >= m_status);
     m_errorCode = errorCode;
@@ -140,9 +140,9 @@ void Job::SetStatus(Status status, ErrorCode errorCode)
     }
 }
 
-void Job::SetStatus(Status status)
+void Job::ChangeStatus(Status status)
 {
-    SetStatus(status, ErrorCode::ERR_NONE);
+    ChangeStatus(status, ErrorCode::ERR_NONE);
 }
 
 } // namespace cefpdf

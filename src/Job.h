@@ -60,9 +60,9 @@ class Job : public CefBase
 
     void Init();
 
-    void SetStatus(Status status);
+    void ChangeStatus(Status status);
 
-    void SetStatus(Status status, ErrorCode errorCode);
+    void ChangeStatus(Status status, ErrorCode errorCode);
 
     void ParseCustomPageSize(const CefString& pageSize);
 

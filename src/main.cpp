@@ -34,7 +34,7 @@ void printHelp(std::string name)
     std::cout << "                     If omitted default margin is applied." << std::endl;
     std::cout << std::endl;
     std::cout << "Output:" << std::endl;
-    std::cout << "  PDF file name to write. Default is output.pdf" << std::endl;
+    std::cout << "  PDF file name to create. Default is output.pdf" << std::endl;
     std::cout << std::endl;
 }
 
