@@ -1,10 +1,12 @@
 #ifndef RESPONSE_HANDLER_H_
 #define RESPONSE_HANDLER_H_
 
-#include <cstdlib>
-#include <string>
+#include "Job/ContentProvider.h"
 
 #include "include/cef_resource_handler.h"
+
+#include <cstdlib>
+#include <string>
 
 namespace cefpdf {
 
@@ -12,7 +14,7 @@ class ResponseHandler : public CefResourceHandler
 {
     public:
 
-    ResponseHandler(const CefString& data);
+    ResponseHandler(CefRefPtr<job::ContentProvider> contentProvider);
 
     // CefResourceHandler methods:
     virtual bool ProcessRequest(
@@ -37,7 +39,7 @@ class ResponseHandler : public CefResourceHandler
 
     private:
 
-    std::string m_data;
+    CefRefPtr<job::ContentProvider> m_contentProvider;
     std::size_t m_offset;
 
     // Include the default reference counting implementation.

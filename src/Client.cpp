@@ -5,6 +5,8 @@
 #include "RenderHandler.h"
 
 #include "include/wrapper/cef_helpers.h"
+#include "include/base/cef_bind.h"
+#include "include/wrapper/cef_closure_task.h"
 
 #include <iostream>
 #include <chrono>
@@ -12,11 +14,8 @@
 
 namespace cefpdf {
 
-Client::Client(bool exitOnDone)
+Client::Client()
 {
-    m_exitOnDone = exitOnDone;
-
-    m_jobsManager = new JobsManager;
     m_printHandler = new PrintHandler;
     m_renderHandler = new RenderHandler;
 
@@ -33,67 +32,46 @@ Client::Client(bool exitOnDone)
     m_browserSettings.javascript_open_windows = STATE_DISABLED;
     m_browserSettings.javascript_close_windows = STATE_DISABLED;
     m_browserSettings.plugins = STATE_DISABLED;
+
+    m_jobsManager = new job::Manager;
+}
+
+void Client::Initialize()
+{
+    CefMainArgs mainArgs;
+    CefInitialize(mainArgs, m_settings, this, NULL);
 }
 
 void Client::Run()
 {
-    CefMainArgs mainArgs;
-    CefInitialize(mainArgs, m_settings, this, NULL);
-
-    //CefRunMessageLoop();
-
-    while (true) {
-        if (m_shouldStop) {
-            m_shouldStop = false;
-            break;
-        }
-
-        StartProcess();
-
-        // TODO: Implement exiting
-        if (m_processCount > 0) {
-            // pass
-        } else {
-            if (m_exitOnDone) {
-                // break;
-            }
-        }
-
-        CefDoMessageLoopWork();
-
-        //std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    }
-
-
+    Initialize();
+    CefRunMessageLoop();
     CefShutdown();
 }
 
 void Client::Stop()
 {
-    m_shouldStop = true;
+    CefQuitMessageLoop();
 }
 
-void Client::QueueJob(CefRefPtr<Job> job)
-{
-    m_jobsQueue.push(job);
-}
-
-bool Client::StartProcess()
+void Client::PostJob(CefRefPtr<job::Job> job)
 {
     if (m_processCount >= constants::maxProcesses) {
-        return false;
-    }
-
-    if (m_jobsQueue.empty()) {
-        return false;
+        CefPostDelayedTask(TID_UI, base::Bind(&Client::PostJob, this, job), 100);
+        return;
     }
 
     ++m_processCount;
 
+    m_jobsManager->Queue(job);
+
     // Create the browser window.
     CefBrowserHost::CreateBrowser(m_windowInfo, this, "", m_browserSettings, NULL);
+}
 
-    return true;
+unsigned int Client::GetProcessCount()
+{
+    return m_processCount;
 }
 
 // CefApp methods:
@@ -154,14 +132,9 @@ void Client::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 
     CEF_REQUIRE_UI_THREAD();
 
-    CefRefPtr<Job> job = m_jobsQueue.front();
-
-    if (job.get()) {
-        m_jobsQueue.pop();
-        m_jobsManager->Add(browser, job);
-    }
-
-    ++m_browserCount;
+    // Assign this browser to the next job. JobsManager will
+    // check if there is any queued job
+    m_jobsManager->Assign(browser);
 }
 
 bool Client::DoClose(CefRefPtr<CefBrowser> browser)
@@ -181,9 +154,6 @@ void Client::OnBeforeClose(CefRefPtr<CefBrowser> browser)
 
     CEF_REQUIRE_UI_THREAD();
 
-    m_jobsManager->Remove(browser);
-
-    --m_browserCount;
     --m_processCount;
 }
 
@@ -206,7 +176,7 @@ void Client::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
     CEF_REQUIRE_UI_THREAD();
 
     if (frame->IsMain()) {
-        m_jobsManager->OnReady(browser, httpStatusCode);
+        m_jobsManager->Process(browser, httpStatusCode);
     }
 }
 
@@ -230,7 +200,7 @@ void Client::OnLoadError(
     }
 
     if (frame->IsMain()) {
-        m_jobsManager->OnError(browser, errorCode);
+        m_jobsManager->SetError(browser, errorCode);
     }
 }
 

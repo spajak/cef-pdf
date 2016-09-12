@@ -2,16 +2,14 @@
 
 #include "include/wrapper/cef_helpers.h"
 
-#include <string>
-#include <iostream>
+#include <algorithm>
 
 namespace cefpdf {
 
-ResponseHandler::ResponseHandler(const CefString& data)
-{
-    m_data = data.ToString();
-    m_offset = 0;
-}
+ResponseHandler::ResponseHandler(CefRefPtr<job::ContentProvider> contentProvider) :
+    m_contentProvider(contentProvider),
+    m_offset(0)
+{}
 
 bool ResponseHandler::ProcessRequest(
     CefRefPtr<CefRequest> request,
@@ -30,7 +28,7 @@ void ResponseHandler::GetResponseHeaders(
     response->SetStatus(200);
 
     // Set the resulting response length
-    response_length = m_data.length();
+    response_length = m_contentProvider->GetContent().length();
 }
 
 bool ResponseHandler::ReadResponse(
@@ -43,11 +41,13 @@ bool ResponseHandler::ReadResponse(
 
     bool has_data = false;
     bytes_read = 0;
+    std::size_t length = m_contentProvider->GetContentLength();
 
-    if (m_offset < m_data.length()) {
+    if (m_offset < length) {
+        auto data = m_contentProvider->GetContent().c_str();
         // Copy the next block of data into the buffer.
-        int transfer_size = std::min(bytes_to_read, static_cast<int>(m_data.length() - m_offset));
-        std::memcpy(data_out, m_data.c_str() + m_offset, transfer_size);
+        int transfer_size = std::min(bytes_to_read, static_cast<int>(length - m_offset));
+        std::memcpy(data_out, data + m_offset, transfer_size);
         m_offset += transfer_size;
 
         bytes_read = transfer_size;

@@ -1,4 +1,6 @@
-#include "Client.h"
+#include "SimpleClient.h"
+#include "Job/Remote.h"
+#include "Job/StdInput.h"
 
 #include <string>
 #include <list>
@@ -38,23 +40,6 @@ void printHelp(std::string name)
     std::cout << std::endl;
 }
 
-CefString getStdInput()
-{
-    std::string input;
-
-    std::cout << "Waiting for input until EOF (Unix: Ctrl+D, Windows: Ctrl+Z)" << std::endl;
-
-    for (std::string line; std::getline(std::cin, line);) {
-        input.append(line + "\n");
-    }
-
-    if (input.size() == 0) {
-        input = "<!DOCTYPE html>\n";
-    }
-
-    return input;
-}
-
 std::string getExecutableName(CefString path)
 {
     std::string program = path.ToString();
@@ -77,7 +62,7 @@ std::string getExecutableName(CefString path)
 
 int main(int argc, char* argv[])
 {
-    CefRefPtr<cefpdf::Client> app = new cefpdf::Client(true);
+    CefRefPtr<cefpdf::SimpleClient> app = new cefpdf::SimpleClient();
 
     // Execute the sub-process logic, if any. This will either return immediately for the browser
     // process or block until the sub-process should exit.
@@ -106,24 +91,24 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    CefRefPtr<cefpdf::Job> job = new cefpdf::Job;
+    cefpdf::job::Job* job;
+
+    if (commandLine->HasSwitch("url")) {
+        job = new cefpdf::job::Remote(commandLine->GetSwitchValue("url"));
+    } else {
+        job = new cefpdf::job::StdInput;
+    }
+
+    // Set output file
+    CefCommandLine::ArgumentList args;
+    commandLine->GetArguments(args);
+    if (!args.empty()) {
+        job->SetOutputPath(args[0]);
+    } else {
+        job->SetOutputPath("output.pdf");
+    }
 
     try {
-        // Set output file
-        CefCommandLine::ArgumentList args;
-        commandLine->GetArguments(args);
-        if (!args.empty()) {
-            job->SetOutputPath(args[0]);
-        } else {
-            job->SetOutputPath("output.pdf");
-        }
-
-        if (commandLine->HasSwitch("url")) {
-            job->SetUrl(commandLine->GetSwitchValue("url"));
-        } else {
-            job->SetContentProvider([] { return getStdInput(); });
-        }
-
         if (commandLine->HasSwitch("size")) {
             job->SetPageSize(commandLine->GetSwitchValue("size"));
         }
@@ -140,10 +125,9 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    job->OnStatus([](auto status, auto errorCode) {
-        std::cout << "Status changed: " << std::endl;
-    });
-
+    app->QueueJob(job);
+    app->QueueJob(job);
+    app->QueueJob(job);
     app->QueueJob(job);
     app->Run();
 

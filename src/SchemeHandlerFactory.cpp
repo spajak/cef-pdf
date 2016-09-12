@@ -3,7 +3,7 @@
 
 namespace cefpdf {
 
-SchemeHandlerFactory::SchemeHandlerFactory(CefRefPtr<JobsManager> jobsManager)
+SchemeHandlerFactory::SchemeHandlerFactory(CefRefPtr<job::Manager> jobsManager)
 {
     m_jobsManager = jobsManager;
 }
@@ -16,9 +16,7 @@ CefRefPtr<CefResourceHandler> SchemeHandlerFactory::Create(
     const CefString& scheme_name,
     CefRefPtr<CefRequest> request
 ) {
-    return new ResponseHandler(
-        m_jobsManager->Get(browser)->GetContent()
-    );
+    return new ResponseHandler(m_jobsManager->GetContentProvider(browser));
 }
 
 } // namespace cefpdf

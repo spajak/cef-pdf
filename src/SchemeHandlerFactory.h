@@ -1,7 +1,7 @@
 #ifndef SCHEME_HANDLER_FACTORY_H_
 #define SCHEME_HANDLER_FACTORY_H_
 
-#include "JobsManager.h"
+#include "Job/Manager.h"
 
 #include "include/cef_scheme.h"
 
@@ -11,7 +11,7 @@ class SchemeHandlerFactory : public CefSchemeHandlerFactory
 {
     public:
 
-    SchemeHandlerFactory(CefRefPtr<JobsManager> jobsManager);
+    SchemeHandlerFactory(CefRefPtr<job::Manager> jobsManager);
 
     // CefSchemeHandlerFactory methods:
     virtual CefRefPtr<CefResourceHandler> Create(
@@ -23,7 +23,7 @@ class SchemeHandlerFactory : public CefSchemeHandlerFactory
 
     private:
 
-    CefRefPtr<JobsManager> m_jobsManager;
+    CefRefPtr<job::Manager> m_jobsManager;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(SchemeHandlerFactory);

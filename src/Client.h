@@ -1,13 +1,11 @@
 #ifndef CLIENT_H_
 #define CLIENT_H_
 
+#include "Job/Manager.h"
+
 #include "include/cef_app.h"
 #include "include/cef_client.h"
 #include "include/cef_browser.h"
-
-#include "JobsManager.h"
-
-#include <queue>
 
 namespace cefpdf {
 
@@ -17,18 +15,21 @@ class Client : public CefApp,
                public CefLifeSpanHandler,
                public CefLoadHandler
 {
-    public:
 
-    Client(bool exitOnDone = false);
+public:
+    Client();
 
     // Run message loop
-    void Run();
+    virtual void Run();
 
-    // Stop message loop and shutdown
+    // Stop message loop
     void Stop();
 
-    // Queue new job to process
-    void QueueJob(CefRefPtr<Job> job);
+    // Add new job to the queue and process it
+    void PostJob(CefRefPtr<job::Job> job);
+
+    // Get the number of running job processes
+    unsigned int GetProcessCount();
 
     // CefApp methods:
     virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() override;
@@ -40,9 +41,9 @@ class Client : public CefApp,
     virtual void OnBeforeChildProcessLaunch(CefRefPtr<CefCommandLine> command_line) override;
 
     // CefClient methods:
-    virtual CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler();
-    virtual CefRefPtr<CefLoadHandler> GetLoadHandler();
-    virtual CefRefPtr<CefRenderHandler> GetRenderHandler();
+    virtual CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() override;
+    virtual CefRefPtr<CefLoadHandler> GetLoadHandler() override;
+    virtual CefRefPtr<CefRenderHandler> GetRenderHandler() override;
 
     // CefLifeSpanHandler methods:
     virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser) override;
@@ -67,29 +68,19 @@ class Client : public CefApp,
         const CefString& failedUrl
     ) override;
 
-    private:
-
-    CefRefPtr<CefPrintHandler> m_printHandler;
-    CefRefPtr<CefRenderHandler> m_renderHandler;
+protected:
+    // Initialize CEF
+    void Initialize();
 
     CefSettings m_settings;
     CefWindowInfo m_windowInfo;
-    CefRequestContextSettings m_contextSettings;
     CefBrowserSettings m_browserSettings;
+    CefRefPtr<job::Manager> m_jobsManager;
+    unsigned int m_processCount = 0;
 
-    bool m_exitOnDone = false;
-    bool m_shouldStop = false;
-
-    bool StartProcess();
-
-    // Jobs waiting to be processed
-    std::queue<CefRefPtr<Job>> m_jobsQueue;
-
-    // Jobs currently processed
-    CefRefPtr<JobsManager> m_jobsManager;
-
-    int m_processCount = 0;
-    int m_browserCount = 0;
+private:
+    CefRefPtr<CefPrintHandler> m_printHandler;
+    CefRefPtr<CefRenderHandler> m_renderHandler;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(Client);

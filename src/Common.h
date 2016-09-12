@@ -19,6 +19,8 @@ namespace constants {
     const std::string encoding = "utf-8";
     // Max number of concurrent processes (browsers)
     const int maxProcesses = 10;
+    // Default TCP server port
+    const int serverPort = 9008;
 }
 
 struct PageSize

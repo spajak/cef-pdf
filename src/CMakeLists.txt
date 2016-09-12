@@ -7,7 +7,7 @@
 #
 
 # cef-pdf sources.
-file(GLOB CEFPDF_SRCS "*.cpp")
+file(GLOB_RECURSE CEFPDF_SRCS "*.cpp")
 
 source_group(cef-pdf FILES ${CEFPDF_SRCS})
 
