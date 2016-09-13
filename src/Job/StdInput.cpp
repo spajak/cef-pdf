@@ -6,7 +6,7 @@
 namespace cefpdf {
 namespace job {
 
-const CefString& StdInput::GetContent()
+const std::string& StdInput::GetContent()
 {
     if (m_content.empty()) {
         std::string input;

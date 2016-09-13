@@ -2,6 +2,7 @@
 
 #include "include/wrapper/cef_helpers.h"
 
+#include <iostream>
 #include <algorithm>
 
 namespace cefpdf {
@@ -28,7 +29,7 @@ void ResponseHandler::GetResponseHeaders(
     response->SetStatus(200);
 
     // Set the resulting response length
-    response_length = m_contentProvider->GetContent().length();
+    response_length = m_contentProvider->GetContentLength();
 }
 
 bool ResponseHandler::ReadResponse(
@@ -44,10 +45,9 @@ bool ResponseHandler::ReadResponse(
     std::size_t length = m_contentProvider->GetContentLength();
 
     if (m_offset < length) {
-        auto data = m_contentProvider->GetContent().c_str();
         // Copy the next block of data into the buffer.
         int transfer_size = std::min(bytes_to_read, static_cast<int>(length - m_offset));
-        std::memcpy(data_out, data + m_offset, transfer_size);
+        std::memcpy(data_out, m_contentProvider->GetContentPtr() + m_offset, transfer_size);
         m_offset += transfer_size;
 
         bytes_read = transfer_size;

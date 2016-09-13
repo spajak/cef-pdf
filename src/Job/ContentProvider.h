@@ -14,7 +14,7 @@ class ContentProvider : public Visitor
 public:
     ContentProvider() {};
 
-    const CefString& GetContent() const {
+    const std::string& GetContent() const {
         return m_content;
     };
 
@@ -22,8 +22,12 @@ public:
         return m_content.length();
     };
 
+    const char* GetContentPtr() const {
+        return m_content.c_str();
+    };
+
     virtual void visit(CefRefPtr<Local> job) {
-        m_content = job->GetContent();
+        m_content = job->GetContent().ToString();
     };
 
     virtual void visit(CefRefPtr<Remote> job) {
@@ -35,7 +39,7 @@ public:
     };
 
 private:
-    CefString m_content;
+    std::string m_content;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(ContentProvider);

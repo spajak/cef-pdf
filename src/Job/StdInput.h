@@ -10,14 +10,14 @@ class StdInput : public Job
 {
 
 public:
-    const CefString& GetContent();
+    const std::string& GetContent();
 
     virtual void accept(CefRefPtr<Visitor> visitor) {
         visitor->visit(this);
     };
 
 private:
-    CefString m_content;
+    std::string m_content;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(StdInput);
