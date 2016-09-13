@@ -4,26 +4,26 @@
 
 ### Usage:
 
-    cef-pdf [options] [input] [output]
+    cef-pdf [options] [--url=<input>] [output]
 
-Options:
+    Options:
+      --help -h          This help screen.
+      --url=<input>      URL to load, may be http, file, data, anything supported by Chromium.
+                         If omitted standard input is read.
+      --size=<size>      Size (format) of the paper: A3, B2.. or custom <width>x<height> in mm.
+                         A4 is the default.
+      --list-sizes       Show all defined page sizes.
+      --landscape        Wheather to print with a landscape page orientation.
+                         Default is portrait
+      --margin=<margin>  Paper margins in mm (much like CSS margin but without units)
+                         If omitted default margin is applied.
 
-    --help -h            This help screen.
-    --paper-size=<size>  Size (format) of the paper: A3, B2.. Default is A4.
-    --landscape          Wheather to print with a landscape page orientation. Default is portrait
-
-Input:
-
-    URL to load, may be http, file, data, anything supported by Chrome.
-    Special url stdin:// scheme is used for inputing html from standard input. Default is stdin://get
-
-Output:
-
-    PDF file name. Standard output is not supported. Defaults to output.pdf
+    Output:
+      PDF file name to create. Default is output.pdf
 
 ### Installation
 
-`cef-pdf` should compile with cmake/ninja on Windows. Linux and OS X needs some work (contributors welcome)
+[CEF build](https://cefbuilds.com/) files must be placed in cef/ subdirectory. `cef-pdf` should compile with cmake/ninja on Windows. Linux and OS X needs some work (contributors welcome).
 
 ### TODO
 
@@ -32,4 +32,4 @@ Output:
 
 ### License
 
-Flow is licensed under the MIT license.
+`cef-pdf` is licensed under the MIT license.
