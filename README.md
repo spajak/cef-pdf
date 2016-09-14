@@ -21,9 +21,9 @@
     Output:
       PDF file name to create. Default is output.pdf
 
-### Installation
+### Building
 
-[CEF build](https://cefbuilds.com/) files must be placed in cef/ subdirectory. `cef-pdf` should compile with cmake/ninja on Windows. Linux and OS X needs some work (contributors welcome).
+In order to build, [CEF build](https://cefbuilds.com/) files must be placed in cef/ subdirectory. `cef-pdf` should compile without problems with cmake/ninja on Windows using decent C++11 compiler. Linux and OS X needs some work (contributors welcome).
 
 ### TODO
 
