@@ -1,6 +1,7 @@
 #include "Manager.h"
 #include "Loader.h"
 #include "Printer.h"
+#include "ContentProvider.h"
 
 #include "include/wrapper/cef_helpers.h"
 
@@ -15,14 +16,15 @@ std::size_t Manager::Queue(CefRefPtr<Job> job)
     return m_jobsQueue.size();
 }
 
-CefRefPtr<ContentProvider> Manager::GetContentProvider(CefRefPtr<CefBrowser> browser)
+CefRefPtr<CefStreamReader> Manager::GetStreamReader(CefRefPtr<CefBrowser> browser)
 {
     auto it = Find(browser);
     DCHECK(it != m_jobs.end());
 
     CefRefPtr<ContentProvider> provider = new ContentProvider;
     it->job->accept(provider);
-    return provider;
+
+    return provider->GetStreamReader();
 }
 
 void Manager::Assign(CefRefPtr<CefBrowser> browser)

@@ -211,20 +211,6 @@ PageMargin getPageMargin(const CefString& str)
     return pageMargin;
 }
 
-std::string getTempPath()
-{
-    const char* vars[] = {"TMPDIR", "TMP", "TEMP", "TEMPDIR"};
-    char* temp;
-    for (int i = 0; i < 4; ++i) {
-        temp = std::getenv(vars[i]);
-        if (NULL != temp) {
-            return std::string(temp);
-        }
-    }
-
-    throw "Temp directory not defined in environment";
-}
-
 namespace file {
 
 std::string load(const CefString& path, bool removeFile)

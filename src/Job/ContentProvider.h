@@ -5,6 +5,7 @@
 #include "Local.h"
 #include "Remote.h"
 #include "StdInput.h"
+#include "StdInputStreamReader.h"
 
 namespace cefpdf {
 namespace job {
@@ -14,32 +15,27 @@ class ContentProvider : public Visitor
 public:
     ContentProvider() {};
 
-    const std::string& GetContent() const {
-        return m_content;
-    };
-
-    std::size_t GetContentLength() const {
-        return m_content.length();
-    };
-
-    const char* GetContentPtr() const {
-        return m_content.c_str();
+    CefRefPtr<CefStreamReader> GetStreamReader() const {
+        return m_reader;
     };
 
     virtual void visit(CefRefPtr<Local> job) {
-        m_content = job->GetContent().ToString();
+        m_reader = CefStreamReader::CreateForData(
+            static_cast<void*>(const_cast<char*>(job->GetContent().c_str())),
+            job->GetContent().size()
+        );
     };
 
     virtual void visit(CefRefPtr<Remote> job) {
-        // no content
+        // no implementation
     };
 
     virtual void visit(CefRefPtr<StdInput> job) {
-        m_content = job->GetContent();
+        m_reader = CefStreamReader::CreateForHandler(new StdInputStreamReader);
     };
 
 private:
-    std::string m_content;
+    CefRefPtr<CefStreamReader> m_reader;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(ContentProvider);

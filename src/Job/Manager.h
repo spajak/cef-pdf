@@ -2,7 +2,6 @@
 #define JOB_MANAGER_H_
 
 #include "Job.h"
-#include "ContentProvider.h"
 
 #include "include/cef_browser.h"
 #include "include/cef_load_handler.h"
@@ -25,7 +24,7 @@ public:
 
     void Assign(CefRefPtr<CefBrowser> browser);
 
-    CefRefPtr<ContentProvider> GetContentProvider(CefRefPtr<CefBrowser> browser);
+    CefRefPtr<CefStreamReader> GetStreamReader(CefRefPtr<CefBrowser> browser);
 
     void SetError(CefRefPtr<CefBrowser> browser, ErrorCode errorCode);
 

@@ -10,11 +10,11 @@ class Local : public Job
 {
 
 public:
-    virtual const CefString& GetContent() const {
+    virtual const std::string& GetContent() const {
         return m_content;
     };
 
-    void SetContent(const CefString& content) {
+    void SetContent(const std::string& content) {
         m_content = content;
     };
 
@@ -23,7 +23,7 @@ public:
     };
 
 private:
-    CefString m_content;
+    std::string m_content;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(Local);

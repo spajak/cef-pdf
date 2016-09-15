@@ -51,8 +51,6 @@ PageSize getPageSize(const CefString& str);
 
 PageMargin getPageMargin(const CefString& str);
 
-std::string getTempPath();
-
 namespace file {
     std::string load(const CefString& path, bool remove = false);
     bool remove(const CefString& path);

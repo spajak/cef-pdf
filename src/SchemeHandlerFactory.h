@@ -9,8 +9,8 @@ namespace cefpdf {
 
 class SchemeHandlerFactory : public CefSchemeHandlerFactory
 {
-    public:
 
+public:
     SchemeHandlerFactory(CefRefPtr<job::Manager> jobsManager);
 
     // CefSchemeHandlerFactory methods:
@@ -21,8 +21,7 @@ class SchemeHandlerFactory : public CefSchemeHandlerFactory
         CefRefPtr<CefRequest> request
     ) override;
 
-    private:
-
+private:
     CefRefPtr<job::Manager> m_jobsManager;
 
     // Include the default reference counting implementation.

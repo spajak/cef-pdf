@@ -7,7 +7,7 @@ namespace job {
 
 Job::Job()
 {
-    m_outputPath = std::tmpnam(nullptr);
+    m_outputPath = std::tmpnam(nullptr) + std::string("-cef.pdf");
     SetPageSize(cefpdf::constants::pageSize);
     SetPageMargin("default");
 }

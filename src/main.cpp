@@ -126,9 +126,6 @@ int main(int argc, char* argv[])
     }
 
     app->QueueJob(job);
-    app->QueueJob(job);
-    app->QueueJob(job);
-    app->QueueJob(job);
     app->Run();
 
     return 0;

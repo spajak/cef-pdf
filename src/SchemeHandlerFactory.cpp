@@ -1,6 +1,4 @@
 #include "SchemeHandlerFactory.h"
-#include "ResponseHandler.h"
-#include "StdInputStreamReader.h"
 
 #include "include/wrapper/cef_stream_resource_handler.h"
 
@@ -19,8 +17,13 @@ CefRefPtr<CefResourceHandler> SchemeHandlerFactory::Create(
     const CefString& scheme_name,
     CefRefPtr<CefRequest> request
 ) {
-    return new CefStreamResourceHandler("text/html",  CefStreamReader::CreateForHandler(new StdInputStreamReader));
-    //return new ResponseHandler();
+    auto streamReader = m_jobsManager->GetStreamReader(browser);
+
+    if (!streamReader.get()) {
+        return NULL;
+    }
+
+    return new CefStreamResourceHandler("text/html",  streamReader);
 }
 
 } // namespace cefpdf
