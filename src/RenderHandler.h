@@ -3,6 +3,8 @@
 
 #include "include/cef_render_handler.h"
 
+namespace cefpdf {
+
 class RenderHandler : public CefRenderHandler
 {
     public:
@@ -10,19 +12,21 @@ class RenderHandler : public CefRenderHandler
     RenderHandler();
 
     // CefRenderHandler methods:
-    virtual bool GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) OVERRIDE;
+    virtual bool GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) override;
 
     virtual void OnPaint(
         CefRefPtr<CefBrowser> browser,
         CefRenderHandler::PaintElementType type,
         const CefRenderHandler::RectList& dirtyRects,
         const void* buffer, int width, int height
-    ) OVERRIDE;
+    ) override;
 
     private:
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(RenderHandler);
 };
+
+} // namespace cefpdf
 
 #endif // RENDER_HANDLER_H_

@@ -7,22 +7,7 @@
 #
 
 # cef-pdf sources.
-set(CEFPDF_SRCS
-    main.cpp
-    Utils.cpp
-    Utils.h
-    Application.cpp
-    Application.h
-    BrowserHandler.cpp
-    BrowserHandler.h
-    RenderHandler.cpp
-    RenderHandler.h
-    StdInputSchemeHandlerFactory.cpp
-    StdInputSchemeHandlerFactory.h
-    PrintHandler.cpp
-    PrintHandler.h
-    PdfPrintCallback.cpp
-    PdfPrintCallback.h)
+file(GLOB_RECURSE CEFPDF_SRCS "*.cpp")
 
 source_group(cef-pdf FILES ${CEFPDF_SRCS})
 

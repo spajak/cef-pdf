@@ -2,6 +2,8 @@
 
 #include "include/wrapper/cef_helpers.h"
 
+namespace cefpdf {
+
 PrintHandler::PrintHandler() {}
 
 // CefPrintHandler methods:
@@ -37,3 +39,5 @@ void PrintHandler::OnPrintStart(CefRefPtr<CefBrowser> browser)
 {
 
 }
+
+} // namespace cefpdf

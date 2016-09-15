@@ -197,6 +197,9 @@ find_package(CEF REQUIRED)
 # directory.
 add_subdirectory(${CEF_LIBCEF_DLL_WRAPPER_PATH} libcef_dll_wrapper)
 
+include_directories("asio")
+add_definitions(-DASIO_STANDALONE)
+
 # Include application targets.
 # Comes from the <target>/CMakeLists.txt file in the current directory.
 # TODO: Change these lines to match your project target when you copy this file.
