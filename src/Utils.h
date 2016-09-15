@@ -15,4 +15,6 @@ struct CIEqual
     bool operator()(const CefString& lhs, const CefString& rhs) const;
 };
 
+CefString GetProgramName(CefString path);
+
 #endif // UTILS_H_

@@ -84,13 +84,12 @@ void BrowserHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame
     CEF_REQUIRE_UI_THREAD();
 
     if (frame->IsMain()) {
-        browser->GetHost()->PrintToPDF(m_pdfOutput, m_pdfSettings, new PdfPrintCallback(browser.get()));
-
-        auto err = m_errors.find(frame->GetURL());
+        auto err = m_errors.find(browser->GetIdentifier());
         if (err == m_errors.end()) {
             browser->GetHost()->PrintToPDF(m_pdfOutput, m_pdfSettings, new PdfPrintCallback(browser.get()));
         } else {
             browser->GetHost()->CloseBrowser(false);
+            m_errors.erase(err);
         }
     }
 }
@@ -116,6 +115,6 @@ void BrowserHandler::OnLoadError(
 
     if (frame->IsMain()) {
         std::cerr << "Error loading: " << failedUrl.ToString() << std::endl;
-        m_errors[failedUrl] = errorCode;
+        m_errors[browser->GetIdentifier()] = errorCode;
     }
 }
