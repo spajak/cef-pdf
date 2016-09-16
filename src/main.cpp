@@ -40,9 +40,9 @@ void printHelp(std::string name)
     std::cout << std::endl;
 }
 
-std::string getExecutableName(CefString path)
+std::string getExecutableName(CefRefPtr<CefCommandLine> commandLine)
 {
-    std::string program = path.ToString();
+    std::string program = commandLine->GetProgram().ToString();
 
     // Remove directory if present.
     // Do this before extension removal in case directory has a period character.
@@ -130,7 +130,7 @@ int main(int argc, char* argv[])
 #endif // OS_WIN
 
     if (commandLine->HasSwitch("help") || commandLine->HasSwitch("h")) {
-        printHelp(getExecutableName(commandLine->GetProgram()));
+        printHelp(getExecutableName(commandLine));
         return 0;
     }
 
