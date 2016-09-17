@@ -19,7 +19,6 @@ Client::Client()
     m_printHandler = new PrintHandler;
     m_renderHandler = new RenderHandler;
 
-    //m_settings.single_process = true;
     m_settings.no_sandbox = true;
     m_settings.windowless_rendering_enabled = true;
     m_settings.command_line_args_disabled = true;
