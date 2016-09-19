@@ -124,6 +124,7 @@ if(OS_WINDOWS)
   add_dependencies(${CEF_TARGET} libcef_dll_wrapper)
   SET_EXECUTABLE_TARGET_PROPERTIES(${CEF_TARGET})
   target_link_libraries(${CEF_TARGET} libcef_lib libcef_dll_wrapper ${CEF_STANDARD_LIBS})
+  target_compile_definitions(${CEF_TARGET} PRIVATE _HAS_EXCEPTIONS=1)
 
   if(USE_SANDBOX)
     # Logical target used to link the cef_sandbox library.
