@@ -113,6 +113,9 @@
 
 cmake_minimum_required(VERSION 2.8.12.1)
 
+set(USE_SANDBOX OFF)
+set(USE_ATL OFF)
+
 # Only generate Debug and Release configuration types.
 set(CMAKE_CONFIGURATION_TYPES Debug Release)
 

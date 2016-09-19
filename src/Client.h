@@ -53,7 +53,8 @@ public:
     // CefLoadHandler methods:
     virtual void OnLoadStart(
         CefRefPtr<CefBrowser> browser,
-        CefRefPtr<CefFrame> frame
+        CefRefPtr<CefFrame> frame,
+        TransitionType transition_type
     ) override;
     virtual void OnLoadEnd(
         CefRefPtr<CefBrowser> browser,
