@@ -34,6 +34,7 @@ if(OS_LINUX)
   SET_EXECUTABLE_TARGET_PROPERTIES(${CEF_TARGET})
   add_dependencies(${CEF_TARGET} libcef_dll_wrapper)
   target_link_libraries(${CEF_TARGET} libcef_lib libcef_dll_wrapper ${CEF_STANDARD_LIBS})
+  target_compile_options(${CEF_TARGET} PRIVATE -fexceptions)
 
   # Set rpath so that libraries can be placed next to the executable.
   set_target_properties(${CEF_TARGET} PROPERTIES INSTALL_RPATH "$ORIGIN")
@@ -62,6 +63,7 @@ if(OS_WINDOWS)
 
   SET_EXECUTABLE_TARGET_PROPERTIES(${CEF_TARGET})
   target_link_libraries(${CEF_TARGET} libcef_lib libcef_dll_wrapper ${CEF_STANDARD_LIBS})
+  target_compile_definitions(${CEF_TARGET} PRIVATE _HAS_EXCEPTIONS=1)
 
 
   # Add the custom manifest files to the executable.

@@ -33,6 +33,8 @@ public:
                 Listen();
                 m_ioService.run();
             });
+
+            started = true;
         }
     }
 
@@ -42,6 +44,7 @@ public:
             m_ioService.stop();
             m_thread.join();
             m_ioService.reset();
+            started = false;
         }
     };
 
@@ -55,11 +58,11 @@ public:
     }
 
 private:
-    bool started;
     std::thread m_thread;
-    int counter;
     asio::io_service m_ioService;
     asio::steady_timer m_timer;
+    int counter;
+    bool started;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(Server);
