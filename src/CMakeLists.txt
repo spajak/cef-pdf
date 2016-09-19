@@ -8,7 +8,6 @@
 
 # cef-pdf sources.
 file(GLOB_RECURSE CEFPDF_SRCS "*.cpp")
-
 source_group(cef-pdf FILES ${CEFPDF_SRCS})
 
 #
@@ -33,7 +32,7 @@ if(OS_LINUX)
   add_executable(${CEF_TARGET} ${CEFPDF_SRCS})
   SET_EXECUTABLE_TARGET_PROPERTIES(${CEF_TARGET})
   add_dependencies(${CEF_TARGET} libcef_dll_wrapper)
-  target_link_libraries(${CEF_TARGET} libcef_lib libcef_dll_wrapper ${CEF_STANDARD_LIBS})
+  target_link_libraries(${CEF_TARGET} libcef_lib libcef_dll_wrapper ${CEF_STANDARD_LIBS} -Wl,--no-fatal-warnings)
   target_compile_options(${CEF_TARGET} PRIVATE -fexceptions)
 
   # Set rpath so that libraries can be placed next to the executable.
@@ -57,9 +56,6 @@ if(OS_WINDOWS)
 
   list(APPEND CEF_EXE_LINKER_FLAGS /entry:mainCRTStartup /subsystem:console)
   set(CEF_EXE_LINKER_FLAGS "${CEF_EXE_LINKER_FLAGS}" PARENT_SCOPE)
-
-  list(APPEND CEF_EXE_LINKER_FLAGS_DEBUG /entry:mainCRTStartup /subsystem:console)
-  set(CEF_EXE_LINKER_FLAGS_DEBUG "${CEF_EXE_LINKER_FLAGS_DEBUG}" PARENT_SCOPE)
 
   SET_EXECUTABLE_TARGET_PROPERTIES(${CEF_TARGET})
   target_link_libraries(${CEF_TARGET} libcef_lib libcef_dll_wrapper ${CEF_STANDARD_LIBS})
