@@ -6,6 +6,10 @@
 #include <list>
 #include <iostream>
 
+#if defined(OS_WIN)
+#pragma comment(linker, "/entry:mainCRTStartup /subsystem:console")
+#endif // OS_WIN
+
 void printSizes()
 {
     cefpdf::PageSizesMap::const_iterator it;
