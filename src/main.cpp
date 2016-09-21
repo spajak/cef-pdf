@@ -6,6 +6,10 @@
 #include <list>
 #include <iostream>
 
+#if defined(OS_WIN)
+#pragma comment(linker, "/entry:mainCRTStartup /subsystem:console")
+#endif // OS_WIN
+
 void printSizes()
 {
     cefpdf::PageSizesMap::const_iterator it;
@@ -40,9 +44,9 @@ void printHelp(std::string name)
     std::cout << std::endl;
 }
 
-std::string getExecutableName(CefString path)
+std::string getExecutableName(CefRefPtr<CefCommandLine> commandLine)
 {
-    std::string program = path.ToString();
+    std::string program = commandLine->GetProgram().ToString();
 
     // Remove directory if present.
     // Do this before extension removal in case directory has a period character.
@@ -60,37 +64,8 @@ std::string getExecutableName(CefString path)
     return program;
 }
 
-int main(int argc, char* argv[])
+int runJob(CefRefPtr<CefCommandLine> commandLine)
 {
-    CefRefPtr<cefpdf::SimpleClient> app = new cefpdf::SimpleClient();
-
-    // Execute the sub-process logic, if any. This will either return immediately for the browser
-    // process or block until the sub-process should exit.
-    CefMainArgs mainArgs;
-    int exitCode = CefExecuteProcess(mainArgs, app, NULL);
-    if (exitCode >= 0) {
-        // The sub-process terminated, exit now.
-        return exitCode;
-    }
-
-    CefRefPtr<CefCommandLine> commandLine = CefCommandLine::CreateCommandLine();
-
-#if defined(OS_WIN)
-    commandLine->InitFromString(::GetCommandLineW());
-#else
-    commandLine->InitFromArgv(argc, argv);
-#endif
-
-    if (commandLine->HasSwitch("help") || commandLine->HasSwitch("h")) {
-        printHelp(::getExecutableName(commandLine->GetProgram()));
-        return 0;
-    }
-
-    if (commandLine->HasSwitch("list-sizes")) {
-        printSizes();
-        return 0;
-    }
-
     cefpdf::job::Job* job;
 
     if (commandLine->HasSwitch("url")) {
@@ -125,8 +100,48 @@ int main(int argc, char* argv[])
         return 1;
     }
 
+    auto app = new cefpdf::SimpleClient();
     app->QueueJob(job);
     app->Run();
 
     return 0;
+}
+
+int main(int argc, char* argv[])
+{
+
+#if !defined(OS_MACOSX)
+#if defined(OS_WIN)
+    CefMainArgs mainArgs(::GetModuleHandle(NULL));
+#else
+    CefMainArgs mainArgs(argc, argv);
+#endif // OS_WIN
+    // Execute the sub-process logic, if any. This will either return immediately for the browser
+    // process or block until the sub-process should exit.
+    int exitCode = CefExecuteProcess(mainArgs, NULL, NULL);
+    if (exitCode >= 0) {
+        // The sub-process terminated, exit now.
+        return exitCode;
+    }
+#endif // !OS_MACOSX
+
+    CefRefPtr<CefCommandLine> commandLine = CefCommandLine::CreateCommandLine();
+
+#if defined(OS_WIN)
+    commandLine->InitFromString(::GetCommandLine());
+#else
+    commandLine->InitFromArgv(argc, argv);
+#endif // OS_WIN
+
+    if (commandLine->HasSwitch("help") || commandLine->HasSwitch("h")) {
+        printHelp(getExecutableName(commandLine));
+        return 0;
+    }
+
+    if (commandLine->HasSwitch("list-sizes")) {
+        printSizes();
+        return 0;
+    }
+
+    return runJob(commandLine);
 }

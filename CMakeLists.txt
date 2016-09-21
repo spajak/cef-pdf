@@ -113,6 +113,9 @@
 
 cmake_minimum_required(VERSION 2.8.12.1)
 
+set(USE_SANDBOX OFF)
+set(USE_ATL OFF)
+
 # Only generate Debug and Release configuration types.
 set(CMAKE_CONFIGURATION_TYPES Debug Release)
 
@@ -198,7 +201,7 @@ find_package(CEF REQUIRED)
 add_subdirectory(${CEF_LIBCEF_DLL_WRAPPER_PATH} libcef_dll_wrapper)
 
 include_directories("asio")
-add_definitions(-DASIO_STANDALONE)
+add_definitions(-DASIO_STANDALONE -DASIO_NO_TYPEID)
 
 # Include application targets.
 # Comes from the <target>/CMakeLists.txt file in the current directory.

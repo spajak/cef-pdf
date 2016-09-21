@@ -19,10 +19,10 @@ Client::Client()
     m_printHandler = new PrintHandler;
     m_renderHandler = new RenderHandler;
 
-    //m_settings.single_process = true;
     m_settings.no_sandbox = true;
     m_settings.windowless_rendering_enabled = true;
     m_settings.command_line_args_disabled = true;
+    m_settings.uncaught_exception_stack_size = 20;
 
     m_windowInfo.windowless_rendering_enabled = true;
     m_windowInfo.transparent_painting_enabled = false;
@@ -159,7 +159,7 @@ void Client::OnBeforeClose(CefRefPtr<CefBrowser> browser)
 
 // CefLoadHandler methods:
 // -----------------------------------------------------------------------------
-void Client::OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame)
+void Client::OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, TransitionType transition_type)
 {
     DLOG(INFO) << "OnLoadStart" << ", url: " << frame->GetURL().ToString();
 

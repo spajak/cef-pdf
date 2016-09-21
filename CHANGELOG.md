@@ -1,9 +1,14 @@
 Changelog
 ===
+### 0.1.6 (2016-09-21)
+* Fix: small improvements to allow building on Linux (tested on Debian 8.5.0 x64)
+* Small changes to build using CEF 3.2743.1449.g90ba67d build
+
+===
 ### 0.1.5 (2016-09-15)
-* Add: option to set page margin --margin=<margin>
+* Add: option to set page margin --margin
 * Add: option to list available page sizes --list-sizes
-* Change: url is now specified with --url=<url> option
+* Change: url is now specified with --url option
 * Heavy code refractoring
 
 ### 0.1.1 (2016-08-06)
