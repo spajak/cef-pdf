@@ -23,12 +23,11 @@
 
 ### Building
 
-In order to build, [CEF build](https://cefbuilds.com/) files must be placed in cef/ subdirectory. `cef-pdf` should compile without problems with cmake/ninja on Windows, using decent C++11 compiler. Linux and OS X needs some work (contributors welcome).
+In order to build, [CEF build distribution files](http://opensource.spotify.com/cefbuilds/index.html) must be placed in cef/ subdirectory. `cef-pdf` should compile without problems with cmake/ninja on Windows 7+ and Linux (tested on Debian 8.5.0 x64), using decent C++11 compiler. Mac OS X needs some work (contributors welcome).
 
 ### TODO
 
- - Linux and OS X versions
- - Better interruption handling
+ - Mac OS X versions
  - Client-server version
 
 ### License
