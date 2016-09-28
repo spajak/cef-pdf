@@ -1,5 +1,8 @@
-#ifndef SERVER_H_
-#define SERVER_H_
+#ifndef SERVER_SERVER_H_
+#define SERVER_SERVER_H_
+
+#include "Connection.h"
+#include "RequestHandler.h"
 
 #include "include/cef_base.h"
 
@@ -9,6 +12,7 @@
 #include <thread>
 #include <functional>
 #include <system_error>
+#include <set>
 
 #include <asio.hpp>
 #include <asio/steady_timer.hpp>
@@ -84,6 +88,8 @@ private:
     int counter;
     bool started;
 
+    std::set<CefRefPtr<Connection>> m_connections;
+
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(Server);
 };
@@ -91,4 +97,4 @@ private:
 } // namespace server
 } // namespace cefpdf
 
-#endif // SERVER_H_
+#endif // SERVER_SERVER_H_
