@@ -3,12 +3,14 @@
 
 #include "Http.h"
 
+#include "include/cef_base.h"
+
 #include <string>
 
 namespace cefpdf {
 namespace server {
 
-class RequestHandler
+class RequestHandler : public CefBase
 {
 public:
     RequestHandler() {};
@@ -16,6 +18,10 @@ public:
     RequestHandler& operator=(const RequestHandler&) = delete;
 
     void handle(const http::Request& request, http::Response& response);
+
+private:
+    // Include the default reference counting implementation.
+    IMPLEMENT_REFCOUNTING(RequestHandler);
 };
 
 } // namespace server
