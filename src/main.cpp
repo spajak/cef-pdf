@@ -1,4 +1,5 @@
 #include "SimpleClient.h"
+#include "Server/Client.h"
 #include "Job/Remote.h"
 #include "Job/StdInput.h"
 
@@ -140,6 +141,12 @@ int main(int argc, char* argv[])
 
     if (commandLine->HasSwitch("list-sizes")) {
         printSizes();
+        return 0;
+    }
+
+    if (commandLine->HasSwitch("server")) {
+        CefRefPtr<cefpdf::server::Client> app = new cefpdf::server::Client();
+        app->Run();
         return 0;
     }
 

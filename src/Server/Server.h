@@ -3,6 +3,7 @@
 
 #include "include/cef_base.h"
 
+#include <csignal>
 #include <iostream>
 #include <chrono>
 #include <thread>
@@ -22,21 +23,31 @@ public:
     Server() :
         m_thread(),
         m_ioService(),
+        m_signals(m_ioService),
         m_timer(m_ioService),
         counter(0),
-        started(false) {};
+        started(false)
+    {
+          m_signals.add(SIGINT);
+          m_signals.add(SIGTERM);
+        #if defined(SIGQUIT)
+          m_signals.add(SIGQUIT);
+        #endif // defined(SIGQUIT)
+    };
 
     void Start()
     {
         if (!started) {
+
             m_thread = std::thread([&]{
+                ListenSignals();
                 Listen();
                 m_ioService.run();
             });
 
             started = true;
         }
-    }
+    };
 
     void Stop()
     {
@@ -52,14 +63,23 @@ public:
     {
         m_timer.expires_from_now(std::chrono::seconds(1));
         m_timer.async_wait([&](std::error_code error) {
-            std::cout << "Server fires: " << ++counter << std::endl;
+            std::cout << "Server fires: " << ++counter << ", error: " << error << std::endl;
             Listen();
         });
-    }
+    };
+
+    void ListenSignals()
+    {
+        m_signals.async_wait([&](std::error_code error, int signno) {
+            std::cout << "Server should quit" << std::endl;
+            m_timer.cancel();
+        });
+    };
 
 private:
     std::thread m_thread;
     asio::io_service m_ioService;
+    asio::signal_set m_signals;
     asio::steady_timer m_timer;
     int counter;
     bool started;
