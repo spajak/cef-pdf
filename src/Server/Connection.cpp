@@ -3,12 +3,12 @@
 namespace cefpdf {
 namespace server {
 
-void Connection::start()
+void Connection::Read()
 {
 
 }
 
-void Connection::stop()
+void Connection::Write()
 {
 
 }

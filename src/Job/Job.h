@@ -15,15 +15,7 @@ class Job : public CefBase
 public:
     Job();
 
-    virtual void OnSuccess(const CefString& path) {};
-
-    virtual void OnError(const CefString& message) {};
-
-    virtual void OnFinish() {};
-
-
     virtual void accept(CefRefPtr<Visitor> visitor) = 0;
-
 
     const CefString& GetOutputPath() const {
         return m_outputPath;
@@ -44,10 +36,10 @@ public:
 
 private:
     CefString m_outputPath;
-
     PageSize m_pageSize;
     PageOrientation m_pageOrientation = PageOrientation::PORTRAIT;
     PageMargin m_pageMargin;
+
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(Job);

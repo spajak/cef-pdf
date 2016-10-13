@@ -2,10 +2,13 @@
 #define CLIENT_H_
 
 #include "Job/Manager.h"
+#include "EventManager.h"
 
 #include "include/cef_app.h"
 #include "include/cef_client.h"
 #include "include/cef_browser.h"
+
+#include <queue>
 
 namespace cefpdf {
 
@@ -18,6 +21,8 @@ class Client : public CefApp,
 
 public:
     Client();
+    Client(const Client&) = delete;
+    Client& operator=(const Client&) = delete;
 
     // Run message loop
     virtual void Run();
@@ -29,7 +34,14 @@ public:
     void PostJob(CefRefPtr<job::Job> job);
 
     // Get the number of running job processes
-    unsigned int GetProcessCount();
+    unsigned int GetProcessCount() {
+        return m_processCount;
+    };
+
+    // Access event manager object
+    CefRefPtr<EventManager> GetEventManager() const {
+        return m_eventManager;
+    };
 
     // CefApp methods:
     virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() override;
@@ -69,19 +81,21 @@ public:
         const CefString& failedUrl
     ) override;
 
-protected:
-    // Initialize CEF
-    void Initialize();
+private:
+    std::string GenerateOutputPath();
+    void ProcessJobsQueue();
+    std::queue<CefRefPtr<job::Job>> m_jobsQueue;
 
     CefSettings m_settings;
     CefWindowInfo m_windowInfo;
     CefBrowserSettings m_browserSettings;
     CefRefPtr<job::Manager> m_jobsManager;
     unsigned int m_processCount = 0;
+    bool m_initialized = false;
 
-private:
     CefRefPtr<CefPrintHandler> m_printHandler;
     CefRefPtr<CefRenderHandler> m_renderHandler;
+    CefRefPtr<EventManager> m_eventManager;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(Client);

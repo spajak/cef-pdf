@@ -7,18 +7,25 @@
 #include "Remote.h"
 #include "StdInput.h"
 
+#include <cstdio> // std::tmpnam
+
 namespace cefpdf {
 namespace job {
 
 class Printer : public Visitor,
                 public CefPdfPrintCallback
 {
+
 public:
     Printer(CefRefPtr<Manager> manager, CefRefPtr<CefBrowser> browser) :
         m_manager(manager),
         m_browser(browser) {};
 
     void Print(CefRefPtr<Job> job) {
+        if (job->GetOutputPath().empty()) {
+            job->SetOutputPath(std::tmpnam(nullptr) + std::string("-cef.pdf"));
+        }
+
         m_browser->GetHost()->PrintToPDF(
             job->GetOutputPath(),
             job->GetCefPdfPrintSettings(),

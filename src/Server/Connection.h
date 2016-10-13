@@ -21,10 +21,22 @@ public:
     Connection(const Connection&) = delete;
     Connection& operator=(const Connection&) = delete;
 
-    void start();
-    void stop();
+    void Open() {
+        Read();
+    };
+
+    void Close() {
+        m_socket.close();
+    };
+
+    bool isOpen() {
+        return m_socket.is_open();
+    };
 
 private:
+    void Read();
+    void Write();
+
     asio::ip::tcp::socket m_socket;
 
     CefRefPtr<RequestHandler> m_requestHandler;

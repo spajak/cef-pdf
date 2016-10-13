@@ -31,7 +31,7 @@ struct Version {
 
 struct Request {
     Method method;
-    std::string uri;
+    std::string url;
     Version version;
     std::vector<Header> headers;
     std::string content;

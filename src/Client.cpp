@@ -33,45 +33,55 @@ Client::Client()
     m_browserSettings.javascript_close_windows = STATE_DISABLED;
     m_browserSettings.plugins = STATE_DISABLED;
 
-    m_jobsManager = new job::Manager;
-}
-
-void Client::Initialize()
-{
-    CefMainArgs mainArgs;
-    CefInitialize(mainArgs, m_settings, this, NULL);
+    m_eventManager = new EventManager();
+    m_jobsManager = new job::Manager(m_eventManager);
 }
 
 void Client::Run()
 {
-    Initialize();
+    DCHECK(!m_initialized);
+
+    CefMainArgs mainArgs;
+    CefInitialize(mainArgs, m_settings, this, NULL);
     CefRunMessageLoop();
     CefShutdown();
+    m_initialized = false;
 }
 
 void Client::Stop()
 {
+    DCHECK(m_initialized);
+
     CefQuitMessageLoop();
 }
 
 void Client::PostJob(CefRefPtr<job::Job> job)
 {
-    if (m_processCount >= constants::maxProcesses) {
-        CefPostDelayedTask(TID_UI, base::Bind(&Client::PostJob, this, job), 100);
-        return;
+    if (job->GetOutputPath().empty()) {
+        //job->accept(new OutputPathGenerator());
     }
 
-    ++m_processCount;
-
-    m_jobsManager->Queue(job);
-
-    // Create the browser window.
-    CefBrowserHost::CreateBrowser(m_windowInfo, this, "", m_browserSettings, NULL);
+    m_jobsQueue.push(job);
+    if (m_initialized) {
+        ProcessJobsQueue();
+    }
 }
 
-unsigned int Client::GetProcessCount()
+void Client::ProcessJobsQueue()
 {
-    return m_processCount;
+    CEF_REQUIRE_UI_THREAD();
+
+    while (!m_jobsQueue.empty() && m_processCount < constants::maxProcesses) {
+        auto job = m_jobsQueue.front();
+        m_jobsManager->Queue(job);
+        m_jobsQueue.pop();
+        ++m_processCount;
+
+        m_eventManager->Trigger("processing", job);
+
+        // Create the browser window.
+        CefBrowserHost::CreateBrowser(m_windowInfo, this, "", m_browserSettings, NULL);
+    }
 }
 
 // CefApp methods:
@@ -105,6 +115,10 @@ void Client::OnContextInitialized()
     CEF_REQUIRE_UI_THREAD();
 
     CefRegisterSchemeHandlerFactory(constants::scheme, "", new SchemeHandlerFactory(m_jobsManager));
+    m_initialized = true;
+    ProcessJobsQueue();
+
+    m_eventManager->Trigger("init");
 }
 
 // CefClient methods:
@@ -155,6 +169,11 @@ void Client::OnBeforeClose(CefRefPtr<CefBrowser> browser)
     CEF_REQUIRE_UI_THREAD();
 
     --m_processCount;
+    ProcessJobsQueue();
+
+    if (0 == m_processCount) {
+        m_eventManager->Trigger("last-browser-closed");
+    }
 }
 
 // CefLoadHandler methods:

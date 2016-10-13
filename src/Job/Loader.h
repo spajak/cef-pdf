@@ -14,6 +14,7 @@ namespace job {
 
 class Loader : public Visitor
 {
+
 public:
     Loader(CefRefPtr<CefFrame> frame) :
         m_frame(frame) {};

@@ -1,21 +1,17 @@
 #ifndef SERVER_SERVER_H_
 #define SERVER_SERVER_H_
 
+#include "../Client.h"
 #include "Connection.h"
 #include "RequestHandler.h"
 
 #include "include/cef_base.h"
 
-#include <csignal>
-#include <iostream>
-#include <chrono>
-#include <thread>
-#include <functional>
-#include <system_error>
+#include <string>
 #include <set>
+#include <thread>
 
 #include <asio.hpp>
-#include <asio/steady_timer.hpp>
 
 namespace cefpdf {
 namespace server {
@@ -24,69 +20,22 @@ class Server : public CefBase
 {
 
 public:
-    Server() :
-        m_thread(),
-        m_ioService(),
-        m_signals(m_ioService),
-        m_timer(m_ioService),
-        counter(0),
-        started(false)
-    {
-          m_signals.add(SIGINT);
-          m_signals.add(SIGTERM);
-        #if defined(SIGQUIT)
-          m_signals.add(SIGQUIT);
-        #endif // defined(SIGQUIT)
-    };
-
-    void Start()
-    {
-        if (!started) {
-
-            m_thread = std::thread([&]{
-                ListenSignals();
-                Listen();
-                m_ioService.run();
-            });
-
-            started = true;
-        }
-    };
-
-    void Stop()
-    {
-        if (started) {
-            m_ioService.stop();
-            m_thread.join();
-            m_ioService.reset();
-            started = false;
-        }
-    };
-
-    void Listen()
-    {
-        m_timer.expires_from_now(std::chrono::seconds(1));
-        m_timer.async_wait([&](std::error_code error) {
-            std::cout << "Server fires: " << ++counter << ", error: " << error << std::endl;
-            Listen();
-        });
-    };
-
-    void ListenSignals()
-    {
-        m_signals.async_wait([&](std::error_code error, int signno) {
-            std::cout << "Server should quit" << std::endl;
-            m_timer.cancel();
-        });
-    };
+    Server(CefRefPtr<cefpdf::Client> client, std::string const&, std::string const&);
+    void Start();
 
 private:
+    void ListenConnections();
+    void ListenSignals();
+    void CloseConnections(bool force = true);
+
+    CefRefPtr<cefpdf::Client> m_client;
     std::thread m_thread;
     asio::io_service m_ioService;
     asio::signal_set m_signals;
-    asio::steady_timer m_timer;
-    int counter;
-    bool started;
+    asio::ip::tcp::acceptor m_acceptor;
+    asio::ip::tcp::socket m_socket;
+    CefRefPtr<RequestHandler> m_requestHandler;
+    int m_counter;
 
     std::set<CefRefPtr<Connection>> m_connections;
 

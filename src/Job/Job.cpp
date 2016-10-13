@@ -1,13 +1,10 @@
 #include "Job.h"
 
-#include <cstdio> // std::tmpnam
-
 namespace cefpdf {
 namespace job {
 
 Job::Job()
 {
-    m_outputPath = std::tmpnam(nullptr) + std::string("-cef.pdf");
     SetPageSize(cefpdf::constants::pageSize);
     SetPageMargin("default");
 }

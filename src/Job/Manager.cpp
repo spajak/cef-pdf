@@ -50,7 +50,7 @@ void Manager::SetError(CefRefPtr<CefBrowser> browser, Manager::ErrorCode errorCo
     DCHECK(it != m_jobs.end());
 
     it->errorCode = errorCode;
-    it->job->OnError("Error loading content");
+    m_eventManager->Trigger("load-error", it->job.get());
 }
 
 void Manager::Process(CefRefPtr<CefBrowser> browser, int httpStatusCode)
@@ -73,12 +73,7 @@ void Manager::Finish(CefRefPtr<CefBrowser> browser, const CefString& path, bool 
     auto it = Find(browser);
     DCHECK(it != m_jobs.end());
 
-    if (!ok) {
-        it->job->OnError("Printing PDF failed");
-    } else {
-        it->job->OnSuccess(path);
-    }
-
+    m_eventManager->Trigger(ok ? "success" : "print-error", it->job.get());
     Remove(it);
 }
 
@@ -95,7 +90,7 @@ Manager::Iterator Manager::Find(CefRefPtr<CefBrowser> browser)
 
 void Manager::Remove(Manager::Iterator it)
 {
-    it->job->OnFinish();
+    m_eventManager->Trigger("finish", it->job.get());
     it->browser->GetHost()->CloseBrowser(true);
     m_jobs.erase(it);
 }

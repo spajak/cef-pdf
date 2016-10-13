@@ -12,6 +12,7 @@ namespace job {
 
 class ContentProvider : public Visitor
 {
+
 public:
     ContentProvider() {};
 

@@ -1,5 +1,5 @@
-#include "SimpleClient.h"
-#include "Server/Client.h"
+#include "Client.h"
+#include "Server/Server.h"
 #include "Job/Remote.h"
 #include "Job/StdInput.h"
 
@@ -101,8 +101,13 @@ int runJob(CefRefPtr<CefCommandLine> commandLine)
         return 1;
     }
 
-    auto app = new cefpdf::SimpleClient();
-    app->QueueJob(job);
+    CefRefPtr<cefpdf::Client> app = new cefpdf::Client();
+    app->PostJob(job);
+
+    app->GetEventManager()->AddListener("last-browser-closed", [app](auto job) {
+        app->Stop();
+    });
+
     app->Run();
 
     return 0;
@@ -145,8 +150,9 @@ int main(int argc, char* argv[])
     }
 
     if (commandLine->HasSwitch("server")) {
-        CefRefPtr<cefpdf::server::Client> app = new cefpdf::server::Client();
-        app->Run();
+        CefRefPtr<cefpdf::server::Server> server =
+            new cefpdf::server::Server(new cefpdf::Client(), "127.0.0.1", "5666");
+        server->Start();
         return 0;
     }
 
