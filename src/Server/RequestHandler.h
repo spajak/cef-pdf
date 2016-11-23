@@ -6,6 +6,7 @@
 #include "include/cef_base.h"
 
 #include <string>
+#include <vector>
 
 namespace cefpdf {
 namespace server {
@@ -17,9 +18,10 @@ public:
     RequestHandler(const RequestHandler&) = delete;
     RequestHandler& operator=(const RequestHandler&) = delete;
 
-    void handle(const http::Request& request, http::Response& response);
+    void Handle(const http::Request& request, http::Response& response);
 
 private:
+
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(RequestHandler);
 };

@@ -48,9 +48,10 @@ void Manager::SetError(CefRefPtr<CefBrowser> browser, Manager::ErrorCode errorCo
 {
     auto it = Find(browser);
     DCHECK(it != m_jobs.end());
+    DCHECK(errorCode != ErrorCode::ERR_NONE);
 
     it->errorCode = errorCode;
-    m_eventManager->Trigger("load-error", it->job.get());
+    it->job->Resolve("load-error");
 }
 
 void Manager::Process(CefRefPtr<CefBrowser> browser, int httpStatusCode)
@@ -58,14 +59,13 @@ void Manager::Process(CefRefPtr<CefBrowser> browser, int httpStatusCode)
     auto it = Find(browser);
     DCHECK(it != m_jobs.end());
 
-    if (it->errorCode != ErrorCode::ERR_NONE) {
+    if (it->errorCode == ErrorCode::ERR_NONE) {
+        // Print PDF
+        CefRefPtr<Printer> printer = new Printer(this, browser);
+        it->job->accept(printer);
+    } else {
         Remove(it);
-        return;
     }
-
-    // Print PDF
-    CefRefPtr<Printer> printer = new Printer(this, browser);
-    it->job->accept(printer);
 }
 
 void Manager::Finish(CefRefPtr<CefBrowser> browser, const CefString& path, bool ok)
@@ -73,7 +73,7 @@ void Manager::Finish(CefRefPtr<CefBrowser> browser, const CefString& path, bool 
     auto it = Find(browser);
     DCHECK(it != m_jobs.end());
 
-    m_eventManager->Trigger(ok ? "success" : "print-error", it->job.get());
+    it->job->Resolve(ok ? "success" : "print-error");
     Remove(it);
 }
 
@@ -90,7 +90,6 @@ Manager::Iterator Manager::Find(CefRefPtr<CefBrowser> browser)
 
 void Manager::Remove(Manager::Iterator it)
 {
-    m_eventManager->Trigger("finish", it->job.get());
     it->browser->GetHost()->CloseBrowser(true);
     m_jobs.erase(it);
 }

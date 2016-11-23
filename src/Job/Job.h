@@ -6,14 +6,24 @@
 
 #include "include/cef_base.h"
 
+#include <string>
+#include <future>
+
 namespace cefpdf {
 namespace job {
 
 class Job : public CefBase
 {
-
 public:
     Job();
+
+    std::future<std::string> GetFuture() {
+        return m_promise.get_future();
+    };
+
+    void Resolve(std::string value) {
+        m_promise.set_value(value);
+    };
 
     virtual void accept(CefRefPtr<Visitor> visitor) = 0;
 
@@ -37,9 +47,9 @@ public:
 private:
     CefString m_outputPath;
     PageSize m_pageSize;
-    PageOrientation m_pageOrientation = PageOrientation::PORTRAIT;
+    PageOrientation m_pageOrientation;
     PageMargin m_pageMargin;
-
+    std::promise<std::string> m_promise;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(Job);

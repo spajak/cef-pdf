@@ -1,12 +1,16 @@
 #ifndef SERVER_CONNECTION_H_
 #define SERVER_CONNECTION_H_
 
-#include "RequestHandler.h"
+#include "Http.h"
 
 #include "include/cef_base.h"
 #include <asio.hpp>
 
+#include <functional>
 #include <utility>
+#include <vector>
+#include <array>
+#include <iostream>
 
 namespace cefpdf {
 namespace server {
@@ -14,16 +18,19 @@ namespace server {
 class Connection : public CefBase
 {
 public:
-    Connection(asio::ip::tcp::socket socket, CefRefPtr<RequestHandler> requestHandler) :
-        m_socket(std::move(socket)),
-        m_requestHandler(requestHandler) {};
+    typedef std::function<void (http::Request)> Callback;
+
+    Connection(asio::ip::tcp::socket socket) :
+        m_socket(std::move(socket)) {};
 
     Connection(const Connection&) = delete;
     Connection& operator=(const Connection&) = delete;
 
-    void Open() {
-        Read();
-    };
+    void Start(Callback callback);
+
+    void Read(Callback callback);
+
+    void Write(const http::Response&);
 
     void Close() {
         m_socket.close();
@@ -34,12 +41,16 @@ public:
     };
 
 private:
-    void Read();
-    void Write();
+    void AsyncReadSome(std::error_code, std::size_t, Callback);
+    void AsyncWrite(std::error_code, std::size_t);
+
+    http::Request CreateRequest(const std::string&);
+    std::vector<asio::const_buffer> ResponseToBuffers(const http::Response&);
 
     asio::ip::tcp::socket m_socket;
-
-    CefRefPtr<RequestHandler> m_requestHandler;
+    std::array<char, 1024*16> m_buffer;
+    std::string m_data;
+    std::vector<asio::const_buffer> m_writeBuffers;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(Connection);

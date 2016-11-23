@@ -1,7 +1,6 @@
 #ifndef JOB_MANAGER_H_
 #define JOB_MANAGER_H_
 
-#include "../EventManager.h"
 #include "Job.h"
 
 #include "include/cef_browser.h"
@@ -19,8 +18,7 @@ class Manager : public CefBase
 public:
     typedef CefLoadHandler::ErrorCode ErrorCode;
 
-    Manager(CefRefPtr<EventManager> eventManager) :
-        m_eventManager(eventManager) {};
+    Manager() {};
 
     std::size_t Queue(CefRefPtr<Job> job);
 
@@ -52,8 +50,6 @@ private:
     void Remove(Manager::Iterator it);
 
     unsigned int m_counter = 0;
-
-    CefRefPtr<EventManager> m_eventManager;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(Manager);

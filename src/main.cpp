@@ -101,21 +101,26 @@ int runJob(CefRefPtr<CefCommandLine> commandLine)
         return 1;
     }
 
-    CefRefPtr<cefpdf::Client> app = new cefpdf::Client();
+    CefRefPtr<cefpdf::Client> app = new cefpdf::Client(true);
     app->PostJob(job);
-
-    app->GetEventManager()->AddListener("last-browser-closed", [app](auto job) {
-        app->Stop();
-    });
-
     app->Run();
 
     return 0;
 }
 
+#include <chrono>
+
 int main(int argc, char* argv[])
 {
+/*
+    auto tt = std::chrono::system_clock::now().time_since_epoch();
+    std::cout << std::chrono::duration_cast<std::chrono::nanoseconds>(tt).count() << std::endl;
 
+    auto tt2 = std::chrono::system_clock::now().time_since_epoch();
+    std::cout << std::chrono::duration_cast<std::chrono::nanoseconds>(tt2).count() << std::endl;
+
+    return 0;
+*/
 #if !defined(OS_MACOSX)
 #if defined(OS_WIN)
     CefMainArgs mainArgs(::GetModuleHandle(NULL));

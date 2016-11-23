@@ -3,13 +3,14 @@
 
 #include "../Client.h"
 #include "Connection.h"
-#include "RequestHandler.h"
+#include "Http.h"
 
 #include "include/cef_base.h"
 
 #include <string>
 #include <set>
 #include <thread>
+#include <system_error> // std::error_code
 
 #include <asio.hpp>
 
@@ -24,8 +25,13 @@ public:
     void Start();
 
 private:
-    void ListenConnections();
-    void ListenSignals();
+    void Run();
+    void Listen();
+    void OnSignal(std::error_code, int);
+    void OnConnection(std::error_code);
+    void OnRequest(http::Request, CefRefPtr<Connection>);
+    void OnResponse(std::string, CefRefPtr<Connection>);
+
     void CloseConnections(bool force = true);
 
     CefRefPtr<cefpdf::Client> m_client;
@@ -34,7 +40,6 @@ private:
     asio::signal_set m_signals;
     asio::ip::tcp::acceptor m_acceptor;
     asio::ip::tcp::socket m_socket;
-    CefRefPtr<RequestHandler> m_requestHandler;
     int m_counter;
 
     std::set<CefRefPtr<Connection>> m_connections;

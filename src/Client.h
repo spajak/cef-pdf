@@ -2,7 +2,6 @@
 #define CLIENT_H_
 
 #include "Job/Manager.h"
-#include "EventManager.h"
 
 #include "include/cef_app.h"
 #include "include/cef_client.h"
@@ -20,7 +19,7 @@ class Client : public CefApp,
 {
 
 public:
-    Client();
+    Client(bool stopAfterLastJob = false);
     Client(const Client&) = delete;
     Client& operator=(const Client&) = delete;
 
@@ -33,14 +32,12 @@ public:
     // Add new job to the queue and process it
     void PostJob(CefRefPtr<job::Job> job);
 
+    // Add new job to the queue and process it, with completion callback
+    //void PostJob(CefRefPtr<job::Job> job, EventManager::Callback callback);
+
     // Get the number of running job processes
     unsigned int GetProcessCount() {
         return m_processCount;
-    };
-
-    // Access event manager object
-    CefRefPtr<EventManager> GetEventManager() const {
-        return m_eventManager;
     };
 
     // CefApp methods:
@@ -92,10 +89,10 @@ private:
     CefRefPtr<job::Manager> m_jobsManager;
     unsigned int m_processCount = 0;
     bool m_initialized = false;
+    bool m_stopAfterLastJob;
 
     CefRefPtr<CefPrintHandler> m_printHandler;
     CefRefPtr<CefRenderHandler> m_renderHandler;
-    CefRefPtr<EventManager> m_eventManager;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(Client);

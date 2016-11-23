@@ -54,6 +54,7 @@ PageMargin getPageMargin(const CefString& str);
 namespace file {
     std::string load(const CefString& path, bool remove = false);
     bool remove(const CefString& path);
+    std::string generateTempPath();
 }
 
 } // namespace cefpdf

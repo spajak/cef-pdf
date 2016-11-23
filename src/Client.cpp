@@ -14,8 +14,9 @@
 
 namespace cefpdf {
 
-Client::Client()
+Client::Client(bool stopAfterLastJob)
 {
+    m_stopAfterLastJob = stopAfterLastJob;
     m_printHandler = new PrintHandler;
     m_renderHandler = new RenderHandler;
 
@@ -33,8 +34,7 @@ Client::Client()
     m_browserSettings.javascript_close_windows = STATE_DISABLED;
     m_browserSettings.plugins = STATE_DISABLED;
 
-    m_eventManager = new EventManager();
-    m_jobsManager = new job::Manager(m_eventManager);
+    m_jobsManager = new job::Manager();
 }
 
 void Client::Run()
@@ -57,10 +57,6 @@ void Client::Stop()
 
 void Client::PostJob(CefRefPtr<job::Job> job)
 {
-    if (job->GetOutputPath().empty()) {
-        //job->accept(new OutputPathGenerator());
-    }
-
     m_jobsQueue.push(job);
     if (m_initialized) {
         ProcessJobsQueue();
@@ -76,8 +72,6 @@ void Client::ProcessJobsQueue()
         m_jobsManager->Queue(job);
         m_jobsQueue.pop();
         ++m_processCount;
-
-        m_eventManager->Trigger("processing", job);
 
         // Create the browser window.
         CefBrowserHost::CreateBrowser(m_windowInfo, this, "", m_browserSettings, NULL);
@@ -117,8 +111,6 @@ void Client::OnContextInitialized()
     CefRegisterSchemeHandlerFactory(constants::scheme, "", new SchemeHandlerFactory(m_jobsManager));
     m_initialized = true;
     ProcessJobsQueue();
-
-    m_eventManager->Trigger("init");
 }
 
 // CefClient methods:
@@ -171,8 +163,8 @@ void Client::OnBeforeClose(CefRefPtr<CefBrowser> browser)
     --m_processCount;
     ProcessJobsQueue();
 
-    if (0 == m_processCount) {
-        m_eventManager->Trigger("last-browser-closed");
+    if (0 == m_processCount && m_stopAfterLastJob) {
+        Stop();
     }
 }
 

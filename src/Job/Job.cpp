@@ -7,6 +7,7 @@ Job::Job()
 {
     SetPageSize(cefpdf::constants::pageSize);
     SetPageMargin("default");
+    m_pageOrientation = PageOrientation::PORTRAIT;
 }
 
 void Job::SetPageSize(const CefString& pageSize)

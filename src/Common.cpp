@@ -237,6 +237,11 @@ bool remove(const CefString& path)
     return 0 == std::remove(path.ToString().c_str());
 }
 
+std::string generateTempPath()
+{
+    return "";
+}
+
 } // namespace file
 
 } // namespace cefpdf
