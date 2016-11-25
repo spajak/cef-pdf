@@ -1,4 +1,5 @@
 #include "Connection.h"
+#include "ConnectionManager.h"
 
 #include "include/base/cef_bind.h"
 #include "include/wrapper/cef_closure_task.h"
@@ -13,42 +14,36 @@ namespace server {
 
 using namespace std::placeholders;
 
-void Connection::Start(Callback callback)
-{
-    Read(callback);
-}
-
-void Connection::Read(Callback callback)
+void Connection::ReadSome()
 {
     m_socket.async_read_some(
         asio::buffer(m_buffer),
-        std::bind(&Connection::AsyncReadSome, this, _1, _2, callback)
+        std::bind(&Connection::AsyncReadSome, this, _1, _2)
     );
 }
 
-void Connection::Write(const http::Response& response)
+void Connection::Write()
 {
-    m_response = response;
-
     asio::async_write(
         m_socket,
-        ResponseToBuffers(m_response)
+        ResponseToBuffers(),
         std::bind(&Connection::AsyncWrite, this, _1, _2)
     );
 }
 
-void Connection::AsyncReadSome(std::error_code ec, std::size_t bytes_transferred, Callback callback)
+void Connection::AsyncReadSome(std::error_code ec, std::size_t bytes_transferred)
 {
     if (ec) {
         return;
     }
 
-    m_data += std::string(m_buffer.data(), bytes_transferred);
+    m_requestData += std::string(m_buffer.data(), bytes_transferred);
 
     if (m_socket.available() > 0) {
-        Read(callback);
+        ReadSome();
     } else {
-        callback(CreateRequest(m_data));
+        ParseRequest();
+        m_connectionManager->OnRequest(this);
     }
 }
 
@@ -61,66 +56,65 @@ void Connection::AsyncWrite(std::error_code ec, std::size_t bytes_transferred)
     }
 
     if (ec != asio::error::operation_aborted) {
-        Close();
+        m_connectionManager->Stop(this);
     }
 }
 
-http::Request Connection::CreateRequest(const std::string& requestData)
+void Connection::ParseRequest()
 {
-    http::Request request;
-
     // Parse status line
     std::regex re("^([A-Z]+) (\\S+) HTTP/(.+)\r\n");
     std::smatch match;
 
-    if (std::regex_search(requestData, match, re)) {
-        request.method = match[1];
-        request.url = match[2];
-        request.version = match[3];
+    if (std::regex_search(m_requestData, match, re)) {
+        m_request.method = match[1];
+        m_request.url = match[2];
+        m_request.version = match[3];
     }
 
     // Separate headers section from request content
     std::string headerData;
-    auto sepIndex = requestData.find(http::crlf + http::crlf);
+    auto sepIndex = m_requestData.find(http::crlf + http::crlf);
 
     if (sepIndex == std::string::npos) {
-        headerData = requestData;
-        request.content = "";
+        headerData = m_requestData;
     } else {
-        headerData = requestData.substr(0, sepIndex);
-        request.content = requestData.substr(sepIndex + 4, requestData.size() - sepIndex + 4);
+        headerData = m_requestData.substr(0, sepIndex);
+        m_request.content = m_requestData.substr(sepIndex + 4, m_requestData.size() - sepIndex + 4);
+    }
+
+    if (m_request.content.size() == 0) {
+        m_request.content = "<!DOCTYPE html>";
     }
 
     // Collect request headers
     std::regex re2("(.+): (.+)\r\n");
     std::string::const_iterator it, end;
     it = match[0].second;
-    end = requestData.end();
+    end = m_requestData.end();
 
     while (std::regex_search(it, end, match, re2)) {
-        request.headers.push_back({match[1], match[2]});
+        m_request.headers.push_back({match[1], match[2]});
         it = match[0].second;
     }
-
-    return request;
 }
 
-std::vector<asio::const_buffer> Connection::ResponseToBuffers(const http::Response& response)
+std::vector<asio::const_buffer> Connection::ResponseToBuffers()
 {
     std::vector<asio::const_buffer> buffers;
 
-    buffers.push_back(asio::buffer(response.status));
+    buffers.push_back(asio::buffer(m_response.status));
     buffers.push_back(asio::buffer(http::crlf));
 
-    for (std::size_t i = 0; i < response.headers.size(); ++i) {
-        buffers.push_back(asio::buffer(response.headers[i].name));
+    for (std::size_t i = 0; i < m_response.headers.size(); ++i) {
+        buffers.push_back(asio::buffer(m_response.headers[i].name));
         buffers.push_back(asio::buffer(http::hsep));
-        buffers.push_back(asio::buffer(response.headers[i].value));
+        buffers.push_back(asio::buffer(m_response.headers[i].value));
         buffers.push_back(asio::buffer(http::crlf));
     }
 
     buffers.push_back(asio::buffer(http::crlf));
-    buffers.push_back(asio::buffer(response.content));
+    buffers.push_back(asio::buffer(m_response.content));
 
     return buffers;
 }

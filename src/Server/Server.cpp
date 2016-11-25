@@ -1,7 +1,5 @@
 #include "Server.h"
-
-#include "../Job/Local.h"
-#include "../Job/Remote.h"
+#include "RequestHandler.h"
 
 #include "include/base/cef_bind.h"
 #include "include/wrapper/cef_closure_task.h"
@@ -27,6 +25,7 @@ Server::Server(
     m_signals(m_ioService),
     m_acceptor(m_ioService),
     m_socket(m_ioService),
+    m_connectionManager(new ConnectionManager(new RequestHandler(client))),
     m_counter(0)
 {
     m_signals.add(SIGINT);
@@ -56,6 +55,7 @@ void Server::Run()
     m_signals.async_wait(std::bind(&Server::OnSignal, this, _1, _2));
     Listen();
     m_ioService.run();
+    // TODO: Better debug log
     std::cout << "Thread finished" << std::endl;
 }
 
@@ -66,96 +66,30 @@ void Server::Listen()
 
 void Server::OnSignal(std::error_code error, int signno)
 {
+    // TODO: Better debug log
     std::cout << "Server should quit" << std::endl;
+    m_connectionManager->StopAll();
     m_acceptor.close();
-    CloseConnections();
-
-    CefPostTask(TID_UI, base::Bind(&Client::Stop, m_client.get()));
+    CefPostTask(TID_UI, base::Bind(&cefpdf::Client::Stop, m_client.get()));
 }
 
 void Server::OnConnection(std::error_code error)
 {
-    ++m_counter;
-
     // Check whether the server was stopped by a signal before this
     // completion handler had a chance to run.
     if (!m_acceptor.is_open()) {
         return;
     }
 
-    CloseConnections(false);
-
     if (!error) {
-        CefRefPtr<Connection> connection(new Connection(std::move(m_socket)));
-        connection->Start(std::bind(&Server::OnRequest, this, _1, connection));
-
-        //m_connections.insert(connection);
-
+        m_connectionManager->Start(
+            new Connection(m_connectionManager, std::move(m_socket))
+        );
+        ++m_counter;
+        // TODO: Better debug log
+        std::cout << "Connection no. " << m_counter << " created" << std::endl;
         Listen();
     }
-}
-
-
-void Server::CloseConnections(bool force)
-{
-    for (auto it = m_connections.begin(); it != m_connections.end();) {
-        if ((*it)->isOpen()) {
-            if (force) {
-                (*it)->Close();
-            } else {
-                ++it; continue;
-            }
-        }
-
-        it = m_connections.erase(it);
-    }
-}
-
-void Server::OnRequest(http::Request request, CefRefPtr<Connection> connection)
-{
-    std::string location;
-
-    for (auto h: request.headers) {
-        if (h.name.compare("Content-Location") == 0) {
-            location = h.value;
-            break;
-        }
-    }
-
-    CefRefPtr<cefpdf::job::Job> job;
-
-    if (location.empty()) {
-        job = new cefpdf::job::Local(request.content);
-    } else {
-        job = new cefpdf::job::Remote(location);
-    }
-
-    auto future = job->GetFuture();
-
-    CefPostTask(TID_UI, base::Bind(&Client::PostJob, m_client.get(), job.get()));
-
-    std::string result = future.get();
-
-    http::Response response;
-
-    std::cout << result << std::endl;
-
-    if (result == "success") {
-        response.status = "HTTP/1.1 200 OK";
-
-        std::cout << job->GetOutputPath().ToString() << std::endl;
-
-        auto file = cefpdf::file::load(job->GetOutputPath(), true);
-
-        response.headers.push_back({"Content-Type", "application/pdf"});
-        response.headers.push_back({"Content-Length", std::to_string(file.size())});
-
-        response.content = file;
-    } else {
-        response.status = "HTTP/1.1 500 Internal Server Error";
-    }
-
-    connection->Write(response);
 }
 
 } // namespace server

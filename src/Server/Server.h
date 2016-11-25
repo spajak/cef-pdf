@@ -2,13 +2,11 @@
 #define SERVER_SERVER_H_
 
 #include "../Client.h"
-#include "Connection.h"
-#include "Http.h"
+#include "ConnectionManager.h"
 
 #include "include/cef_base.h"
 
 #include <string>
-#include <set>
 #include <thread>
 #include <system_error> // std::error_code
 
@@ -29,10 +27,6 @@ private:
     void Listen();
     void OnSignal(std::error_code, int);
     void OnConnection(std::error_code);
-    void OnRequest(http::Request, CefRefPtr<Connection>);
-    void OnResponse(std::string, CefRefPtr<Connection>);
-
-    void CloseConnections(bool force = true);
 
     CefRefPtr<cefpdf::Client> m_client;
     std::thread m_thread;
@@ -40,9 +34,8 @@ private:
     asio::signal_set m_signals;
     asio::ip::tcp::acceptor m_acceptor;
     asio::ip::tcp::socket m_socket;
+    CefRefPtr<ConnectionManager> m_connectionManager;
     int m_counter;
-
-    std::set<CefRefPtr<Connection>> m_connections;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(Server);

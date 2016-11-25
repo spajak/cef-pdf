@@ -15,42 +15,57 @@
 namespace cefpdf {
 namespace server {
 
+class ConnectionManager;
+
 class Connection : public CefBase
 {
 public:
-    typedef std::function<void (http::Request)> Callback;
-
-    Connection(asio::ip::tcp::socket socket) :
+    Connection(
+        CefRefPtr<ConnectionManager> connectionManager,
+        asio::ip::tcp::socket socket
+    ) :
+        m_connectionManager(connectionManager),
         m_socket(std::move(socket)) {};
 
     Connection(const Connection&) = delete;
     Connection& operator=(const Connection&) = delete;
 
-    void Start(Callback callback);
-
-    void Read(Callback callback);
-
-    void Write(const http::Response&);
-
-    void Close() {
-        m_socket.close();
+    void Start() {
+        ReadSome();
     };
+
+    void Write();
 
     bool isOpen() {
         return m_socket.is_open();
     };
 
-private:
-    void AsyncReadSome(std::error_code, std::size_t, Callback);
-    void AsyncWrite(std::error_code, std::size_t);
+    void Close() {
+        m_socket.close();
+    };
 
-    http::Request CreateRequest(const std::string&);
-    std::vector<asio::const_buffer> ResponseToBuffers(const http::Response&);
+    const http::Request& GetRequest() const {
+        return m_request;
+    };
+
+    http::Response& GetResponse() {
+        return m_response;
+    };
+
+private:
+    void ReadSome();
+    void AsyncReadSome(std::error_code, std::size_t);
+    void AsyncWrite(std::error_code, std::size_t);
+    void ParseRequest();
+    std::vector<asio::const_buffer> ResponseToBuffers();
+
+    CefRefPtr<ConnectionManager> m_connectionManager;
+    http::Request m_request;
+    http::Response m_response;
 
     asio::ip::tcp::socket m_socket;
     std::array<char, 1024*16> m_buffer;
-    std::string m_data;
-    std::vector<asio::const_buffer> m_writeBuffers;
+    std::string m_requestData;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(Connection);

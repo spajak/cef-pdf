@@ -7,7 +7,8 @@ namespace cefpdf {
 
 std::string Storage::Reserve(std::string data)
 {
-    auto hash = std::hash<>(data);
+    //auto hash = std::hash<std::string>(data);
+    return "";
 }
 
 std::string Storage::Load(std::string path)

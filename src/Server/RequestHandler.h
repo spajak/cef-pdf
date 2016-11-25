@@ -1,12 +1,10 @@
 #ifndef SERVER_REQUEST_HANDLER_H_
 #define SERVER_REQUEST_HANDLER_H_
 
+#include "../Client.h"
 #include "Http.h"
 
 #include "include/cef_base.h"
-
-#include <string>
-#include <vector>
 
 namespace cefpdf {
 namespace server {
@@ -14,13 +12,16 @@ namespace server {
 class RequestHandler : public CefBase
 {
 public:
-    RequestHandler() {};
+    RequestHandler(CefRefPtr<cefpdf::Client> client) :
+        m_client(client) {};
+
     RequestHandler(const RequestHandler&) = delete;
     RequestHandler& operator=(const RequestHandler&) = delete;
 
-    void Handle(const http::Request& request, http::Response& response);
+    void Handle(const http::Request&, http::Response&);
 
 private:
+    CefRefPtr<cefpdf::Client> m_client;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(RequestHandler);
