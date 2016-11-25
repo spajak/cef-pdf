@@ -3,6 +3,8 @@
 #include "Job/Remote.h"
 #include "Job/StdInput.h"
 
+#include "Storage.h"
+
 #include <string>
 #include <list>
 #include <iostream>
@@ -112,6 +114,12 @@ int runJob(CefRefPtr<CefCommandLine> commandLine)
 
 int main(int argc, char* argv[])
 {
+
+    auto storage = new cefpdf::Storage("C:\\");
+    std::cout << storage->Reserve() << std::endl;
+    delete storage;
+    return 0;
+
 /*
     auto tt = std::chrono::system_clock::now().time_since_epoch();
     std::cout << std::chrono::duration_cast<std::chrono::nanoseconds>(tt).count() << std::endl;

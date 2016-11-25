@@ -30,15 +30,6 @@ void ConnectionManager::OnRequest(CefRefPtr<Connection> connection)
 {
     auto r = connection->GetRequest();
 
-    std::cout << "REQUEST ============================" << std::endl;
-    std::cout << r.method << " " << r.url << " " << r.version << std::endl;
-    for (auto h: r.headers) {
-        std::cout << h.name << ": " << h.value << std::endl;
-    }
-
-    std::cout << r.content << std::endl;
-    std::cout << "====================================" << std::endl;
-
     m_requestHandler->Handle(connection->GetRequest(), connection->GetResponse());
     connection->Write();
 }

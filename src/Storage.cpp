@@ -2,16 +2,33 @@
 
 #include <fstream>
 #include <functional>
+#include <algorithm>
 
 namespace cefpdf {
 
-std::string Storage::Reserve(std::string data)
+std::string Storage::Reserve()
 {
-    //auto hash = std::hash<std::string>(data);
-    return "";
+    std::ifstream file;
+/*
+    auto tt = std::chrono::system_clock::now().time_since_epoch();
+    auto ts = std::chrono::duration_cast<std::chrono::nanoseconds>(tt).count();
+*/
+    std::string letters = "9876543210ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    std::random_shuffle(letters.begin(), letters.end());
+    std::string path = m_root + "/" + letters + ".pdf";
+
+    file.open(path);
+    bool isGood = file.good();
+    file.close();
+
+    if (isGood) {
+        return Reserve();
+    }
+
+    return path;
 }
 
-std::string Storage::Load(std::string path)
+std::string Storage::Load(const std::string& path)
 {
     std::string content;
     std::ifstream output;
@@ -24,6 +41,11 @@ std::string Storage::Load(std::string path)
     }
 
     throw "Cannot open file: \"" + path + "\"";
+}
+
+bool Storage::Delete(const std::string& path)
+{
+    return 0 == std::remove(path.c_str());
 }
 
 } // namespace cefpdf

@@ -16,10 +16,13 @@ public:
     Storage(std::string root) : m_root(root) {};
 
     // Generate file path from raw data
-    std::string Reserve(std::string data);
+    std::string Reserve();
 
     // Load content
-    std::string Load(std::string path);
+    std::string Load(const std::string&);
+
+    // Delete file
+    bool Delete(const std::string&);
 
 private:
     std::string m_root;
