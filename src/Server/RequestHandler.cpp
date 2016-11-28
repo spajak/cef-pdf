@@ -8,28 +8,47 @@
 
 #include <iostream>
 #include <string>
+#include <regex>
+#include <ctime>
 
 namespace cefpdf {
 namespace server {
 
+void SetDate(http::Response& response)
+{
+    std::time_t t = std::time(nullptr);
+    char buff[100];
+    strftime(buff, 100, "%a, %d %h %Y %T GMT", std::gmtime(&t));
+    response.headers.push_back({"Date", std::string(buff)});
+}
+
+void SetContentLength(http::Response& response)
+{
+    response.headers.push_back({"Content-Length", std::to_string(response.content.size())});
+}
+
 void RequestHandler::Handle(const http::Request& request, http::Response& response)
 {
-    /*
-    response.status = "HTTP/1.1 200 OK";
-    response.headers.push_back({"Content-Type", "text/plain"});
-    response.content = request.method + " " + request.url + " HTTP/" + request.version;
-    */
+    SetDate(response);
 
+    if (request.url == "/" || request.url == "/about") {
+        response.status = "HTTP/1.1 200 OK";
+        response.headers.push_back({"Content-Type", "application/json"});
+        response.content = "{\"status\":\"ok\",\"version\":\"" + cefpdf::constants::version + "\"}";
+        SetContentLength(response);
+        return;
+    }
 
-/**
-    OK = 200,
-    BAD_REQUEST = 400,
-    NOT_FOUND = 404,
-    INTERNAL_SERVER_ERROR = 500,
-    SERVICE_UNAVAILABLE = 503
-*/
+    // Parse url path
+    std::regex re("([^/]+)\\.pdf");
+    std::smatch match;
 
+    if (!std::regex_search(request.url, match, re)) {
+        response.status = "HTTP/1.1 404 Not Found";
+        return;
+    }
 
+    std::string fileName = match[1];
     std::string location;
 
     for (auto h: request.headers) {
@@ -42,6 +61,11 @@ void RequestHandler::Handle(const http::Request& request, http::Response& respon
     CefRefPtr<cefpdf::job::Job> job;
 
     if (location.empty()) {
+        if (request.content.empty()) {
+            response.status = "HTTP/1.1 400 Bad Request";
+            return;
+        }
+
         job = new cefpdf::job::Local(request.content);
     } else {
         job = new cefpdf::job::Remote(location);
@@ -56,13 +80,13 @@ void RequestHandler::Handle(const http::Request& request, http::Response& respon
     if (result == "success") {
         response.status = "HTTP/1.1 200 OK";
 
-        auto file = m_client->GetStorage()->Load(job->GetOutputPath());
         m_client->GetStorage()->Delete(job->GetOutputPath());
+        response.content = m_client->GetStorage()->Load(job->GetOutputPath());
 
         response.headers.push_back({"Content-Type", "application/pdf"});
-        response.headers.push_back({"Content-Length", std::to_string(file.size())});
+        response.headers.push_back({"Content-Disposition", "inline; filename=\"" + fileName + ".pdf\""});
 
-        response.content = file;
+        SetContentLength(response);
     } else {
         response.status = "HTTP/1.1 500 Internal Server Error";
     }

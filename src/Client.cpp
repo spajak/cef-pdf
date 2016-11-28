@@ -168,7 +168,7 @@ void Client::OnBeforeClose(CefRefPtr<CefBrowser> browser)
     ProcessJobsQueue();
 
     if (0 == m_processCount && m_stopAfterLastJob) {
-        CefPostTask(TID_UI, base::Bind(&cefpdf::Client::Stop, this));
+        CefPostDelayedTask(TID_UI, base::Bind(&cefpdf::Client::Stop, this), 50);
     }
 }
 
