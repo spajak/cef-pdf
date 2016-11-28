@@ -4,8 +4,6 @@
 #include <functional>
 #include <random>
 #include <algorithm>
-#include <locale>
-#include <codecvt>
 #include <cstdlib>
 
 namespace cefpdf {
@@ -57,9 +55,9 @@ bool Storage::Delete(const std::string& path)
 std::string Storage::GetTempPath()
 {
 #if defined(OS_WIN)
-    wchar_t lpBuffer[MAX_PATH];
-    ::GetTempPathW(MAX_PATH, lpBuffer);
-    return std::wstring_convert<std::codecvt_utf8<wchar_t>>().to_bytes(lpBuffer);
+    char lpBuffer[MAX_PATH];
+    ::GetTempPathA(MAX_PATH, lpBuffer);
+    return lpBuffer;
 #else
     const char* vars[4] = {"TMPDIR", "TMP", "TEMP", "TEMPDIR"};
     for (int i = 0; i < 4; ++i) {
