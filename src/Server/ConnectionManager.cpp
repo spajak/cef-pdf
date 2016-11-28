@@ -28,8 +28,6 @@ void ConnectionManager::StopAll()
 
 void ConnectionManager::OnRequest(CefRefPtr<Connection> connection)
 {
-    auto r = connection->GetRequest();
-
     m_requestHandler->Handle(connection->GetRequest(), connection->GetResponse());
     connection->Write();
 }

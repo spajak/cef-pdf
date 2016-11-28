@@ -2,33 +2,35 @@
 
 #include <fstream>
 #include <functional>
+#include <random>
 #include <algorithm>
+#include <locale>
+#include <codecvt>
+#include <cstdlib>
 
 namespace cefpdf {
 
+Storage::Storage() {
+    m_temp = GetTempPath();
+}
+
 std::string Storage::Reserve()
 {
-    std::ifstream file;
-/*
-    auto tt = std::chrono::system_clock::now().time_since_epoch();
-    auto ts = std::chrono::duration_cast<std::chrono::nanoseconds>(tt).count();
-*/
     std::string letters = "9876543210ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    std::random_shuffle(letters.begin(), letters.end());
-    std::string path = m_root + "/" + letters + ".pdf";
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(letters.begin(), letters.end(), g);
+    std::string path = m_temp + "cef_" + letters + ".pdf";
 
+    std::ifstream file;
     file.open(path);
     bool isGood = file.good();
     file.close();
 
-    if (isGood) {
-        return Reserve();
-    }
-
-    return path;
+    return isGood ? Reserve() : path;
 }
 
-std::string Storage::Load(const std::string& path)
+std::string Storage::Load(const std::string& path, bool remove)
 {
     std::string content;
     std::ifstream output;
@@ -37,6 +39,10 @@ std::string Storage::Load(const std::string& path)
     if (output.good()) {
         content.assign((std::istreambuf_iterator<char>(output)), std::istreambuf_iterator<char>());
         output.close();
+        if (remove) {
+            Delete(path);
+        }
+
         return content;
     }
 
@@ -46,6 +52,25 @@ std::string Storage::Load(const std::string& path)
 bool Storage::Delete(const std::string& path)
 {
     return 0 == std::remove(path.c_str());
+}
+
+std::string Storage::GetTempPath()
+{
+#if defined(OS_WIN)
+    wchar_t lpBuffer[MAX_PATH];
+    ::GetTempPathW(MAX_PATH, lpBuffer);
+    return std::wstring_convert<std::codecvt_utf8<wchar_t>>().to_bytes(lpBuffer);
+#else
+    const char* vars[4] = {"TMPDIR", "TMP", "TEMP", "TEMPDIR"};
+    for (int i = 0; i < 4; ++i) {
+        char* val = std::getenv(vars[i]);
+        if (val) {
+            return std::string(val) + "/";
+        }
+    }
+
+    return "/tmp/";
+#endif // OS_WIN
 }
 
 } // namespace cefpdf

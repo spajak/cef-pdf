@@ -13,19 +13,22 @@ class Storage : public CefBase
 {
 
 public:
-    Storage(std::string root) : m_root(root) {};
+    Storage();
 
-    // Generate file path from raw data
+    // Generate file path
     std::string Reserve();
 
     // Load content
-    std::string Load(const std::string&);
+    std::string Load(const std::string&, bool remove = true);
 
     // Delete file
     bool Delete(const std::string&);
 
+    // Get system temp dir
+    std::string GetTempPath();
+
 private:
-    std::string m_root;
+    std::string m_temp;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(Storage);

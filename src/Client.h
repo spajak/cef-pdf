@@ -2,6 +2,7 @@
 #define CLIENT_H_
 
 #include "Job/Manager.h"
+#include "Storage.h"
 
 #include "include/cef_app.h"
 #include "include/cef_client.h"
@@ -32,8 +33,10 @@ public:
     // Add new job to the queue and process it
     void PostJob(CefRefPtr<job::Job> job);
 
-    // Add new job to the queue and process it, with completion callback
-    //void PostJob(CefRefPtr<job::Job> job, EventManager::Callback callback);
+    // Get Storage object
+    CefRefPtr<Storage> GetStorage() {
+        return m_storage;
+    };
 
     // Get the number of running job processes
     unsigned int GetProcessCount() {
@@ -79,16 +82,16 @@ public:
     ) override;
 
 private:
-    std::string GenerateOutputPath();
     void ProcessJobsQueue();
     std::queue<CefRefPtr<job::Job>> m_jobsQueue;
+    CefRefPtr<Storage> m_storage;
 
     CefSettings m_settings;
     CefWindowInfo m_windowInfo;
     CefBrowserSettings m_browserSettings;
     CefRefPtr<job::Manager> m_jobsManager;
-    unsigned int m_processCount = 0;
-    bool m_initialized = false;
+    unsigned int m_processCount;
+    bool m_initialized;
     bool m_stopAfterLastJob;
 
     CefRefPtr<CefPrintHandler> m_printHandler;

@@ -56,9 +56,8 @@ void RequestHandler::Handle(const http::Request& request, http::Response& respon
     if (result == "success") {
         response.status = "HTTP/1.1 200 OK";
 
-        std::cout << job->GetOutputPath().ToString() << std::endl;
-
-        auto file = cefpdf::file::load(job->GetOutputPath(), false);
+        auto file = m_client->GetStorage()->Load(job->GetOutputPath());
+        m_client->GetStorage()->Delete(job->GetOutputPath());
 
         response.headers.push_back({"Content-Type", "application/pdf"});
         response.headers.push_back({"Content-Length", std::to_string(file.size())});

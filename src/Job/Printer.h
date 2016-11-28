@@ -22,10 +22,6 @@ public:
         m_browser(browser) {};
 
     void Print(CefRefPtr<Job> job) {
-        if (job->GetOutputPath().empty()) {
-            job->SetOutputPath(std::tmpnam(nullptr) + std::string("-cef.pdf"));
-        }
-
         m_browser->GetHost()->PrintToPDF(
             job->GetOutputPath(),
             job->GetCefPdfPrintSettings(),

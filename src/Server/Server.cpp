@@ -82,12 +82,13 @@ void Server::OnConnection(std::error_code error)
     }
 
     if (!error) {
+        auto clientIp = m_socket.remote_endpoint().address().to_string();
         m_connectionManager->Start(
             new Connection(m_connectionManager, std::move(m_socket))
         );
         ++m_counter;
         // TODO: Better debug log
-        std::cout << "Connection no. " << m_counter << " created" << std::endl;
+        std::cout << "Hit from " << clientIp << std::endl;
         Listen();
     }
 }

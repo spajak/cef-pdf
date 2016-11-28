@@ -5,6 +5,7 @@
 
 #include <string>
 #include <list>
+#include <chrono>
 
 namespace cefpdf {
 
@@ -19,8 +20,10 @@ namespace constants {
     const std::string encoding = "utf-8";
     // Max number of concurrent processes (browsers)
     const int maxProcesses = 10;
+    // Default host name
+    const std::string serverHost = "127.0.0.1";
     // Default TCP server port
-    const int serverPort = 9008;
+    const std::string serverPort = "9288";
 }
 
 struct PageSize
@@ -51,11 +54,7 @@ PageSize getPageSize(const CefString& str);
 
 PageMargin getPageMargin(const CefString& str);
 
-namespace file {
-    std::string load(const CefString& path, bool remove = false);
-    bool remove(const CefString& path);
-    std::string generateTempPath();
-}
+std::chrono::microseconds::rep microtime();
 
 } // namespace cefpdf
 

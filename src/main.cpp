@@ -35,12 +35,17 @@ void printHelp(std::string name)
     std::cout << "  --url=<input>      URL to load, may be http, file, data, anything supported by Chromium." << std::endl;
     std::cout << "                     If omitted standard input is read." << std::endl;
     std::cout << "  --size=<size>      Size (format) of the paper: A3, B2.. or custom <width>x<height> in mm." << std::endl;
-    std::cout << "                     A4 is the default." << std::endl;
+    std::cout << "                     " << cefpdf::constants::pageSize << " is the default." << std::endl;
     std::cout << "  --list-sizes       Show all defined page sizes." << std::endl;
     std::cout << "  --landscape        Wheather to print with a landscape page orientation." << std::endl;
     std::cout << "                     Default is portrait" << std::endl;
     std::cout << "  --margin=<margin>  Paper margins in mm (much like CSS margin but without units)" << std::endl;
-    std::cout << "                     If omitted default margin is applied." << std::endl;
+    std::cout << "                     If omitted some default margin is applied." << std::endl;
+    std::cout << std::endl;
+    std::cout << "Server options:" << std::endl;
+    std::cout << "  --server           Start HTTP server" << std::endl;
+    std::cout << "  --host=<host>      If starting server, specify host name. Default is " << cefpdf::constants::serverHost << std::endl;
+    std::cout << "  --port=<port>      Specify server port number. Default is " << cefpdf::constants::serverPort << std::endl;
     std::cout << std::endl;
     std::cout << "Output:" << std::endl;
     std::cout << "  PDF file name to create. Default is output.pdf" << std::endl;
@@ -110,25 +115,29 @@ int runJob(CefRefPtr<CefCommandLine> commandLine)
     return 0;
 }
 
-#include <chrono>
+int runServer(CefRefPtr<CefCommandLine> commandLine)
+{
+    std::string port = cefpdf::constants::serverPort;
+    if (commandLine->HasSwitch("port")) {
+        port = commandLine->GetSwitchValue("port").ToString();
+    }
+
+    std::string host = cefpdf::constants::serverHost;
+    if (commandLine->HasSwitch("host")) {
+        host = commandLine->GetSwitchValue("host").ToString();
+    }
+
+    CefRefPtr<cefpdf::server::Server> server =
+        new cefpdf::server::Server(new cefpdf::Client(), host, port);
+
+    std::cout << "Starting HTTP server on " << host << ":" << port << std::endl;
+    server->Start();
+
+    return 0;
+}
 
 int main(int argc, char* argv[])
 {
-
-    auto storage = new cefpdf::Storage("C:\\");
-    std::cout << storage->Reserve() << std::endl;
-    delete storage;
-    return 0;
-
-/*
-    auto tt = std::chrono::system_clock::now().time_since_epoch();
-    std::cout << std::chrono::duration_cast<std::chrono::nanoseconds>(tt).count() << std::endl;
-
-    auto tt2 = std::chrono::system_clock::now().time_since_epoch();
-    std::cout << std::chrono::duration_cast<std::chrono::nanoseconds>(tt2).count() << std::endl;
-
-    return 0;
-*/
 #if !defined(OS_MACOSX)
 #if defined(OS_WIN)
     CefMainArgs mainArgs(::GetModuleHandle(NULL));
@@ -162,12 +171,5 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    if (commandLine->HasSwitch("server")) {
-        CefRefPtr<cefpdf::server::Server> server =
-            new cefpdf::server::Server(new cefpdf::Client(), "127.0.0.1", "5666");
-        server->Start();
-        return 0;
-    }
-
-    return runJob(commandLine);
+    return commandLine->HasSwitch("server") ? runServer(commandLine) : runJob(commandLine);
 }

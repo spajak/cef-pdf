@@ -14,12 +14,15 @@
 
 namespace cefpdf {
 
-Client::Client(bool stopAfterLastJob)
+Client::Client(bool stopAfterLastJob) :
+    m_storage(new Storage),
+    m_jobsManager(new job::Manager()),
+    m_processCount(0),
+    m_initialized(false),
+    m_stopAfterLastJob(stopAfterLastJob),
+    m_printHandler(new PrintHandler),
+    m_renderHandler(new RenderHandler)
 {
-    m_stopAfterLastJob = stopAfterLastJob;
-    m_printHandler = new PrintHandler;
-    m_renderHandler = new RenderHandler;
-
     m_settings.no_sandbox = true;
     m_settings.windowless_rendering_enabled = true;
     m_settings.command_line_args_disabled = true;
@@ -33,14 +36,11 @@ Client::Client(bool stopAfterLastJob)
     m_browserSettings.javascript_open_windows = STATE_DISABLED;
     m_browserSettings.javascript_close_windows = STATE_DISABLED;
     m_browserSettings.plugins = STATE_DISABLED;
-
-    m_jobsManager = new job::Manager();
 }
 
 void Client::Run()
 {
     DCHECK(!m_initialized);
-
     CefMainArgs mainArgs;
     CefInitialize(mainArgs, m_settings, this, NULL);
     CefRunMessageLoop();
@@ -51,8 +51,8 @@ void Client::Run()
 void Client::Stop()
 {
     DCHECK(m_initialized);
-
     CefQuitMessageLoop();
+    m_initialized = false;
 }
 
 void Client::PostJob(CefRefPtr<job::Job> job)
@@ -69,6 +69,10 @@ void Client::ProcessJobsQueue()
 
     while (!m_jobsQueue.empty() && m_processCount < constants::maxProcesses) {
         auto job = m_jobsQueue.front();
+        if (job->GetOutputPath().empty()) {
+            job->SetOutputPath(m_storage->Reserve());
+        }
+
         m_jobsManager->Queue(job);
         m_jobsQueue.pop();
         ++m_processCount;
