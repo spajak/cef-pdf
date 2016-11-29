@@ -5,8 +5,6 @@
 
 #include "include/wrapper/cef_helpers.h"
 
-#include <iostream>
-
 namespace cefpdf {
 namespace job {
 

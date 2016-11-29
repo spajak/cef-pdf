@@ -32,7 +32,7 @@ void PrintHandler::OnPrintReset()
 
 void PrintHandler::OnPrintSettings(CefRefPtr<CefPrintSettings> settings, bool get_defaults)
 {
-    DLOG(INFO) << "OnPrintSettings";
+
 }
 
 void PrintHandler::OnPrintStart(CefRefPtr<CefBrowser> browser)

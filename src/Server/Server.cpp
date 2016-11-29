@@ -1,10 +1,10 @@
 #include "Server.h"
 #include "RequestHandler.h"
 
+#include "include/wrapper/cef_helpers.h"
 #include "include/base/cef_bind.h"
 #include "include/wrapper/cef_closure_task.h"
 
-#include <chrono>
 #include <iostream>
 #include <utility>
 #include <functional>
@@ -45,6 +45,12 @@ Server::Server(
 
 void Server::Start()
 {
+    auto endpoint = m_acceptor.local_endpoint();
+
+    std::cout << "Starting HTTP server on "
+              << endpoint.address().to_string()
+              << ":" << endpoint.port() << std::endl;
+
     m_thread = std::thread(std::bind(&Server::Run, this));
     m_client->Run();
     m_thread.join();
@@ -55,8 +61,8 @@ void Server::Run()
     m_signals.async_wait(std::bind(&Server::OnSignal, this, _1, _2));
     Listen();
     m_ioService.run();
-    // TODO: Better debug log
-    std::cout << "Thread finished" << std::endl;
+
+    DLOG(INFO) << "Server thread finished";
 }
 
 void Server::Listen()
@@ -66,8 +72,8 @@ void Server::Listen()
 
 void Server::OnSignal(std::error_code error, int signno)
 {
-    // TODO: Better debug log
-    std::cout << "Server should quit" << std::endl;
+    DLOG(INFO) << "Received shutdown signal";
+
     m_connectionManager->StopAll();
     m_acceptor.close();
     CefPostTask(TID_UI, base::Bind(&cefpdf::Client::Stop, m_client.get()));
@@ -87,8 +93,7 @@ void Server::OnConnection(std::error_code error)
             new Connection(m_connectionManager, std::move(m_socket))
         );
         ++m_counter;
-        // TODO: Better debug log
-        std::cout << "Hit from " << clientIp << std::endl;
+        LOG(INFO) << "Got hit no. " << m_counter << " from " << clientIp;
         Listen();
     }
 }

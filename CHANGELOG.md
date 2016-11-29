@@ -1,5 +1,12 @@
 Changelog
 ===
+### 0.2.0 (2016-11-29)
+* Added HTTP server mode (use with --server flag)
+* Added configurable --host and --port when running in server mode
+* Various fixes and improvements
+* Bulding with CEF 3.2840.1518.gffd843c version (Windows & Linux, 64bit)
+
+===
 ### 0.1.6 (2016-09-21)
 * Fix: small improvements to allow building on Linux (tested on Debian 8.5.0 x64)
 * Small changes to build using CEF 3.2743.1449.g90ba67d build

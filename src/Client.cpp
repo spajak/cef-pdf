@@ -8,10 +8,6 @@
 #include "include/base/cef_bind.h"
 #include "include/wrapper/cef_closure_task.h"
 
-#include <iostream>
-#include <chrono>
-#include <thread>
-
 namespace cefpdf {
 
 Client::Client(bool stopAfterLastJob) :

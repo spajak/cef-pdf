@@ -3,8 +3,6 @@
 #include "Job/Remote.h"
 #include "Job/StdInput.h"
 
-#include "Storage.h"
-
 #include <string>
 #include <list>
 #include <iostream>
@@ -74,7 +72,7 @@ std::string getExecutableName(CefRefPtr<CefCommandLine> commandLine)
 
 int runJob(CefRefPtr<CefCommandLine> commandLine)
 {
-    cefpdf::job::Job* job;
+    CefRefPtr<cefpdf::job::Job> job;
 
     if (commandLine->HasSwitch("url")) {
         job = new cefpdf::job::Remote(commandLine->GetSwitchValue("url"));
@@ -130,7 +128,6 @@ int runServer(CefRefPtr<CefCommandLine> commandLine)
     CefRefPtr<cefpdf::server::Server> server =
         new cefpdf::server::Server(new cefpdf::Client(), host, port);
 
-    std::cout << "Starting HTTP server on " << host << ":" << port << std::endl;
     server->Start();
 
     return 0;

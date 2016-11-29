@@ -14,19 +14,6 @@
 namespace cefpdf {
 namespace server {
 
-void SetDate(http::Response& response)
-{
-    std::time_t t = std::time(nullptr);
-    char buff[100];
-    strftime(buff, 100, "%a, %d %h %Y %T GMT", std::gmtime(&t));
-    response.headers.push_back({"Date", std::string(buff)});
-}
-
-void SetContentLength(http::Response& response)
-{
-    response.headers.push_back({"Content-Length", std::to_string(response.content.size())});
-}
-
 void RequestHandler::Handle(const http::Request& request, http::Response& response)
 {
     SetDate(response);
@@ -80,7 +67,6 @@ void RequestHandler::Handle(const http::Request& request, http::Response& respon
     if (result == "success") {
         response.status = "HTTP/1.1 200 OK";
 
-        m_client->GetStorage()->Delete(job->GetOutputPath());
         response.content = m_client->GetStorage()->Load(job->GetOutputPath());
 
         response.headers.push_back({"Content-Type", "application/pdf"});
@@ -90,6 +76,19 @@ void RequestHandler::Handle(const http::Request& request, http::Response& respon
     } else {
         response.status = "HTTP/1.1 500 Internal Server Error";
     }
+}
+
+void RequestHandler::SetDate(http::Response& response)
+{
+    std::time_t t = std::time(nullptr);
+    char buff[100];
+    strftime(buff, 100, "%a, %d %h %Y %T GMT", std::gmtime(&t));
+    response.headers.push_back({"Date", std::string(buff)});
+}
+
+void RequestHandler::SetContentLength(http::Response& response)
+{
+    response.headers.push_back({"Content-Length", std::to_string(response.content.size())});
 }
 
 } // namespace server

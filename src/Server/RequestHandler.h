@@ -23,6 +23,9 @@ public:
 private:
     CefRefPtr<cefpdf::Client> m_client;
 
+    void SetDate(http::Response&);
+    void SetContentLength(http::Response&);
+
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(RequestHandler);
 };

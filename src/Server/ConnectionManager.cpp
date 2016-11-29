@@ -1,7 +1,5 @@
 #include "ConnectionManager.h"
 
-#include <iostream>
-
 namespace cefpdf {
 namespace server {
 

@@ -11,7 +11,7 @@ namespace cefpdf {
 
 namespace constants {
     // cef-pdf version number
-    const std::string version = "0.1.6";
+    const std::string version = "0.2.0";
     // Internal scheme
     const std::string scheme = "cefpdf";
     // Default page size
