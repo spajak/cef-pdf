@@ -8,17 +8,17 @@
 #include "include/base/cef_bind.h"
 #include "include/wrapper/cef_closure_task.h"
 
-#include <iostream>
-#include <chrono>
-#include <thread>
-
 namespace cefpdf {
 
-Client::Client()
+Client::Client(bool stopAfterLastJob) :
+    m_storage(new Storage),
+    m_jobsManager(new job::Manager()),
+    m_processCount(0),
+    m_initialized(false),
+    m_stopAfterLastJob(stopAfterLastJob),
+    m_printHandler(new PrintHandler),
+    m_renderHandler(new RenderHandler)
 {
-    m_printHandler = new PrintHandler;
-    m_renderHandler = new RenderHandler;
-
     m_settings.no_sandbox = true;
     m_settings.windowless_rendering_enabled = true;
     m_settings.command_line_args_disabled = true;
@@ -32,46 +32,50 @@ Client::Client()
     m_browserSettings.javascript_open_windows = STATE_DISABLED;
     m_browserSettings.javascript_close_windows = STATE_DISABLED;
     m_browserSettings.plugins = STATE_DISABLED;
-
-    m_jobsManager = new job::Manager;
-}
-
-void Client::Initialize()
-{
-    CefMainArgs mainArgs;
-    CefInitialize(mainArgs, m_settings, this, NULL);
 }
 
 void Client::Run()
 {
-    Initialize();
+    DCHECK(!m_initialized);
+    CefMainArgs mainArgs;
+    CefInitialize(mainArgs, m_settings, this, NULL);
     CefRunMessageLoop();
     CefShutdown();
+    m_initialized = false;
 }
 
 void Client::Stop()
 {
+    DCHECK(m_initialized);
     CefQuitMessageLoop();
+    m_initialized = false;
 }
 
 void Client::PostJob(CefRefPtr<job::Job> job)
 {
-    if (m_processCount >= constants::maxProcesses) {
-        CefPostDelayedTask(TID_UI, base::Bind(&Client::PostJob, this, job), 100);
-        return;
+    m_jobsQueue.push(job);
+    if (m_initialized) {
+        ProcessJobsQueue();
     }
-
-    ++m_processCount;
-
-    m_jobsManager->Queue(job);
-
-    // Create the browser window.
-    CefBrowserHost::CreateBrowser(m_windowInfo, this, "", m_browserSettings, NULL);
 }
 
-unsigned int Client::GetProcessCount()
+void Client::ProcessJobsQueue()
 {
-    return m_processCount;
+    CEF_REQUIRE_UI_THREAD();
+
+    while (!m_jobsQueue.empty() && m_processCount < constants::maxProcesses) {
+        auto job = m_jobsQueue.front();
+        if (job->GetOutputPath().empty()) {
+            job->SetOutputPath(m_storage->Reserve());
+        }
+
+        m_jobsManager->Queue(job);
+        m_jobsQueue.pop();
+        ++m_processCount;
+
+        // Create the browser window.
+        CefBrowserHost::CreateBrowser(m_windowInfo, this, "", m_browserSettings, NULL);
+    }
 }
 
 // CefApp methods:
@@ -105,6 +109,8 @@ void Client::OnContextInitialized()
     CEF_REQUIRE_UI_THREAD();
 
     CefRegisterSchemeHandlerFactory(constants::scheme, "", new SchemeHandlerFactory(m_jobsManager));
+    m_initialized = true;
+    ProcessJobsQueue();
 }
 
 // CefClient methods:
@@ -155,6 +161,11 @@ void Client::OnBeforeClose(CefRefPtr<CefBrowser> browser)
     CEF_REQUIRE_UI_THREAD();
 
     --m_processCount;
+    ProcessJobsQueue();
+
+    if (0 == m_processCount && m_stopAfterLastJob) {
+        CefPostDelayedTask(TID_UI, base::Bind(&cefpdf::Client::Stop, this), 50);
+    }
 }
 
 // CefLoadHandler methods:

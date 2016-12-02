@@ -2,10 +2,13 @@
 #define CLIENT_H_
 
 #include "Job/Manager.h"
+#include "Storage.h"
 
 #include "include/cef_app.h"
 #include "include/cef_client.h"
 #include "include/cef_browser.h"
+
+#include <queue>
 
 namespace cefpdf {
 
@@ -17,7 +20,9 @@ class Client : public CefApp,
 {
 
 public:
-    Client();
+    Client(bool stopAfterLastJob = false);
+    Client(const Client&) = delete;
+    Client& operator=(const Client&) = delete;
 
     // Run message loop
     virtual void Run();
@@ -28,8 +33,15 @@ public:
     // Add new job to the queue and process it
     void PostJob(CefRefPtr<job::Job> job);
 
+    // Get Storage object
+    CefRefPtr<Storage> GetStorage() {
+        return m_storage;
+    };
+
     // Get the number of running job processes
-    unsigned int GetProcessCount();
+    unsigned int GetProcessCount() {
+        return m_processCount;
+    };
 
     // CefApp methods:
     virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() override;
@@ -69,17 +81,19 @@ public:
         const CefString& failedUrl
     ) override;
 
-protected:
-    // Initialize CEF
-    void Initialize();
+private:
+    void ProcessJobsQueue();
+    std::queue<CefRefPtr<job::Job>> m_jobsQueue;
+    CefRefPtr<Storage> m_storage;
 
     CefSettings m_settings;
     CefWindowInfo m_windowInfo;
     CefBrowserSettings m_browserSettings;
     CefRefPtr<job::Manager> m_jobsManager;
-    unsigned int m_processCount = 0;
+    unsigned int m_processCount;
+    bool m_initialized;
+    bool m_stopAfterLastJob;
 
-private:
     CefRefPtr<CefPrintHandler> m_printHandler;
     CefRefPtr<CefRenderHandler> m_renderHandler;
 

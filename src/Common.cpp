@@ -211,32 +211,10 @@ PageMargin getPageMargin(const CefString& str)
     return pageMargin;
 }
 
-namespace file {
-
-std::string load(const CefString& path, bool removeFile)
+std::chrono::microseconds::rep microtime()
 {
-    std::string content;
-    std::ifstream output;
-
-    output.open(path.ToString(), std::ifstream::binary);
-    if (output.good()) {
-        content.assign((std::istreambuf_iterator<char>(output)), std::istreambuf_iterator<char>());
-        output.close();
-        if (removeFile) {
-            remove(path);
-        }
-
-        return content;
-    }
-
-    throw "Cannot open file: \"" + path.ToString() + "\"";
+    auto tt = std::chrono::system_clock::now().time_since_epoch();
+    return std::chrono::duration_cast<std::chrono::microseconds>(tt).count();
 }
-
-bool remove(const CefString& path)
-{
-    return 0 == std::remove(path.ToString().c_str());
-}
-
-} // namespace file
 
 } // namespace cefpdf

@@ -10,6 +10,8 @@ class Local : public Job
 {
 
 public:
+    Local(const std::string& content) : Job(), m_content(content) {};
+
     virtual const std::string& GetContent() const {
         return m_content;
     };

@@ -1,16 +1,16 @@
-#ifndef SERVER_H_
-#define SERVER_H_
+#ifndef SERVER_SERVER_H_
+#define SERVER_SERVER_H_
+
+#include "../Client.h"
+#include "ConnectionManager.h"
 
 #include "include/cef_base.h"
 
-#include <iostream>
-#include <chrono>
+#include <string>
 #include <thread>
-#include <functional>
-#include <system_error>
+#include <system_error> // std::error_code
 
 #include <asio.hpp>
-#include <asio/steady_timer.hpp>
 
 namespace cefpdf {
 namespace server {
@@ -19,50 +19,23 @@ class Server : public CefBase
 {
 
 public:
-    Server() :
-        m_thread(),
-        m_ioService(),
-        m_timer(m_ioService),
-        counter(0),
-        started(false) {};
-
-    void Start()
-    {
-        if (!started) {
-            m_thread = std::thread([&]{
-                Listen();
-                m_ioService.run();
-            });
-
-            started = true;
-        }
-    }
-
-    void Stop()
-    {
-        if (started) {
-            m_ioService.stop();
-            m_thread.join();
-            m_ioService.reset();
-            started = false;
-        }
-    };
-
-    void Listen()
-    {
-        m_timer.expires_from_now(std::chrono::seconds(1));
-        m_timer.async_wait([&](std::error_code error) {
-            std::cout << "Server fires: " << ++counter << std::endl;
-            Listen();
-        });
-    }
+    Server(CefRefPtr<cefpdf::Client> client, std::string const&, std::string const&);
+    void Start();
 
 private:
+    void Run();
+    void Listen();
+    void OnSignal(std::error_code, int);
+    void OnConnection(std::error_code);
+
+    CefRefPtr<cefpdf::Client> m_client;
     std::thread m_thread;
     asio::io_service m_ioService;
-    asio::steady_timer m_timer;
-    int counter;
-    bool started;
+    asio::signal_set m_signals;
+    asio::ip::tcp::acceptor m_acceptor;
+    asio::ip::tcp::socket m_socket;
+    CefRefPtr<ConnectionManager> m_connectionManager;
+    int m_counter;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(Server);
@@ -71,4 +44,4 @@ private:
 } // namespace server
 } // namespace cefpdf
 
-#endif // SERVER_H_
+#endif // SERVER_SERVER_H_
