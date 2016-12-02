@@ -42,7 +42,8 @@ void printHelp(std::string name)
     std::cout << std::endl;
     std::cout << "Server options:" << std::endl;
     std::cout << "  --server           Start HTTP server" << std::endl;
-    std::cout << "  --host=<host>      If starting server, specify host name. Default is " << cefpdf::constants::serverHost << std::endl;
+    std::cout << "  --host=<host>      If starting server, specify ip address to bind to." << std::endl;
+    std::cout << "                     Default is " << cefpdf::constants::serverHost << std::endl;
     std::cout << "  --port=<port>      Specify server port number. Default is " << cefpdf::constants::serverPort << std::endl;
     std::cout << std::endl;
     std::cout << "Output:" << std::endl;

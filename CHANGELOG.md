@@ -4,7 +4,7 @@ Changelog
 * Added HTTP server mode (use with --server flag)
 * Added configurable --host and --port when running in server mode
 * Various fixes and improvements
-* Bulding with CEF 3.2840.1518.gffd843c version (Windows & Linux, 64bit)
+* Bulding with CEF 3.2883.1539.gd7f087e / Chromium 55.0.2883.59 version (Windows & Linux, 64bit)
 
 ===
 ### 0.1.6 (2016-09-21)
