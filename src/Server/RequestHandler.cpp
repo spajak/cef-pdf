@@ -18,6 +18,11 @@ void RequestHandler::Handle(const http::Request& request, http::Response& respon
 {
     SetDate(response);
 
+    if (!(request.method == "GET" || request.method == "POST")) {
+        response.status = "HTTP/1.1 405 Method Not Allowed";
+        return;
+    }
+
     if (request.url == "/" || request.url == "/about") {
         response.status = "HTTP/1.1 200 OK";
         response.headers.push_back({"Content-Type", "application/json"});
@@ -48,6 +53,11 @@ void RequestHandler::Handle(const http::Request& request, http::Response& respon
     CefRefPtr<cefpdf::job::Job> job;
 
     if (location.empty()) {
+        if (request.method != "POST") {
+            response.status = "HTTP/1.1 405 Method Not Allowed";
+            return;
+        }
+
         if (request.content.empty()) {
             response.status = "HTTP/1.1 400 Bad Request";
             return;
