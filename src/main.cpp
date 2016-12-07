@@ -170,5 +170,11 @@ int main(int argc, char* argv[])
         return 0;
     }
 
+    if (commandLine->HasSwitch('enable-javascript')) {
+        app->SetDisableJavaScript(false);
+    } else {
+        app->SetDisableJavaScript(true);
+    }
+
     return commandLine->HasSwitch("server") ? runServer(app, commandLine) : runJob(app, commandLine);
 }
