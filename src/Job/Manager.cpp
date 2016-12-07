@@ -19,10 +19,13 @@ CefRefPtr<CefStreamReader> Manager::GetStreamReader(CefRefPtr<CefBrowser> browse
     auto it = Find(browser);
     DCHECK(it != m_jobs.end());
 
-    CefRefPtr<ContentProvider> provider = new ContentProvider;
-    it->job->accept(provider);
+    if (!it->streamReader.get()) {
+        CefRefPtr<ContentProvider> provider = new ContentProvider;
+        it->job->accept(provider);
+        it->streamReader = provider->GetStreamReader();
+    }
 
-    return provider->GetStreamReader();
+    return it->streamReader;
 }
 
 void Manager::Assign(CefRefPtr<CefBrowser> browser)
@@ -35,7 +38,7 @@ void Manager::Assign(CefRefPtr<CefBrowser> browser)
 
     m_jobsQueue.pop();
 
-    m_jobs.push_back(BrowserJob({browser, job, ErrorCode::ERR_NONE}));
+    m_jobs.push_back(BrowserJob({browser, job, ErrorCode::ERR_NONE, NULL}));
 
     // Load URL to print
     CefRefPtr<Loader> loader = new Loader(browser->GetMainFrame());

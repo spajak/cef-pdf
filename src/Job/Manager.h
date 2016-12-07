@@ -39,6 +39,7 @@ private:
         CefRefPtr<CefBrowser> browser;
         CefRefPtr<Job> job;
         ErrorCode errorCode;
+        CefRefPtr<CefStreamReader> streamReader;
     };
 
     std::vector<BrowserJob> m_jobs;

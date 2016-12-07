@@ -52,7 +52,10 @@ void Server::Start()
               << ":" << endpoint.port() << std::endl;
 
     m_thread = std::thread(std::bind(&Server::Run, this));
+
+    m_client->SetAllowedSchemes({"http", "https", "ftp", "data"});
     m_client->Run();
+
     m_thread.join();
 }
 

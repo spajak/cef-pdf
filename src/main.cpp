@@ -71,7 +71,7 @@ std::string getExecutableName(CefRefPtr<CefCommandLine> commandLine)
     return program;
 }
 
-int runJob(CefRefPtr<CefCommandLine> commandLine)
+int runJob(CefRefPtr<cefpdf::Client> app, CefRefPtr<CefCommandLine> commandLine)
 {
     CefRefPtr<cefpdf::job::Job> job;
 
@@ -107,14 +107,14 @@ int runJob(CefRefPtr<CefCommandLine> commandLine)
         return 1;
     }
 
-    CefRefPtr<cefpdf::Client> app = new cefpdf::Client(true);
+    app->SetStopAfterLastJob(true);
     app->PostJob(job);
     app->Run();
 
     return 0;
 }
 
-int runServer(CefRefPtr<CefCommandLine> commandLine)
+int runServer(CefRefPtr<cefpdf::Client> app, CefRefPtr<CefCommandLine> commandLine)
 {
     std::string port = cefpdf::constants::serverPort;
     if (commandLine->HasSwitch("port")) {
@@ -126,8 +126,7 @@ int runServer(CefRefPtr<CefCommandLine> commandLine)
         host = commandLine->GetSwitchValue("host").ToString();
     }
 
-    CefRefPtr<cefpdf::server::Server> server =
-        new cefpdf::server::Server(new cefpdf::Client(), host, port);
+    CefRefPtr<cefpdf::server::Server> server = new cefpdf::server::Server(app, host, port);
 
     server->Start();
 
@@ -136,6 +135,8 @@ int runServer(CefRefPtr<CefCommandLine> commandLine)
 
 int main(int argc, char* argv[])
 {
+    CefRefPtr<cefpdf::Client> app = new cefpdf::Client();
+
 #if !defined(OS_MACOSX)
 #if defined(OS_WIN)
     CefMainArgs mainArgs(::GetModuleHandle(NULL));
@@ -144,7 +145,7 @@ int main(int argc, char* argv[])
 #endif // OS_WIN
     // Execute the sub-process logic, if any. This will either return immediately for the browser
     // process or block until the sub-process should exit.
-    int exitCode = CefExecuteProcess(mainArgs, NULL, NULL);
+    int exitCode = CefExecuteProcess(mainArgs, app.get(), NULL);
     if (exitCode >= 0) {
         // The sub-process terminated, exit now.
         return exitCode;
@@ -169,5 +170,5 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    return commandLine->HasSwitch("server") ? runServer(commandLine) : runJob(commandLine);
+    return commandLine->HasSwitch("server") ? runServer(app, commandLine) : runJob(app, commandLine);
 }

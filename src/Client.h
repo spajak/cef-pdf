@@ -2,6 +2,7 @@
 #define CLIENT_H_
 
 #include "Job/Manager.h"
+#include "RequestHandler.h"
 #include "Storage.h"
 
 #include "include/cef_app.h"
@@ -9,6 +10,7 @@
 #include "include/cef_browser.h"
 
 #include <queue>
+#include <set>
 
 namespace cefpdf {
 
@@ -20,7 +22,7 @@ class Client : public CefApp,
 {
 
 public:
-    Client(bool stopAfterLastJob = false);
+    Client();
     Client(const Client&) = delete;
     Client& operator=(const Client&) = delete;
 
@@ -43,6 +45,24 @@ public:
         return m_processCount;
     };
 
+    void SetStopAfterLastJob(bool flag) {
+        m_stopAfterLastJob = flag;
+    };
+
+    void SetDisableJavaScript(bool flag) {
+        m_browserSettings.javascript = flag ? STATE_DISABLED : STATE_ENABLED;
+    };
+
+    void SetAllowedSchemes(const std::set<std::string>& schemes) {
+        for (auto s: schemes) {
+            m_requestHandler->AddAllowedScheme(s);
+        }
+    };
+
+    void ClearAllowedSchemes() {
+        m_requestHandler->ClearAllowedSchemes();
+    };
+
     // CefApp methods:
     virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() override;
     virtual void OnRegisterCustomSchemes(CefRefPtr<CefSchemeRegistrar> registrar) override;
@@ -56,6 +76,7 @@ public:
     virtual CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() override;
     virtual CefRefPtr<CefLoadHandler> GetLoadHandler() override;
     virtual CefRefPtr<CefRenderHandler> GetRenderHandler() override;
+    virtual CefRefPtr<CefRequestHandler> GetRequestHandler() override;
 
     // CefLifeSpanHandler methods:
     virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser) override;
@@ -96,6 +117,7 @@ private:
 
     CefRefPtr<CefPrintHandler> m_printHandler;
     CefRefPtr<CefRenderHandler> m_renderHandler;
+    CefRefPtr<RequestHandler> m_requestHandler;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(Client);

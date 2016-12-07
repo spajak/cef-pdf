@@ -3,6 +3,7 @@
 #include "SchemeHandlerFactory.h"
 #include "PrintHandler.h"
 #include "RenderHandler.h"
+#include "RequestHandler.h"
 
 #include "include/wrapper/cef_helpers.h"
 #include "include/base/cef_bind.h"
@@ -10,14 +11,15 @@
 
 namespace cefpdf {
 
-Client::Client(bool stopAfterLastJob) :
+Client::Client() :
     m_storage(new Storage),
     m_jobsManager(new job::Manager()),
     m_processCount(0),
     m_initialized(false),
-    m_stopAfterLastJob(stopAfterLastJob),
+    m_stopAfterLastJob(false),
     m_printHandler(new PrintHandler),
-    m_renderHandler(new RenderHandler)
+    m_renderHandler(new RenderHandler),
+    m_requestHandler(new RequestHandler)
 {
     m_settings.no_sandbox = true;
     m_settings.windowless_rendering_enabled = true;
@@ -29,9 +31,10 @@ Client::Client(bool stopAfterLastJob) :
 
     m_browserSettings.windowless_frame_rate = 1;
     CefString(&m_browserSettings.default_encoding).FromString(constants::encoding);
+    m_browserSettings.caret_browsing = STATE_DISABLED;
+    m_browserSettings.plugins = STATE_DISABLED;
     m_browserSettings.javascript_open_windows = STATE_DISABLED;
     m_browserSettings.javascript_close_windows = STATE_DISABLED;
-    m_browserSettings.plugins = STATE_DISABLED;
 }
 
 void Client::Run()
@@ -130,6 +133,11 @@ CefRefPtr<CefRenderHandler> Client::GetRenderHandler()
     return m_renderHandler;
 }
 
+CefRefPtr<CefRequestHandler> Client::GetRequestHandler()
+{
+    return m_requestHandler;
+}
+
 // CefLifeSpanHandler methods:
 // -----------------------------------------------------------------------------
 void Client::OnAfterCreated(CefRefPtr<CefBrowser> browser)
@@ -204,11 +212,6 @@ void Client::OnLoadError(
         << ", failedUrl: " << failedUrl.ToString();
 
     CEF_REQUIRE_UI_THREAD();
-
-    // Don't display an error for downloaded files.
-    if (errorCode == ERR_ABORTED) {
-        return;
-    }
 
     if (frame->IsMain()) {
         m_jobsManager->SetError(browser, errorCode);
