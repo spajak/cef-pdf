@@ -55,9 +55,11 @@ bool Storage::Delete(const std::string& path)
 std::string Storage::GetTempPath()
 {
 #if defined(OS_WIN)
-    char lpBuffer[MAX_PATH];
-    ::GetTempPathA(MAX_PATH, lpBuffer);
-    return lpBuffer;
+    wchar_t lpBuffer[MAX_PATH];
+    ::GetTempPathW(MAX_PATH, lpBuffer);
+    char result[2*MAX_PATH];
+    std::wcstombs(result, lpBuffer, sizeof(result));
+    return result;
 #else
     const char* vars[4] = {"TMPDIR", "TMP", "TEMP", "TEMPDIR"};
     for (int i = 0; i < 4; ++i) {

@@ -31,7 +31,7 @@ void printHelp(std::string name)
     std::cout << "Options:" << std::endl;
     std::cout << "  --help -h            This help screen." << std::endl;
     std::cout << "  --url=<input>        URL to load, may be http, file, data, anything supported by Chromium." << std::endl;
-    std::cout << "                       If omitted standard input is read." << std::endl;
+    std::cout << "  --file=<path>        File path to load using file:// scheme. May be relative to current directory." << std::endl;
     std::cout << "  --size=<size>        Size (format) of the paper: A3, B2.. or custom <width>x<height> in mm." << std::endl;
     std::cout << "                       " << cefpdf::constants::pageSize << " is the default." << std::endl;
     std::cout << "  --list-sizes         Show all defined page sizes." << std::endl;
@@ -79,7 +79,10 @@ int runJob(CefRefPtr<cefpdf::Client> app, CefRefPtr<CefCommandLine> commandLine)
     if (commandLine->HasSwitch("url")) {
         job = new cefpdf::job::Remote(commandLine->GetSwitchValue("url"));
     } else if (commandLine->HasSwitch("file")) {
-        auto filePath = commandLine->GetSwitchValue("file");
+        job = new cefpdf::job::Remote(
+            cefpdf::pathToUri(commandLine->GetSwitchValue("file").ToString())
+        );
+    } else {
         job = new cefpdf::job::StdInput;
     }
 
@@ -172,7 +175,7 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    if (commandLine->HasSwitch('enable-javascript')) {
+    if (commandLine->HasSwitch("enable-javascript")) {
         app->SetDisableJavaScript(false);
     } else {
         app->SetDisableJavaScript(true);

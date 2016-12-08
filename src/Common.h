@@ -56,6 +56,8 @@ PageMargin getPageMargin(const CefString& str);
 
 std::chrono::microseconds::rep microtime();
 
+std::string pathToUri(const std::string&);
+
 } // namespace cefpdf
 
 #endif // COMMON_H_

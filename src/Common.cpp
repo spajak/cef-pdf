@@ -6,6 +6,7 @@
 #include <list>
 #include <algorithm>
 #include <fstream>
+#include <regex>
 
 namespace cefpdf {
 
@@ -215,6 +216,28 @@ std::chrono::microseconds::rep microtime()
 {
     auto tt = std::chrono::system_clock::now().time_since_epoch();
     return std::chrono::duration_cast<std::chrono::microseconds>(tt).count();
+}
+
+std::string pathToUri(const std::string& path)
+{
+    std::string uri = path;
+
+#if defined(OS_WIN)
+    // De-windows the path
+    std::replace(uri.begin(), uri.end(), '\\', '/');
+    std::regex re("^[a-z]:/", std::regex_constants::icase);
+    if (std::regex_search(uri, re, std::regex_constants::match_continuous)) {
+        // Windows absolute path
+        uri = std::string("/") + uri;
+    }
+#endif // OS_WIN
+
+    if (uri.front() != '/') {
+        // Support non standard, relative file uri
+        uri = std::string("/./") + uri;
+    }
+
+    return std::string("file://") + uri;
 }
 
 } // namespace cefpdf
