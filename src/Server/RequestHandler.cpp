@@ -74,6 +74,8 @@ void RequestHandler::Handle(const http::Request& request, http::Response& respon
 
     std::string result = future.get();
 
+    //std::cout << result << std::endl;
+
     if (result == "success") {
         response.status = "HTTP/1.1 200 OK";
 

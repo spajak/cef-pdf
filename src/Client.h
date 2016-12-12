@@ -26,16 +26,22 @@ public:
     Client(const Client&) = delete;
     Client& operator=(const Client&) = delete;
 
-    // Run message loop
-    virtual void Run();
+    // Execute subprocess, if any
+    int ExecuteSubProcess(const CefMainArgs&);
 
-    // Stop message loop
+    // Initialize CEF
+    void Initialize(const CefMainArgs&);
+
+    // Run message loop
+    void Run();
+
+    // Stop message loop and shutdown CEF
     void Stop();
 
     // Add new job to the queue and process it
     void PostJob(CefRefPtr<job::Job> job);
 
-    // Get Storage object
+    // Access Storage object
     CefRefPtr<Storage> GetStorage() {
         return m_storage;
     };

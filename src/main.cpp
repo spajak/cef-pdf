@@ -142,20 +142,23 @@ int main(int argc, char* argv[])
 {
     CefRefPtr<cefpdf::Client> app = new cefpdf::Client();
 
-#if !defined(OS_MACOSX)
 #if defined(OS_WIN)
     CefMainArgs mainArgs(::GetModuleHandle(NULL));
 #else
     CefMainArgs mainArgs(argc, argv);
 #endif // OS_WIN
+
+#if !defined(OS_MACOSX)
     // Execute the sub-process logic, if any. This will either return immediately for the browser
     // process or block until the sub-process should exit.
-    int exitCode = CefExecuteProcess(mainArgs, app.get(), NULL);
+    int exitCode = app->ExecuteSubProcess(mainArgs);
     if (exitCode >= 0) {
         // The sub-process terminated, exit now.
         return exitCode;
     }
 #endif // !OS_MACOSX
+
+    app->Initialize(mainArgs);
 
     CefRefPtr<CefCommandLine> commandLine = CefCommandLine::CreateCommandLine();
 

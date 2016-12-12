@@ -8,6 +8,7 @@ Job::Job()
     SetPageSize(cefpdf::constants::pageSize);
     SetPageMargin("default");
     m_pageOrientation = PageOrientation::PORTRAIT;
+    m_backgrounds = false;
 }
 
 void Job::SetPageSize(const CefString& pageSize)
@@ -25,11 +26,16 @@ void Job::SetPageMargin(const CefString& pageMargin)
     m_pageMargin = getPageMargin(pageMargin);
 }
 
+void Job::SetBackgrounds(bool flag)
+{
+    m_backgrounds = flag;
+}
+
 CefPdfPrintSettings Job::GetCefPdfPrintSettings() const
 {
     CefPdfPrintSettings pdfSettings;
 
-    pdfSettings.backgrounds_enabled = true;
+    pdfSettings.backgrounds_enabled = m_backgrounds;
     pdfSettings.landscape = (m_pageOrientation == PageOrientation::LANDSCAPE);
 
     pdfSettings.page_width  = m_pageSize.width * 1000;

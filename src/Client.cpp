@@ -5,6 +5,7 @@
 #include "RenderHandler.h"
 #include "RequestHandler.h"
 
+#include "include/base/cef_logging.h"
 #include "include/wrapper/cef_helpers.h"
 #include "include/base/cef_bind.h"
 #include "include/wrapper/cef_closure_task.h"
@@ -37,11 +38,21 @@ Client::Client() :
     m_browserSettings.javascript_close_windows = STATE_DISABLED;
 }
 
-void Client::Run()
+int Client::ExecuteSubProcess(const CefMainArgs& mainArgs)
+{
+    return CefExecuteProcess(mainArgs, this, NULL);
+}
+
+void Client::Initialize(const CefMainArgs& mainArgs)
 {
     DCHECK(!m_initialized);
-    CefMainArgs mainArgs;
     CefInitialize(mainArgs, m_settings, this, NULL);
+    m_initialized = true;
+}
+
+void Client::Run()
+{
+    DCHECK(m_initialized);
     CefRunMessageLoop();
     CefShutdown();
     m_initialized = false;
@@ -214,7 +225,7 @@ void Client::OnLoadError(
     CEF_REQUIRE_UI_THREAD();
 
     if (frame->IsMain()) {
-        m_jobsManager->SetError(browser, errorCode);
+        m_jobsManager->Abort(browser, errorCode);
     }
 }
 

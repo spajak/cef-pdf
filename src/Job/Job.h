@@ -41,6 +41,8 @@ public:
 
     void SetPageMargin(const CefString& pageMargin);
 
+    void SetBackgrounds(bool flag = true);
+
     // Get prepared PDF setting for CEF
     CefPdfPrintSettings GetCefPdfPrintSettings() const;
 
@@ -49,6 +51,7 @@ private:
     PageSize m_pageSize;
     PageOrientation m_pageOrientation;
     PageMargin m_pageMargin;
+    bool m_backgrounds;
     std::promise<std::string> m_promise;
 
     // Include the default reference counting implementation.

@@ -5,7 +5,6 @@
 #include "include/base/cef_bind.h"
 #include "include/wrapper/cef_closure_task.h"
 
-#include <iostream>
 #include <utility>
 #include <functional>
 
@@ -45,15 +44,9 @@ Server::Server(
 
 void Server::Start()
 {
-    auto endpoint = m_acceptor.local_endpoint();
-
-    std::cout << "Starting HTTP server on "
-              << endpoint.address().to_string()
-              << ":" << endpoint.port() << std::endl;
-
     m_thread = std::thread(std::bind(&Server::Run, this));
 
-    m_client->SetAllowedSchemes({"http", "https", "ftp", "data"});
+    m_client->SetAllowedSchemes({"http", "https", "ftp", "data", cefpdf::constants::scheme});
     m_client->Run();
 
     m_thread.join();
@@ -62,6 +55,14 @@ void Server::Start()
 void Server::Run()
 {
     m_signals.async_wait(std::bind(&Server::OnSignal, this, _1, _2));
+
+    auto endpoint = m_acceptor.local_endpoint();
+
+    // Welcome message
+    LOG(INFO) << "Starting HTTP server on "
+              << endpoint.address().to_string()
+              << ":" << endpoint.port();
+
     Listen();
     m_ioService.run();
 
@@ -79,7 +80,8 @@ void Server::OnSignal(std::error_code error, int signno)
 
     m_connectionManager->StopAll();
     m_acceptor.close();
-    CefPostTask(TID_UI, base::Bind(&cefpdf::Client::Stop, m_client.get()));
+
+    CefPostDelayedTask(TID_UI, base::Bind(&cefpdf::Client::Stop, m_client.get()), 50);
 }
 
 void Server::OnConnection(std::error_code error)
