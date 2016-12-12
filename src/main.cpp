@@ -29,23 +29,24 @@ void printHelp(std::string name)
     std::cout << "  cef-pdf [options] [--url=<input>] [output]" << std::endl;
     std::cout << std::endl;
     std::cout << "Options:" << std::endl;
-    std::cout << "  --help -h            This help screen." << std::endl;
-    std::cout << "  --url=<input>        URL to load, may be http, file, data, anything supported by Chromium." << std::endl;
-    std::cout << "  --file=<path>        File path to load using file:// scheme. May be relative to current directory." << std::endl;
-    std::cout << "  --size=<size>        Size (format) of the paper: A3, B2.. or custom <width>x<height> in mm." << std::endl;
-    std::cout << "                       " << cefpdf::constants::pageSize << " is the default." << std::endl;
-    std::cout << "  --list-sizes         Show all defined page sizes." << std::endl;
-    std::cout << "  --landscape          Wheather to print with a landscape page orientation." << std::endl;
-    std::cout << "                       Default is portrait" << std::endl;
-    std::cout << "  --margin=<margin>    Paper margins in mm (much like CSS margin but without units)" << std::endl;
-    std::cout << "                       If omitted some default margin is applied." << std::endl;
-    std::cout << "  --enable-javascript  Enable JavaScript" << std::endl;
+    std::cout << "  --help -h          This help screen." << std::endl;
+    std::cout << "  --url=<input>      URL to load, may be http, file, data, anything supported by Chromium." << std::endl;
+    std::cout << "  --file=<path>      File path to load using file:// scheme. May be relative to current directory." << std::endl;
+    std::cout << "  --size=<size>      Size (format) of the paper: A3, B2.. or custom <width>x<height> in mm." << std::endl;
+    std::cout << "                     " << cefpdf::constants::pageSize << " is the default." << std::endl;
+    std::cout << "  --list-sizes       Show all defined page sizes." << std::endl;
+    std::cout << "  --landscape        Wheather to print with a landscape page orientation." << std::endl;
+    std::cout << "                     Default is portrait" << std::endl;
+    std::cout << "  --margin=<margin>  Paper margins in mm (much like CSS margin but without units)" << std::endl;
+    std::cout << "                     If omitted some default margin is applied." << std::endl;
+    std::cout << "  --javascript       Enable JavaScript." << std::endl;
+    std::cout << "  --backgrounds      Print with backgrounds." << std::endl;
     std::cout << std::endl;
     std::cout << "Server options:" << std::endl;
-    std::cout << "  --server             Start HTTP server" << std::endl;
-    std::cout << "  --host=<host>        If starting server, specify ip address to bind to." << std::endl;
-    std::cout << "                       Default is " << cefpdf::constants::serverHost << std::endl;
-    std::cout << "  --port=<port>        Specify server port number. Default is " << cefpdf::constants::serverPort << std::endl;
+    std::cout << "  --server           Start HTTP server" << std::endl;
+    std::cout << "  --host=<host>      If starting server, specify ip address to bind to." << std::endl;
+    std::cout << "                     Default is " << cefpdf::constants::serverHost << std::endl;
+    std::cout << "  --port=<port>      Specify server port number. Default is " << cefpdf::constants::serverPort << std::endl;
     std::cout << std::endl;
     std::cout << "Output:" << std::endl;
     std::cout << "  PDF file name to create. Default is output.pdf" << std::endl;
@@ -107,6 +108,11 @@ int runJob(CefRefPtr<cefpdf::Client> app, CefRefPtr<CefCommandLine> commandLine)
         if (commandLine->HasSwitch("landscape")) {
             job->SetLandscape();
         }
+
+        if (commandLine->HasSwitch("backgrounds")) {
+            job->SetBackgrounds();
+        }
+
     } catch (std::string error) {
         std::cerr << "ERROR: " << error << std::endl;
         return 1;
@@ -178,7 +184,7 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    if (commandLine->HasSwitch("enable-javascript")) {
+    if (commandLine->HasSwitch("javascript")) {
         app->SetDisableJavaScript(false);
     } else {
         app->SetDisableJavaScript(true);
