@@ -7,9 +7,12 @@
 #include <algorithm>
 #include <fstream>
 #include <regex>
+#include <functional>
+#include <random>
+#include <cstdlib>
 
 #if !defined(OS_WIN)
-#include <unistd.h>
+#include <unistd.h> // getcwd()
 #endif
 
 namespace cefpdf {
@@ -278,6 +281,46 @@ std::string getTempDirectory()
 
     return "/tmp/";
 #endif // OS_WIN
+}
+
+std::string reserveTempFile()
+{
+    std::string letters = "9876543210ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(letters.begin(), letters.end(), g);
+    std::string path = constants::temp + "cef_" + letters + ".pdf";
+
+    std::ifstream file;
+    file.open(path);
+    bool isGood = file.good();
+    file.close();
+
+    return isGood ? reserveTempFile() : path;
+}
+
+std::string loadTempFile(const std::string& path, bool remove)
+{
+    std::string content;
+    std::ifstream output;
+
+    output.open(path, std::ifstream::binary);
+    if (output.good()) {
+        content.assign((std::istreambuf_iterator<char>(output)), std::istreambuf_iterator<char>());
+        output.close();
+        if (remove) {
+            deleteTempFile(path);
+        }
+
+        return content;
+    }
+
+    throw "Cannot open file: \"" + path + "\"";
+}
+
+bool deleteTempFile(const std::string& path)
+{
+    return 0 == std::remove(path.c_str());
 }
 
 } // namespace cefpdf

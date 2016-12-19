@@ -2,6 +2,7 @@
 
 #include "../Job/Local.h"
 #include "../Job/Remote.h"
+#include "../Common.h"
 
 #include "include/base/cef_bind.h"
 #include "include/wrapper/cef_closure_task.h"
@@ -74,12 +75,10 @@ void RequestHandler::Handle(const http::Request& request, http::Response& respon
 
     std::string result = future.get();
 
-    //std::cout << result << std::endl;
-
     if (result == "success") {
         response.status = "HTTP/1.1 200 OK";
 
-        response.content = m_client->GetStorage()->Load(job->GetOutputPath());
+        response.content = loadTempFile(job->GetOutputPath());
 
         response.headers.push_back({"Content-Type", "application/pdf"});
         response.headers.push_back({"Content-Disposition", "inline; filename=\"" + fileName + ".pdf\""});

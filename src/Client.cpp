@@ -13,7 +13,6 @@
 namespace cefpdf {
 
 Client::Client() :
-    m_storage(new Storage),
     m_jobsManager(new job::Manager()),
     m_processCount(0),
     m_initialized(false),
@@ -79,10 +78,6 @@ void Client::ProcessJobsQueue()
 
     while (!m_jobsQueue.empty() && m_processCount < constants::maxProcesses) {
         auto job = m_jobsQueue.front();
-        if (job->GetOutputPath().empty()) {
-            job->SetOutputPath(m_storage->Reserve());
-        }
-
         m_jobsManager->Queue(job);
         m_jobsQueue.pop();
         ++m_processCount;

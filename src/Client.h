@@ -3,7 +3,6 @@
 
 #include "Job/Manager.h"
 #include "RequestHandler.h"
-#include "Storage.h"
 
 #include "include/cef_app.h"
 #include "include/cef_client.h"
@@ -40,11 +39,6 @@ public:
 
     // Add new job to the queue and process it
     void PostJob(CefRefPtr<job::Job> job);
-
-    // Access Storage object
-    CefRefPtr<Storage> GetStorage() {
-        return m_storage;
-    };
 
     // Get the number of running job processes
     unsigned int GetProcessCount() {
@@ -111,7 +105,6 @@ public:
 private:
     void ProcessJobsQueue();
     std::queue<CefRefPtr<job::Job>> m_jobsQueue;
-    CefRefPtr<Storage> m_storage;
 
     CefSettings m_settings;
     CefWindowInfo m_windowInfo;

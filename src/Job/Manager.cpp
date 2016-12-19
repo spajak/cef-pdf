@@ -61,6 +61,11 @@ void Manager::Process(CefRefPtr<CefBrowser> browser, int httpStatusCode)
 
     if (it != m_jobs.end()) {
         if (!httpStatusCode || (200 <= httpStatusCode && 300 > httpStatusCode)) {
+            // Generate file name if empty
+            if (it->job->GetOutputPath().empty()) {
+                it->job->SetOutputPath(reserveTempFile());
+            }
+
             // Print PDF
             CefRefPtr<Printer> printer = new Printer(this, browser);
             it->job->accept(printer);
