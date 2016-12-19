@@ -24,9 +24,6 @@ public:
     // Delete file
     bool Delete(const std::string&);
 
-    // Get system temp dir
-    std::string GetTempPath();
-
 private:
     std::string m_temp;
 

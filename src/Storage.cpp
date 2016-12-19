@@ -1,4 +1,5 @@
 #include "Storage.h"
+#include "Common.h"
 
 #include <fstream>
 #include <functional>
@@ -9,7 +10,7 @@
 namespace cefpdf {
 
 Storage::Storage() {
-    m_temp = GetTempPath();
+    m_temp = getTempDirectory();
 }
 
 std::string Storage::Reserve()
@@ -50,27 +51,6 @@ std::string Storage::Load(const std::string& path, bool remove)
 bool Storage::Delete(const std::string& path)
 {
     return 0 == std::remove(path.c_str());
-}
-
-std::string Storage::GetTempPath()
-{
-#if defined(OS_WIN)
-    wchar_t lpBuffer[MAX_PATH];
-    ::GetTempPathW(MAX_PATH, lpBuffer);
-    char result[2*MAX_PATH];
-    std::wcstombs(result, lpBuffer, sizeof(result));
-    return result;
-#else
-    const char* vars[4] = {"TMPDIR", "TMP", "TEMP", "TEMPDIR"};
-    for (int i = 0; i < 4; ++i) {
-        char* val = std::getenv(vars[i]);
-        if (val) {
-            return std::string(val) + "/";
-        }
-    }
-
-    return "/tmp/";
-#endif // OS_WIN
 }
 
 } // namespace cefpdf

@@ -60,7 +60,7 @@ void Manager::Process(CefRefPtr<CefBrowser> browser, int httpStatusCode)
     auto it = Find(browser);
 
     if (it != m_jobs.end()) {
-        if (200 <= httpStatusCode && 300 > httpStatusCode) {
+        if (!httpStatusCode || (200 <= httpStatusCode && 300 > httpStatusCode)) {
             // Print PDF
             CefRefPtr<Printer> printer = new Printer(this, browser);
             it->job->accept(printer);

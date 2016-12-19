@@ -58,6 +58,10 @@ std::chrono::microseconds::rep microtime();
 
 std::string pathToUri(const std::string&);
 
+std::string getCurrentWorkingDirectory();
+
+std::string getTempDirectory();
+
 } // namespace cefpdf
 
 #endif // COMMON_H_

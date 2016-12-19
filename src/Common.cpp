@@ -8,6 +8,10 @@
 #include <fstream>
 #include <regex>
 
+#if !defined(OS_WIN)
+#include <unistd.h>
+#endif
+
 namespace cefpdf {
 
 PageSizesMap pageSizesMap = {
@@ -223,21 +227,57 @@ std::string pathToUri(const std::string& path)
     std::string uri = path;
 
 #if defined(OS_WIN)
+    std::regex re("^[a-z]:\\\\", std::regex_constants::icase);
+    if (!std::regex_search(uri, re, std::regex_constants::match_continuous)) {
+        uri = getCurrentWorkingDirectory() + std::string("\\") + uri;
+    }
+
     // De-windows the path
     std::replace(uri.begin(), uri.end(), '\\', '/');
-    std::regex re("^[a-z]:/", std::regex_constants::icase);
-    if (std::regex_search(uri, re, std::regex_constants::match_continuous)) {
-        // Windows absolute path
-        uri = std::string("/") + uri;
+    uri = std::string("/") + uri;
+#else
+    if (uri.front() != '/') {
+        uri = getCurrentWorkingDirectory() + std::string("/") + uri;
     }
 #endif // OS_WIN
 
-    if (uri.front() != '/') {
-        // Support non standard, relative file uri
-        uri = std::string("/./") + uri;
+    return std::string("file://") + uri;
+}
+
+std::string getCurrentWorkingDirectory()
+{
+#if defined(OS_WIN)
+    wchar_t lpBuffer[MAX_PATH];
+    ::GetCurrentDirectoryW(MAX_PATH, lpBuffer);
+    char result[2*MAX_PATH];
+    std::wcstombs(result, lpBuffer, sizeof(result));
+    return result;
+#else
+    char result[2*4096];
+    getcwd(result, 2*4096);
+    return result;
+#endif // OS_WIN
+}
+
+std::string getTempDirectory()
+{
+#if defined(OS_WIN)
+    wchar_t lpBuffer[MAX_PATH];
+    ::GetTempPathW(MAX_PATH, lpBuffer);
+    char result[2*MAX_PATH];
+    std::wcstombs(result, lpBuffer, sizeof(result));
+    return result;
+#else
+    const char* vars[4] = {"TMPDIR", "TMP", "TEMP", "TEMPDIR"};
+    for (int i = 0; i < 4; ++i) {
+        char* val = std::getenv(vars[i]);
+        if (val) {
+            return std::string(val) + "/";
+        }
     }
 
-    return std::string("file://") + uri;
+    return "/tmp/";
+#endif // OS_WIN
 }
 
 } // namespace cefpdf
