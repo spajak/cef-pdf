@@ -38,7 +38,6 @@ private:
     struct BrowserJob {
         CefRefPtr<CefBrowser> browser;
         CefRefPtr<Job> job;
-        ErrorCode errorCode;
         CefRefPtr<CefStreamReader> streamReader;
     };
 

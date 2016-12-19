@@ -40,7 +40,7 @@ void Manager::Assign(CefRefPtr<CefBrowser> browser)
 
     m_jobsQueue.pop();
 
-    m_jobs.push_back(BrowserJob({browser, job, ErrorCode::ERR_NONE, NULL}));
+    m_jobs.push_back(BrowserJob({browser, job, NULL}));
 
     // Load URL to print
     CefRefPtr<Loader> loader = new Loader(browser->GetMainFrame());

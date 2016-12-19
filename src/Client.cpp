@@ -61,7 +61,6 @@ void Client::Stop()
 {
     DCHECK(m_initialized);
     CefQuitMessageLoop();
-    m_initialized = false;
 }
 
 void Client::PostJob(CefRefPtr<job::Job> job)
@@ -98,6 +97,12 @@ void Client::OnRegisterCustomSchemes(CefRefPtr<CefSchemeRegistrar> registrar)
 {
     registrar->AddCustomScheme(constants::scheme, true, false, false);
 }
+
+void Client::OnBeforeCommandLineProcessing(const CefString& process_type, CefRefPtr<CefCommandLine> command_line)
+{
+    command_line->AppendSwitch("disable-gpu");
+    command_line->AppendSwitch("disable-gpu-compositing");
+};
 
 // CefBrowserProcessHandler methods:
 // -----------------------------------------------------------------------------
