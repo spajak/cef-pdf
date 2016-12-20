@@ -4,25 +4,27 @@
 
 ### Usage:
 
-    cef-pdf [options] [--url=<input>] [output]
+    cef-pdf [options] --url=<url>|--file=<path> [output]
 
     Options:
-      --help -h          This help screen.
-      --url=<input>      URL to load, may be http, file, data, anything supported by Chromium.
-                         If omitted standard input is read.
-      --size=<size>      Size (format) of the paper: A3, B2.. or custom <width>x<height> in mm.
-                         A4 is the default.
-      --list-sizes       Show all defined page sizes.
-      --landscape        Wheather to print with a landscape page orientation.
-                         Default is portrait
-      --margin=<margin>  Paper margins in mm (much like CSS margin but without units)
-                         If omitted default margin is applied.
+      --help -h        This help screen.
+      --url=<url>      URL to load, may be http, file, data, anything supported by Chromium.
+      --file=<path>    File path to load using file:// scheme. May be relative to current directory.
+      --size=<spec>    Size (format) of the paper: A3, B2.. or custom <width>x<height> in mm.
+                       A4 is the default.
+      --list-sizes     Show all defined page sizes.
+      --landscape      Wheather to print with a landscape page orientation.
+                       Default is portrait
+      --margin=<spec>  Paper margins in mm (much like CSS margin but without units)
+                       If omitted some default margin is applied.
+      --javascript     Enable JavaScript.
+      --backgrounds    Print with backgrounds.
 
     Server options:
-      --server           Start HTTP server
-      --host=<host>      If starting server, specify ip address to bind to.
-                         Default is 127.0.0.1
-      --port=<port>      Specify server port number. Default is 9288
+      --server         Start HTTP server
+      --host=<host>    If starting server, specify ip address to bind to.
+                       Default is 127.0.0.1
+      --port=<port>    Specify server port number. Default is 9288
 
     Output:
       PDF file name to create. Default is output.pdf
