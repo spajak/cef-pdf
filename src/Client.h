@@ -31,10 +31,13 @@ public:
     // Initialize CEF
     void Initialize(const CefMainArgs&);
 
+    // De-initialize CEF
+    void Shutdown();
+
     // Run message loop
     void Run();
 
-    // Stop message loop and shutdown CEF
+    // Stop message loop and/or shutdown CEF
     void Stop();
 
     // Add new job to the queue and process it
@@ -113,6 +116,7 @@ private:
     CefRefPtr<job::Manager> m_jobsManager;
     unsigned int m_processCount;
     bool m_initialized;
+    bool m_running;
     bool m_stopAfterLastJob;
 
     CefRefPtr<CefPrintHandler> m_printHandler;

@@ -16,6 +16,7 @@ Client::Client() :
     m_jobsManager(new job::Manager()),
     m_processCount(0),
     m_initialized(false),
+    m_running(false),
     m_stopAfterLastJob(false),
     m_printHandler(new PrintHandler),
     m_renderHandler(new RenderHandler),
@@ -24,7 +25,6 @@ Client::Client() :
     m_settings.no_sandbox = true;
     m_settings.windowless_rendering_enabled = true;
     m_settings.command_line_args_disabled = true;
-    m_settings.uncaught_exception_stack_size = 20;
 
     m_windowInfo.windowless_rendering_enabled = true;
     m_windowInfo.transparent_painting_enabled = false;
@@ -49,18 +49,30 @@ void Client::Initialize(const CefMainArgs& mainArgs)
     m_initialized = true;
 }
 
-void Client::Run()
+void Client::Shutdown()
 {
     DCHECK(m_initialized);
-    CefRunMessageLoop();
     CefShutdown();
     m_initialized = false;
 }
 
-void Client::Stop()
+void Client::Run()
 {
     DCHECK(m_initialized);
-    CefQuitMessageLoop();
+    DCHECK(!m_running);
+    m_running = true;
+    CefRunMessageLoop();
+    m_running = false;
+    Shutdown();
+}
+
+void Client::Stop()
+{
+    if (m_running) {
+        CefQuitMessageLoop();
+    } else if (m_initialized) {
+        Shutdown();
+    }
 }
 
 void Client::PostJob(CefRefPtr<job::Job> job)

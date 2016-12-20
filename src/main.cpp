@@ -86,7 +86,7 @@ int runJob(CefRefPtr<cefpdf::Client> app, CefRefPtr<CefCommandLine> commandLine)
             );
         } else {
             //job = new cefpdf::job::StdInput;
-            throw "no input specified";
+            throw std::string("no input specified");
         }
 
         // Set output file
@@ -116,6 +116,7 @@ int runJob(CefRefPtr<cefpdf::Client> app, CefRefPtr<CefCommandLine> commandLine)
 
     } catch (std::string error) {
         std::cerr << "ERROR: " << error << std::endl;
+        app->Shutdown();
         return 1;
     }
 
@@ -165,8 +166,6 @@ int main(int argc, char* argv[])
     }
 #endif // !OS_MACOSX
 
-    app->Initialize(mainArgs);
-
     CefRefPtr<CefCommandLine> commandLine = CefCommandLine::CreateCommandLine();
 
 #if defined(OS_WIN)
@@ -184,6 +183,8 @@ int main(int argc, char* argv[])
         printSizes();
         return 0;
     }
+
+    app->Initialize(mainArgs);
 
     if (commandLine->HasSwitch("javascript")) {
         app->SetDisableJavaScript(false);

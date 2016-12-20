@@ -119,18 +119,18 @@ void parseCustomPageSize(PageSize& pageSize, const std::string& str)
                     pageSize.height = v;
                     break;
                 default:
-                    throw "Too many values in page size";
+                    throw std::string("Too many values in page size");
             }
 
             hasValue = true;
             value.erase();
         } else {
-            throw "Invalid character \"" + std::string(1, c) + "\" in page size";
+            throw std::string("Invalid character \"") + std::string(1, c) + std::string("\" in page size");
         }
     }
 
     if (!hasValue) {
-        throw "Invalid page size format: \"" + str + "\"";
+        throw std::string("Invalid page size format: \"") + str + std::string("\"");
     }
 }
 
@@ -184,18 +184,18 @@ void parseCustomPageMargin(PageMargin& pageMargin, const std::string& str)
                     pageMargin.left = v;
                     break;
                 default:
-                    throw "Too many values in margin";
+                    throw std::string("Too many values in margin");
             }
 
             hasValue = true;
             value.erase();
         } else {
-            throw "Invalid character \"" + std::string(1, c) + "\" in margin";
+            throw std::string("Invalid character \"") + std::string(1, c) + std::string("\" in margin");
         }
     }
 
     if (!hasValue) {
-        throw "Invalid margin format: \"" + str + "\"";
+        throw std::string("Invalid margin format: \"") + str + std::string("\"");
     }
 }
 
@@ -315,7 +315,7 @@ std::string loadTempFile(const std::string& path, bool remove)
         return content;
     }
 
-    throw "Cannot open file: \"" + path + "\"";
+    throw std::string("Cannot open file: \"") + path + std::string("\"");
 }
 
 bool deleteTempFile(const std::string& path)
