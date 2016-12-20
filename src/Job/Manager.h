@@ -26,7 +26,7 @@ public:
 
     CefRefPtr<CefStreamReader> GetStreamReader(CefRefPtr<CefBrowser> browser);
 
-    void SetError(CefRefPtr<CefBrowser> browser, ErrorCode errorCode);
+    void Abort(CefRefPtr<CefBrowser> browser, ErrorCode errorCode);
 
     void Process(CefRefPtr<CefBrowser> browser, int httpStatusCode);
 
@@ -38,7 +38,7 @@ private:
     struct BrowserJob {
         CefRefPtr<CefBrowser> browser;
         CefRefPtr<Job> job;
-        ErrorCode errorCode;
+        CefRefPtr<CefStreamReader> streamReader;
     };
 
     std::vector<BrowserJob> m_jobs;
@@ -47,7 +47,7 @@ private:
 
     Iterator Find(CefRefPtr<CefBrowser> browser);
 
-    void Remove(Manager::Iterator it);
+    void Resolve(Manager::Iterator it, const std::string&);
 
     unsigned int m_counter = 0;
 

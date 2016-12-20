@@ -2,13 +2,14 @@
 #define CLIENT_H_
 
 #include "Job/Manager.h"
-#include "Storage.h"
+#include "RequestHandler.h"
 
 #include "include/cef_app.h"
 #include "include/cef_client.h"
 #include "include/cef_browser.h"
 
 #include <queue>
+#include <set>
 
 namespace cefpdf {
 
@@ -20,32 +21,55 @@ class Client : public CefApp,
 {
 
 public:
-    Client(bool stopAfterLastJob = false);
+    Client();
     Client(const Client&) = delete;
     Client& operator=(const Client&) = delete;
 
-    // Run message loop
-    virtual void Run();
+    // Execute subprocess, if any
+    int ExecuteSubProcess(const CefMainArgs&);
 
-    // Stop message loop
+    // Initialize CEF
+    void Initialize(const CefMainArgs&);
+
+    // De-initialize CEF
+    void Shutdown();
+
+    // Run message loop
+    void Run();
+
+    // Stop message loop and/or shutdown CEF
     void Stop();
 
     // Add new job to the queue and process it
     void PostJob(CefRefPtr<job::Job> job);
-
-    // Get Storage object
-    CefRefPtr<Storage> GetStorage() {
-        return m_storage;
-    };
 
     // Get the number of running job processes
     unsigned int GetProcessCount() {
         return m_processCount;
     };
 
+    void SetStopAfterLastJob(bool flag) {
+        m_stopAfterLastJob = flag;
+    };
+
+    void SetDisableJavaScript(bool flag) {
+        m_browserSettings.javascript = flag ? STATE_DISABLED : STATE_ENABLED;
+    };
+
+    void SetAllowedSchemes(const std::set<std::string>& schemes) {
+        for (auto s: schemes) {
+            m_requestHandler->AddAllowedScheme(s);
+        }
+    };
+
+    void ClearAllowedSchemes() {
+        m_requestHandler->ClearAllowedSchemes();
+    };
+
     // CefApp methods:
     virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() override;
     virtual void OnRegisterCustomSchemes(CefRefPtr<CefSchemeRegistrar> registrar) override;
+    virtual void OnBeforeCommandLineProcessing(const CefString& process_type, CefRefPtr<CefCommandLine> command_line) override;
 
     // CefBrowserProcessHandler methods:
     virtual CefRefPtr<CefPrintHandler> GetPrintHandler() override;
@@ -56,6 +80,7 @@ public:
     virtual CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() override;
     virtual CefRefPtr<CefLoadHandler> GetLoadHandler() override;
     virtual CefRefPtr<CefRenderHandler> GetRenderHandler() override;
+    virtual CefRefPtr<CefRequestHandler> GetRequestHandler() override;
 
     // CefLifeSpanHandler methods:
     virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser) override;
@@ -84,7 +109,6 @@ public:
 private:
     void ProcessJobsQueue();
     std::queue<CefRefPtr<job::Job>> m_jobsQueue;
-    CefRefPtr<Storage> m_storage;
 
     CefSettings m_settings;
     CefWindowInfo m_windowInfo;
@@ -92,10 +116,12 @@ private:
     CefRefPtr<job::Manager> m_jobsManager;
     unsigned int m_processCount;
     bool m_initialized;
+    bool m_running;
     bool m_stopAfterLastJob;
 
     CefRefPtr<CefPrintHandler> m_printHandler;
     CefRefPtr<CefRenderHandler> m_renderHandler;
+    CefRefPtr<RequestHandler> m_requestHandler;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(Client);

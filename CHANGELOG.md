@@ -1,5 +1,14 @@
 Changelog
 ===
+### 0.2.1 (2016-12-20)
+* Allow only specified schemes when in server mode (ie. block file:// access)
+* Added option to enable JavaScript --javascript
+* Added --file option to load file from command line
+* Disabled standard input (use --file instead)
+* Added --background option to print html backgrounds
+* Bulding with CEF 3.2883.1540.gedbfb20 / Chromium 55.0.2883.59 version (Windows & Linux, 64bit)
+
+===
 ### 0.2.0 (2016-11-29)
 * Added HTTP server mode (use with --server flag)
 * Added configurable --host and --port when running in server mode

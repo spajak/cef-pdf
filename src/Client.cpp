@@ -3,52 +3,76 @@
 #include "SchemeHandlerFactory.h"
 #include "PrintHandler.h"
 #include "RenderHandler.h"
+#include "RequestHandler.h"
 
+#include "include/base/cef_logging.h"
 #include "include/wrapper/cef_helpers.h"
 #include "include/base/cef_bind.h"
 #include "include/wrapper/cef_closure_task.h"
 
 namespace cefpdf {
 
-Client::Client(bool stopAfterLastJob) :
-    m_storage(new Storage),
+Client::Client() :
     m_jobsManager(new job::Manager()),
     m_processCount(0),
     m_initialized(false),
-    m_stopAfterLastJob(stopAfterLastJob),
+    m_running(false),
+    m_stopAfterLastJob(false),
     m_printHandler(new PrintHandler),
-    m_renderHandler(new RenderHandler)
+    m_renderHandler(new RenderHandler),
+    m_requestHandler(new RequestHandler)
 {
     m_settings.no_sandbox = true;
     m_settings.windowless_rendering_enabled = true;
     m_settings.command_line_args_disabled = true;
-    m_settings.uncaught_exception_stack_size = 20;
 
     m_windowInfo.windowless_rendering_enabled = true;
     m_windowInfo.transparent_painting_enabled = false;
 
     m_browserSettings.windowless_frame_rate = 1;
     CefString(&m_browserSettings.default_encoding).FromString(constants::encoding);
+    m_browserSettings.caret_browsing = STATE_DISABLED;
+    m_browserSettings.plugins = STATE_DISABLED;
     m_browserSettings.javascript_open_windows = STATE_DISABLED;
     m_browserSettings.javascript_close_windows = STATE_DISABLED;
-    m_browserSettings.plugins = STATE_DISABLED;
 }
 
-void Client::Run()
+int Client::ExecuteSubProcess(const CefMainArgs& mainArgs)
+{
+    return CefExecuteProcess(mainArgs, this, NULL);
+}
+
+void Client::Initialize(const CefMainArgs& mainArgs)
 {
     DCHECK(!m_initialized);
-    CefMainArgs mainArgs;
     CefInitialize(mainArgs, m_settings, this, NULL);
-    CefRunMessageLoop();
+    m_initialized = true;
+}
+
+void Client::Shutdown()
+{
+    DCHECK(m_initialized);
     CefShutdown();
     m_initialized = false;
 }
 
-void Client::Stop()
+void Client::Run()
 {
     DCHECK(m_initialized);
-    CefQuitMessageLoop();
-    m_initialized = false;
+    DCHECK(!m_running);
+    m_running = true;
+    CefRunMessageLoop();
+    m_running = false;
+    Shutdown();
+}
+
+void Client::Stop()
+{
+    if (m_running) {
+        CefQuitMessageLoop();
+    } else if (m_initialized) {
+        Shutdown();
+    }
 }
 
 void Client::PostJob(CefRefPtr<job::Job> job)
@@ -65,10 +89,6 @@ void Client::ProcessJobsQueue()
 
     while (!m_jobsQueue.empty() && m_processCount < constants::maxProcesses) {
         auto job = m_jobsQueue.front();
-        if (job->GetOutputPath().empty()) {
-            job->SetOutputPath(m_storage->Reserve());
-        }
-
         m_jobsManager->Queue(job);
         m_jobsQueue.pop();
         ++m_processCount;
@@ -89,6 +109,12 @@ void Client::OnRegisterCustomSchemes(CefRefPtr<CefSchemeRegistrar> registrar)
 {
     registrar->AddCustomScheme(constants::scheme, true, false, false);
 }
+
+void Client::OnBeforeCommandLineProcessing(const CefString& process_type, CefRefPtr<CefCommandLine> command_line)
+{
+    command_line->AppendSwitch("disable-gpu");
+    command_line->AppendSwitch("disable-gpu-compositing");
+};
 
 // CefBrowserProcessHandler methods:
 // -----------------------------------------------------------------------------
@@ -128,6 +154,11 @@ CefRefPtr<CefLoadHandler> Client::GetLoadHandler()
 CefRefPtr<CefRenderHandler> Client::GetRenderHandler()
 {
     return m_renderHandler;
+}
+
+CefRefPtr<CefRequestHandler> Client::GetRequestHandler()
+{
+    return m_requestHandler;
 }
 
 // CefLifeSpanHandler methods:
@@ -205,13 +236,8 @@ void Client::OnLoadError(
 
     CEF_REQUIRE_UI_THREAD();
 
-    // Don't display an error for downloaded files.
-    if (errorCode == ERR_ABORTED) {
-        return;
-    }
-
     if (frame->IsMain()) {
-        m_jobsManager->SetError(browser, errorCode);
+        m_jobsManager->Abort(browser, errorCode);
     }
 }
 

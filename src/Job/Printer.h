@@ -7,8 +7,6 @@
 #include "Remote.h"
 #include "StdInput.h"
 
-#include <cstdio> // std::tmpnam
-
 namespace cefpdf {
 namespace job {
 

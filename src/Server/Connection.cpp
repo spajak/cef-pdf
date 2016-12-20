@@ -83,10 +83,6 @@ void Connection::ParseRequest()
         m_request.content = m_requestData.substr(sepIndex + 4, m_requestData.size() - sepIndex + 4);
     }
 
-    if (m_request.content.size() == 0) {
-        m_request.content = "<!DOCTYPE html>";
-    }
-
     // Collect request headers
     std::regex re2("(.+): (.+)\r\n");
     std::string::const_iterator it, end;

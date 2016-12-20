@@ -9,6 +9,10 @@
 
 namespace cefpdf {
 
+std::string getCurrentWorkingDirectory();
+
+std::string getTempDirectory();
+
 namespace constants {
     // cef-pdf version number
     const std::string version = "0.2.0";
@@ -24,6 +28,11 @@ namespace constants {
     const std::string serverHost = "127.0.0.1";
     // Default TCP server port
     const std::string serverPort = "9288";
+
+    // Current working directory
+    const std::string cwd = getCurrentWorkingDirectory();
+    // Temp directory including trailing slash
+    const std::string temp = getTempDirectory();
 }
 
 struct PageSize
@@ -55,6 +64,14 @@ PageSize getPageSize(const CefString& str);
 PageMargin getPageMargin(const CefString& str);
 
 std::chrono::microseconds::rep microtime();
+
+std::string pathToUri(const std::string&);
+
+std::string reserveTempFile();
+
+std::string loadTempFile(const std::string&, bool remove = true);
+
+bool deleteTempFile(const std::string&);
 
 } // namespace cefpdf
 

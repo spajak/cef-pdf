@@ -26,25 +26,27 @@ void printHelp(std::string name)
     std::cout << "  Creates PDF files from HTML pages" << std::endl;
     std::cout << std::endl;
     std::cout << "Usage:" << std::endl;
-    std::cout << "  cef-pdf [options] [--url=<input>] [output]" << std::endl;
+    std::cout << "  cef-pdf [options] --url=<url>|--file=<path> [output]" << std::endl;
     std::cout << std::endl;
     std::cout << "Options:" << std::endl;
-    std::cout << "  --help -h          This help screen." << std::endl;
-    std::cout << "  --url=<input>      URL to load, may be http, file, data, anything supported by Chromium." << std::endl;
-    std::cout << "                     If omitted standard input is read." << std::endl;
-    std::cout << "  --size=<size>      Size (format) of the paper: A3, B2.. or custom <width>x<height> in mm." << std::endl;
-    std::cout << "                     " << cefpdf::constants::pageSize << " is the default." << std::endl;
-    std::cout << "  --list-sizes       Show all defined page sizes." << std::endl;
-    std::cout << "  --landscape        Wheather to print with a landscape page orientation." << std::endl;
-    std::cout << "                     Default is portrait" << std::endl;
-    std::cout << "  --margin=<margin>  Paper margins in mm (much like CSS margin but without units)" << std::endl;
-    std::cout << "                     If omitted some default margin is applied." << std::endl;
+    std::cout << "  --help -h        This help screen." << std::endl;
+    std::cout << "  --url=<url>      URL to load, may be http, file, data, anything supported by Chromium." << std::endl;
+    std::cout << "  --file=<path>    File path to load using file:// scheme. May be relative to current directory." << std::endl;
+    std::cout << "  --size=<spec>    Size (format) of the paper: A3, B2.. or custom <width>x<height> in mm." << std::endl;
+    std::cout << "                   " << cefpdf::constants::pageSize << " is the default." << std::endl;
+    std::cout << "  --list-sizes     Show all defined page sizes." << std::endl;
+    std::cout << "  --landscape      Wheather to print with a landscape page orientation." << std::endl;
+    std::cout << "                   Default is portrait" << std::endl;
+    std::cout << "  --margin=<spec>  Paper margins in mm (much like CSS margin but without units)" << std::endl;
+    std::cout << "                   If omitted some default margin is applied." << std::endl;
+    std::cout << "  --javascript     Enable JavaScript." << std::endl;
+    std::cout << "  --backgrounds    Print with backgrounds." << std::endl;
     std::cout << std::endl;
     std::cout << "Server options:" << std::endl;
-    std::cout << "  --server           Start HTTP server" << std::endl;
-    std::cout << "  --host=<host>      If starting server, specify ip address to bind to." << std::endl;
-    std::cout << "                     Default is " << cefpdf::constants::serverHost << std::endl;
-    std::cout << "  --port=<port>      Specify server port number. Default is " << cefpdf::constants::serverPort << std::endl;
+    std::cout << "  --server         Start HTTP server" << std::endl;
+    std::cout << "  --host=<host>    If starting server, specify ip address to bind to." << std::endl;
+    std::cout << "                   Default is " << cefpdf::constants::serverHost << std::endl;
+    std::cout << "  --port=<port>    Specify server port number. Default is " << cefpdf::constants::serverPort << std::endl;
     std::cout << std::endl;
     std::cout << "Output:" << std::endl;
     std::cout << "  PDF file name to create. Default is output.pdf" << std::endl;
@@ -71,26 +73,31 @@ std::string getExecutableName(CefRefPtr<CefCommandLine> commandLine)
     return program;
 }
 
-int runJob(CefRefPtr<CefCommandLine> commandLine)
+int runJob(CefRefPtr<cefpdf::Client> app, CefRefPtr<CefCommandLine> commandLine)
 {
     CefRefPtr<cefpdf::job::Job> job;
 
-    if (commandLine->HasSwitch("url")) {
-        job = new cefpdf::job::Remote(commandLine->GetSwitchValue("url"));
-    } else {
-        job = new cefpdf::job::StdInput;
-    }
-
-    // Set output file
-    CefCommandLine::ArgumentList args;
-    commandLine->GetArguments(args);
-    if (!args.empty()) {
-        job->SetOutputPath(args[0]);
-    } else {
-        job->SetOutputPath("output.pdf");
-    }
-
     try {
+        if (commandLine->HasSwitch("url")) {
+            job = new cefpdf::job::Remote(commandLine->GetSwitchValue("url"));
+        } else if (commandLine->HasSwitch("file")) {
+            job = new cefpdf::job::Remote(
+                cefpdf::pathToUri(commandLine->GetSwitchValue("file").ToString())
+            );
+        } else {
+            //job = new cefpdf::job::StdInput;
+            throw std::string("no input specified");
+        }
+
+        // Set output file
+        CefCommandLine::ArgumentList args;
+        commandLine->GetArguments(args);
+        if (!args.empty()) {
+            job->SetOutputPath(args[0]);
+        } else {
+            job->SetOutputPath("output.pdf");
+        }
+
         if (commandLine->HasSwitch("size")) {
             job->SetPageSize(commandLine->GetSwitchValue("size"));
         }
@@ -102,19 +109,25 @@ int runJob(CefRefPtr<CefCommandLine> commandLine)
         if (commandLine->HasSwitch("landscape")) {
             job->SetLandscape();
         }
+
+        if (commandLine->HasSwitch("backgrounds")) {
+            job->SetBackgrounds();
+        }
+
     } catch (std::string error) {
         std::cerr << "ERROR: " << error << std::endl;
+        app->Shutdown();
         return 1;
     }
 
-    CefRefPtr<cefpdf::Client> app = new cefpdf::Client(true);
+    app->SetStopAfterLastJob(true);
     app->PostJob(job);
     app->Run();
 
     return 0;
 }
 
-int runServer(CefRefPtr<CefCommandLine> commandLine)
+int runServer(CefRefPtr<cefpdf::Client> app, CefRefPtr<CefCommandLine> commandLine)
 {
     std::string port = cefpdf::constants::serverPort;
     if (commandLine->HasSwitch("port")) {
@@ -126,8 +139,7 @@ int runServer(CefRefPtr<CefCommandLine> commandLine)
         host = commandLine->GetSwitchValue("host").ToString();
     }
 
-    CefRefPtr<cefpdf::server::Server> server =
-        new cefpdf::server::Server(new cefpdf::Client(), host, port);
+    CefRefPtr<cefpdf::server::Server> server = new cefpdf::server::Server(app, host, port);
 
     server->Start();
 
@@ -136,15 +148,18 @@ int runServer(CefRefPtr<CefCommandLine> commandLine)
 
 int main(int argc, char* argv[])
 {
-#if !defined(OS_MACOSX)
+    CefRefPtr<cefpdf::Client> app = new cefpdf::Client();
+
 #if defined(OS_WIN)
     CefMainArgs mainArgs(::GetModuleHandle(NULL));
 #else
     CefMainArgs mainArgs(argc, argv);
 #endif // OS_WIN
+
+#if !defined(OS_MACOSX)
     // Execute the sub-process logic, if any. This will either return immediately for the browser
     // process or block until the sub-process should exit.
-    int exitCode = CefExecuteProcess(mainArgs, NULL, NULL);
+    int exitCode = app->ExecuteSubProcess(mainArgs);
     if (exitCode >= 0) {
         // The sub-process terminated, exit now.
         return exitCode;
@@ -169,5 +184,13 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    return commandLine->HasSwitch("server") ? runServer(commandLine) : runJob(commandLine);
+    app->Initialize(mainArgs);
+
+    if (commandLine->HasSwitch("javascript")) {
+        app->SetDisableJavaScript(false);
+    } else {
+        app->SetDisableJavaScript(true);
+    }
+
+    return commandLine->HasSwitch("server") ? runServer(app, commandLine) : runJob(app, commandLine);
 }

@@ -10,8 +10,8 @@ bool RenderHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect)
 {
     rect.x = 0;
     rect.y = 0;
-    rect.width = 0;
-    rect.height = 0;
+    rect.width = 128;
+    rect.height = 128;
     return true;
 }
 

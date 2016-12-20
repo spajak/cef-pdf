@@ -2,6 +2,7 @@
 
 #include "../Job/Local.h"
 #include "../Job/Remote.h"
+#include "../Common.h"
 
 #include "include/base/cef_bind.h"
 #include "include/wrapper/cef_closure_task.h"
@@ -17,6 +18,11 @@ namespace server {
 void RequestHandler::Handle(const http::Request& request, http::Response& response)
 {
     SetDate(response);
+
+    if (!(request.method == "GET" || request.method == "POST")) {
+        response.status = "HTTP/1.1 405 Method Not Allowed";
+        return;
+    }
 
     if (request.url == "/" || request.url == "/about") {
         response.status = "HTTP/1.1 200 OK";
@@ -48,6 +54,11 @@ void RequestHandler::Handle(const http::Request& request, http::Response& respon
     CefRefPtr<cefpdf::job::Job> job;
 
     if (location.empty()) {
+        if (request.method != "POST") {
+            response.status = "HTTP/1.1 405 Method Not Allowed";
+            return;
+        }
+
         if (request.content.empty()) {
             response.status = "HTTP/1.1 400 Bad Request";
             return;
@@ -67,7 +78,7 @@ void RequestHandler::Handle(const http::Request& request, http::Response& respon
     if (result == "success") {
         response.status = "HTTP/1.1 200 OK";
 
-        response.content = m_client->GetStorage()->Load(job->GetOutputPath());
+        response.content = loadTempFile(job->GetOutputPath());
 
         response.headers.push_back({"Content-Type", "application/pdf"});
         response.headers.push_back({"Content-Disposition", "inline; filename=\"" + fileName + ".pdf\""});

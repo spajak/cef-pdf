@@ -4,6 +4,8 @@
 #include "ContentProvider.h"
 
 #include "include/wrapper/cef_helpers.h"
+#include "include/base/cef_bind.h"
+#include "include/wrapper/cef_closure_task.h"
 
 namespace cefpdf {
 namespace job {
@@ -19,10 +21,13 @@ CefRefPtr<CefStreamReader> Manager::GetStreamReader(CefRefPtr<CefBrowser> browse
     auto it = Find(browser);
     DCHECK(it != m_jobs.end());
 
-    CefRefPtr<ContentProvider> provider = new ContentProvider;
-    it->job->accept(provider);
+    if (!it->streamReader.get()) {
+        CefRefPtr<ContentProvider> provider = new ContentProvider;
+        it->job->accept(provider);
+        it->streamReader = provider->GetStreamReader();
+    }
 
-    return provider->GetStreamReader();
+    return it->streamReader;
 }
 
 void Manager::Assign(CefRefPtr<CefBrowser> browser)
@@ -35,34 +40,38 @@ void Manager::Assign(CefRefPtr<CefBrowser> browser)
 
     m_jobsQueue.pop();
 
-    m_jobs.push_back(BrowserJob({browser, job, ErrorCode::ERR_NONE}));
+    m_jobs.push_back(BrowserJob({browser, job, NULL}));
 
     // Load URL to print
     CefRefPtr<Loader> loader = new Loader(browser->GetMainFrame());
     job->accept(loader);
 }
 
-void Manager::SetError(CefRefPtr<CefBrowser> browser, Manager::ErrorCode errorCode)
+void Manager::Abort(CefRefPtr<CefBrowser> browser, Manager::ErrorCode errorCode)
 {
     auto it = Find(browser);
     DCHECK(it != m_jobs.end());
-    DCHECK(errorCode != ErrorCode::ERR_NONE);
 
-    it->errorCode = errorCode;
-    it->job->Resolve("load-error");
+    Resolve(it, errorCode == ErrorCode::ERR_ABORTED ? "aborted" : "load-error");
 }
 
 void Manager::Process(CefRefPtr<CefBrowser> browser, int httpStatusCode)
 {
     auto it = Find(browser);
-    DCHECK(it != m_jobs.end());
 
-    if (it->errorCode == ErrorCode::ERR_NONE) {
-        // Print PDF
-        CefRefPtr<Printer> printer = new Printer(this, browser);
-        it->job->accept(printer);
-    } else {
-        Remove(it);
+    if (it != m_jobs.end()) {
+        if (!httpStatusCode || (200 <= httpStatusCode && 300 > httpStatusCode)) {
+            // Generate file name if empty
+            if (it->job->GetOutputPath().empty()) {
+                it->job->SetOutputPath(reserveTempFile());
+            }
+
+            // Print PDF
+            CefRefPtr<Printer> printer = new Printer(this, browser);
+            it->job->accept(printer);
+        } else {
+            Resolve(it, "status-error");
+        }
     }
 }
 
@@ -71,8 +80,7 @@ void Manager::Finish(CefRefPtr<CefBrowser> browser, const CefString& path, bool 
     auto it = Find(browser);
     DCHECK(it != m_jobs.end());
 
-    it->job->Resolve(ok ? "success" : "print-error");
-    Remove(it);
+    Resolve(it, ok ? "success" : "print-error");
 }
 
 Manager::Iterator Manager::Find(CefRefPtr<CefBrowser> browser)
@@ -86,9 +94,11 @@ Manager::Iterator Manager::Find(CefRefPtr<CefBrowser> browser)
     return m_jobs.end();
 }
 
-void Manager::Remove(Manager::Iterator it)
+void Manager::Resolve(Manager::Iterator it, const std::string& message)
 {
-    it->browser->GetHost()->CloseBrowser(true);
+    CefPostDelayedTask(TID_UI, base::Bind(&CefBrowserHost::CloseBrowser, it->browser->GetHost(), true), 50);
+
+    it->job->Resolve(message);
     m_jobs.erase(it);
 }
 
