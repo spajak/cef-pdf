@@ -113,9 +113,6 @@
 
 cmake_minimum_required(VERSION 2.8.12.1)
 
-set(USE_SANDBOX OFF)
-set(USE_ATL OFF)
-
 # Only generate Debug and Release configuration types.
 set(CMAKE_CONFIGURATION_TYPES Debug Release)
 
@@ -156,7 +153,7 @@ set_property(GLOBAL PROPERTY OS_FOLDERS ON)
 #    files as an example.
 # D. Comment in these lines:
 #
-set(CEF_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/cef")
+set(CEF_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/cef" CACHE STRING "Directory where CEF release is located")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CEF_ROOT}/cmake")
 
 # Example 3: The binary distribution is in a separate directory from your
@@ -200,14 +197,15 @@ find_package(CEF REQUIRED)
 # directory.
 add_subdirectory(${CEF_LIBCEF_DLL_WRAPPER_PATH} libcef_dll_wrapper)
 
+set(USE_SANDBOX OFF)
+set(USE_ATL OFF)
+
 include_directories("asio")
 add_definitions(-DASIO_STANDALONE -DASIO_NO_TYPEID)
 
 # Include application targets.
 # Comes from the <target>/CMakeLists.txt file in the current directory.
 # TODO: Change these lines to match your project target when you copy this file.
-#add_subdirectory(cefclient)
-#add_subdirectory(cefsimple)
 add_subdirectory(src)
 
 # Display configuration settings.

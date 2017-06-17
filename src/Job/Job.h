@@ -12,7 +12,7 @@
 namespace cefpdf {
 namespace job {
 
-class Job : public CefBase
+class Job : public CefBaseRefCounted
 {
 public:
     Job();

@@ -11,7 +11,7 @@
 namespace cefpdf {
 namespace server {
 
-class ConnectionManager : public CefBase
+class ConnectionManager : public CefBaseRefCounted
 {
 
 public:

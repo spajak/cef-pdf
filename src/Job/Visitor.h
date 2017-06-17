@@ -10,7 +10,7 @@ class Local;
 class Remote;
 class StdInput;
 
-class Visitor : public CefBase
+class Visitor : public CefBaseRefCounted
 {
 
 public:

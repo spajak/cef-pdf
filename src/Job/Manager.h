@@ -12,7 +12,7 @@
 namespace cefpdf {
 namespace job {
 
-class Manager : public CefBase
+class Manager : public CefBaseRefCounted
 {
 
 public:

@@ -36,8 +36,8 @@ if(OS_LINUX)
   add_executable(${CEF_TARGET} ${CEFPDF_SRCS})
   SET_EXECUTABLE_TARGET_PROPERTIES(${CEF_TARGET})
   add_dependencies(${CEF_TARGET} libcef_dll_wrapper)
-  target_link_libraries(${CEF_TARGET} libcef_lib libcef_dll_wrapper ${CEF_STANDARD_LIBS} -Wl,--no-fatal-warnings)
-  target_compile_options(${CEF_TARGET} PRIVATE -fexceptions)
+  target_link_libraries(${CEF_TARGET} libcef_lib libcef_dll_wrapper ${CEF_STANDARD_LIBS})
+  target_compile_options(${CEF_TARGET} PUBLIC -fexceptions)
 
   # Set rpath so that libraries can be placed next to the executable.
   set_target_properties(${CEF_TARGET} PROPERTIES INSTALL_RPATH "$ORIGIN")
@@ -122,9 +122,22 @@ if(OS_WINDOWS)
   # Executable target.
   add_executable(${CEF_TARGET} WIN32 ${CEFPDF_SRCS})
   add_dependencies(${CEF_TARGET} libcef_dll_wrapper)
+
+  list(APPEND CEF_COMPILER_DEFINES
+    _HAS_EXCEPTIONS=1
+  )
+
+  list(APPEND CEF_CXX_COMPILER_FLAGS
+    /EHsc
+  )
+
+  list(APPEND CEF_EXE_LINKER_FLAGS
+    /entry:mainCRTStartup
+    /subsystem:console
+  )
+
   SET_EXECUTABLE_TARGET_PROPERTIES(${CEF_TARGET})
   target_link_libraries(${CEF_TARGET} libcef_lib libcef_dll_wrapper ${CEF_STANDARD_LIBS})
-  target_compile_definitions(${CEF_TARGET} PRIVATE _HAS_EXCEPTIONS=1)
 
   if(USE_SANDBOX)
     # Logical target used to link the cef_sandbox library.

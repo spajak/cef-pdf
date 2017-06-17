@@ -12,15 +12,28 @@ class PrintHandler : public CefPrintHandler
     PrintHandler();
 
     // CefPrintHandler methods:
-    virtual CefSize GetPdfPaperSize(int device_units_per_inch) override;
+    virtual CefSize GetPdfPaperSize(CefRefPtr<CefBrowser> browser, int device_units_per_inch) override;
 
-    virtual bool OnPrintDialog(bool has_selection, CefRefPtr<CefPrintDialogCallback> callback) override;
+    virtual bool OnPrintDialog(
+        CefRefPtr<CefBrowser> browser,
+        bool has_selection,
+        CefRefPtr<CefPrintDialogCallback> callback
+    ) override;
 
-    virtual bool OnPrintJob(const CefString& document_name, const CefString& pdf_file_path, CefRefPtr<CefPrintJobCallback> callback) override;
+    virtual bool OnPrintJob(
+        CefRefPtr<CefBrowser> browser,
+        const CefString& document_name,
+        const CefString& pdf_file_path,
+        CefRefPtr<CefPrintJobCallback> callback
+    ) override;
 
-    virtual void OnPrintReset() override;
+    virtual void OnPrintReset(CefRefPtr<CefBrowser> browser) override;
 
-    virtual void OnPrintSettings(CefRefPtr<CefPrintSettings> settings, bool get_defaults) override;
+    virtual void OnPrintSettings(
+        CefRefPtr<CefBrowser> browser,
+        CefRefPtr<CefPrintSettings> settings,
+        bool get_defaults
+    ) override;
 
     virtual void OnPrintStart(CefRefPtr<CefBrowser> browser) override;
 

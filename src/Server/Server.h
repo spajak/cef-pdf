@@ -15,7 +15,7 @@
 namespace cefpdf {
 namespace server {
 
-class Server : public CefBase
+class Server : public CefBaseRefCounted
 {
 
 public:

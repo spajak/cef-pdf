@@ -9,7 +9,7 @@
 namespace cefpdf {
 namespace server {
 
-class RequestHandler : public CefBase
+class RequestHandler : public CefBaseRefCounted
 {
 public:
     RequestHandler(CefRefPtr<cefpdf::Client> client) :

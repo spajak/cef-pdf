@@ -16,7 +16,7 @@ namespace server {
 
 class ConnectionManager;
 
-class Connection : public CefBase
+class Connection : public CefBaseRefCounted
 {
 public:
     Connection(
