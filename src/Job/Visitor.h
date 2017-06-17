@@ -14,7 +14,7 @@ class Visitor : public CefBaseRefCounted
 {
 
 public:
-    Visitor() {};
+    Visitor() {}
 
     virtual void visit(CefRefPtr<Local>) = 0;
     virtual void visit(CefRefPtr<Remote>) = 0;
@@ -22,7 +22,7 @@ public:
 
 private:
     // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(Visitor);
+    IMPLEMENT_REFCOUNTING(Visitor)
 };
 
 } // namespace job

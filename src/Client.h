@@ -46,25 +46,25 @@ public:
     // Get the number of running job processes
     unsigned int GetProcessCount() {
         return m_processCount;
-    };
+    }
 
     void SetStopAfterLastJob(bool flag) {
         m_stopAfterLastJob = flag;
-    };
+    }
 
     void SetDisableJavaScript(bool flag) {
         m_browserSettings.javascript = flag ? STATE_DISABLED : STATE_ENABLED;
-    };
+    }
 
     void SetAllowedSchemes(const std::set<std::string>& schemes) {
         for (auto s: schemes) {
             m_requestHandler->AddAllowedScheme(s);
         }
-    };
+    }
 
     void ClearAllowedSchemes() {
         m_requestHandler->ClearAllowedSchemes();
-    };
+    }
 
     // CefApp methods:
     virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() override;
@@ -124,7 +124,7 @@ private:
     CefRefPtr<RequestHandler> m_requestHandler;
 
     // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(Client);
+    IMPLEMENT_REFCOUNTING(Client)
 };
 
 } // namespace cefpdf

@@ -7,8 +7,8 @@ namespace cefpdf {
 
 class PrintHandler : public CefPrintHandler
 {
-    public:
 
+public:
     PrintHandler();
 
     // CefPrintHandler methods:
@@ -37,10 +37,9 @@ class PrintHandler : public CefPrintHandler
 
     virtual void OnPrintStart(CefRefPtr<CefBrowser> browser) override;
 
-    private:
-
+private:
     // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(PrintHandler);
+    IMPLEMENT_REFCOUNTING(PrintHandler)
 };
 
 } // namespace cefpdf

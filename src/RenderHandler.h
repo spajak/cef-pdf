@@ -7,8 +7,8 @@ namespace cefpdf {
 
 class RenderHandler : public CefRenderHandler
 {
-    public:
 
+public:
     RenderHandler();
 
     // CefRenderHandler methods:
@@ -21,10 +21,9 @@ class RenderHandler : public CefRenderHandler
         const void* buffer, int width, int height
     ) override;
 
-    private:
-
+private:
     // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(RenderHandler);
+    IMPLEMENT_REFCOUNTING(RenderHandler)
 };
 
 } // namespace cefpdf

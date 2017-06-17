@@ -18,7 +18,7 @@ class Manager : public CefBaseRefCounted
 public:
     typedef CefLoadHandler::ErrorCode ErrorCode;
 
-    Manager() {};
+    Manager() {}
 
     std::size_t Queue(CefRefPtr<Job> job);
 
@@ -52,7 +52,7 @@ private:
     unsigned int m_counter = 0;
 
     // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(Manager);
+    IMPLEMENT_REFCOUNTING(Manager)
 };
 
 } // namespace job
