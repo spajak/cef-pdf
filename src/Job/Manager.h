@@ -49,8 +49,6 @@ private:
 
     void Resolve(Manager::Iterator it, const std::string&);
 
-    unsigned int m_counter = 0;
-
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(Manager)
 };
