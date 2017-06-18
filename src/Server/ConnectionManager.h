@@ -11,12 +11,12 @@
 namespace cefpdf {
 namespace server {
 
-class ConnectionManager : public CefBase
+class ConnectionManager : public CefBaseRefCounted
 {
 
 public:
     ConnectionManager(CefRefPtr<RequestHandler> requestHandler) :
-        m_requestHandler(requestHandler) {};
+        m_requestHandler(requestHandler) {}
 
     ConnectionManager(const ConnectionManager&) = delete;
     ConnectionManager& operator=(const ConnectionManager&) = delete;
@@ -32,7 +32,7 @@ private:
     CefRefPtr<RequestHandler> m_requestHandler;
 
     // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(ConnectionManager);
+    IMPLEMENT_REFCOUNTING(ConnectionManager)
 };
 
 } // namespace server

@@ -10,25 +10,25 @@ class Local : public Job
 {
 
 public:
-    Local(const std::string& content) : Job(), m_content(content) {};
+    Local(const std::string& content) : Job(), m_content(content) {}
 
     virtual const std::string& GetContent() const {
         return m_content;
-    };
+    }
 
     void SetContent(const std::string& content) {
         m_content = content;
-    };
+    }
 
-    virtual void accept(CefRefPtr<Visitor> visitor) {
+    virtual void accept(CefRefPtr<Visitor> visitor) override {
         visitor->visit(this);
-    };
+    }
 
 private:
     std::string m_content;
 
     // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(Local);
+    IMPLEMENT_REFCOUNTING(Local)
 };
 
 } // namespace job

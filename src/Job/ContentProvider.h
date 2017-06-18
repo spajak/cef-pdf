@@ -14,32 +14,32 @@ class ContentProvider : public Visitor
 {
 
 public:
-    ContentProvider() {};
+    ContentProvider() {}
 
     CefRefPtr<CefStreamReader> GetStreamReader() const {
         return m_reader;
-    };
+    }
 
-    virtual void visit(CefRefPtr<Local> job) {
+    virtual void visit(CefRefPtr<Local> job) override {
         m_reader = CefStreamReader::CreateForData(
             static_cast<void*>(const_cast<char*>(job->GetContent().c_str())),
             job->GetContent().size()
         );
-    };
+    }
 
-    virtual void visit(CefRefPtr<Remote> job) {
+    virtual void visit(CefRefPtr<Remote> job) override {
         // no implementation
-    };
+    }
 
-    virtual void visit(CefRefPtr<StdInput> job) {
+    virtual void visit(CefRefPtr<StdInput> job) override {
         m_reader = CefStreamReader::CreateForHandler(new StdInputStreamReader);
-    };
+    }
 
 private:
     CefRefPtr<CefStreamReader> m_reader;
 
     // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(ContentProvider);
+    IMPLEMENT_REFCOUNTING(ContentProvider)
 };
 
 } // namespace job

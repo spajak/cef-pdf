@@ -15,7 +15,7 @@
 namespace cefpdf {
 namespace server {
 
-class Server : public CefBase
+class Server : public CefBaseRefCounted
 {
 
 public:
@@ -38,7 +38,7 @@ private:
     int m_counter;
 
     // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(Server);
+    IMPLEMENT_REFCOUNTING(Server)
 };
 
 } // namespace server

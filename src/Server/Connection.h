@@ -16,40 +16,41 @@ namespace server {
 
 class ConnectionManager;
 
-class Connection : public CefBase
+class Connection : public CefBaseRefCounted
 {
+
 public:
     Connection(
         CefRefPtr<ConnectionManager> connectionManager,
         asio::ip::tcp::socket socket
     ) :
         m_connectionManager(connectionManager),
-        m_socket(std::move(socket)) {};
+        m_socket(std::move(socket)) {}
 
     Connection(const Connection&) = delete;
     Connection& operator=(const Connection&) = delete;
 
     void Start() {
         ReadSome();
-    };
+    }
 
     void Write();
 
     bool isOpen() {
         return m_socket.is_open();
-    };
+    }
 
     void Close() {
         m_socket.close();
-    };
+    }
 
     const http::Request& GetRequest() const {
         return m_request;
-    };
+    }
 
     http::Response& GetResponse() {
         return m_response;
-    };
+    }
 
 private:
     void ReadSome();
@@ -67,7 +68,7 @@ private:
     std::string m_requestData;
 
     // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(Connection);
+    IMPLEMENT_REFCOUNTING(Connection)
 };
 
 } // namespace server

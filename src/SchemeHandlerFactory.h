@@ -25,7 +25,7 @@ private:
     CefRefPtr<job::Manager> m_jobsManager;
 
     // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(SchemeHandlerFactory);
+    IMPLEMENT_REFCOUNTING(SchemeHandlerFactory)
 };
 
 } // namespace cefpdf

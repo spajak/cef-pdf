@@ -44,12 +44,7 @@ In addition to POSTing content inside the request body, special HTTP header `Con
 
 ### Building
 
-In order to build, [CEF build distribution files](http://opensource.spotify.com/cefbuilds/index.html) must be placed in cef/ subdirectory. `cef-pdf` should compile without problems with cmake/ninja on Windows 7+ and Linux (tested on Debian 8.5.0 x64), using decent C++11 compiler. Mac OS X needs some work (contributors welcome).
-
-### TODO
-
- - Mac OS X versions
- - Improve performance
+In order to build, [CEF build distribution files](http://opensource.spotify.com/cefbuilds/index.html) must be placed in cef/ subdirectory. `cef-pdf` should compile without problems with cmake/ninja on Windows (7, x64), Linux (tested on Debian 8.5.0, x64) and Mac OS X (10.11.6) using decent C++11 compiler.
 
 ### License
 

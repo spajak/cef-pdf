@@ -12,28 +12,29 @@
 namespace cefpdf {
 namespace job {
 
-class Job : public CefBase
+class Job : public CefBaseRefCounted
 {
+
 public:
     Job();
 
     std::future<std::string> GetFuture() {
         return m_promise.get_future();
-    };
+    }
 
     void Resolve(std::string value) {
         m_promise.set_value(value);
-    };
+    }
 
     virtual void accept(CefRefPtr<Visitor> visitor) = 0;
 
     const CefString& GetOutputPath() const {
         return m_outputPath;
-    };
+    }
 
     void SetOutputPath(const CefString& outputPath) {
         m_outputPath = outputPath;
-    };
+    }
 
     void SetPageSize(const CefString& pageSize);
 
@@ -55,7 +56,7 @@ private:
     std::promise<std::string> m_promise;
 
     // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(Job);
+    IMPLEMENT_REFCOUNTING(Job)
 };
 
 } // namespace job
