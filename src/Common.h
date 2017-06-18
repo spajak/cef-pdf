@@ -15,7 +15,7 @@ std::string getTempDirectory();
 
 namespace constants {
     // cef-pdf version number
-    const std::string version = "0.2.1";
+    const std::string version = "0.3.0";
     // Internal scheme
     const std::string scheme = "cefpdf";
     // Default page size

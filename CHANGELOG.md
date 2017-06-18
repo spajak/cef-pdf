@@ -1,5 +1,10 @@
 Changelog
 ===
+### 0.3.0 (2017-06-18)
+* Building with CEF 3.3071.1640.g1ebbf3c / Chromium 59.0.3071.82 (Windows, Linux & OS X, 64bit)
+* Now possible to build on Mac OS X. Tested on 10.11.6 with XCode ver. 8.2.0. Experimental
+* Bug fixes. Code cleanup and better formatting
+
 ### 0.2.1 (2016-12-20)
 * Bulding with CEF 3.2883.1540.gedbfb20 / Chromium 55.0.2883.59 (Windows & Linux, 64bit)
 * Allow only specified schemes when in server mode (ie. block `file://` access)
