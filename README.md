@@ -14,11 +14,11 @@
                        A4 is the default.
       --list-sizes     Show all defined page sizes.
       --landscape      Wheather to print with a landscape page orientation.
-                       Default is portrait
+                       Default is portrait.
       --margin=<spec>  Paper margins in mm (much like CSS margin but without units)
                        If omitted some default margin is applied.
       --javascript     Enable JavaScript.
-      --backgrounds    Print with backgrounds.
+      --backgrounds    Print with backgrounds. Default is without.
 
     Server options:
       --server         Start HTTP server
@@ -44,7 +44,14 @@ In addition to POSTing content inside the request body, special HTTP header `Con
 
 ### Building
 
-In order to build, [CEF build distribution files](http://opensource.spotify.com/cefbuilds/index.html) must be placed in cef/ subdirectory. `cef-pdf` should compile without problems with cmake/ninja on Windows (7, x64), Linux (tested on Debian 8.5.0, x64) and Mac OS X (10.11.6) using decent C++11 compiler.
+`cef-pdf` should compile without problems with cmake/ninja on Windows (7, x64), Linux (tested on Debian 8.5.0, x64) and Mac OS X (10.11.6) using decent C++11 compiler. In order to build, [CEF build distribution files](http://opensource.spotify.com/cefbuilds/index.html) must be downloaded and placed in some directory, like `/path/to/cef/release` in the example below.
+
+```
+$ mkdir ~/build
+$ cd ~/build
+$ cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCEF_ROOT=/path/to/cef/release /path/to/cef-pdf
+$ ninja
+```
 
 ### License
 

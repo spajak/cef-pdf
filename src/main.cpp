@@ -32,11 +32,11 @@ void printHelp(std::string name)
     std::cout << "                   " << cefpdf::constants::pageSize << " is the default." << std::endl;
     std::cout << "  --list-sizes     Show all defined page sizes." << std::endl;
     std::cout << "  --landscape      Wheather to print with a landscape page orientation." << std::endl;
-    std::cout << "                   Default is portrait" << std::endl;
+    std::cout << "                   Default is portrait." << std::endl;
     std::cout << "  --margin=<spec>  Paper margins in mm (much like CSS margin but without units)" << std::endl;
     std::cout << "                   If omitted some default margin is applied." << std::endl;
     std::cout << "  --javascript     Enable JavaScript." << std::endl;
-    std::cout << "  --backgrounds    Print with backgrounds." << std::endl;
+    std::cout << "  --backgrounds    Print with backgrounds. Default is without." << std::endl;
     std::cout << std::endl;
     std::cout << "Server options:" << std::endl;
     std::cout << "  --server         Start HTTP server" << std::endl;
