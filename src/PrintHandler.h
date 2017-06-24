@@ -12,7 +12,7 @@ public:
     PrintHandler();
 
     // CefPrintHandler methods:
-    virtual CefSize GetPdfPaperSize(CefRefPtr<CefBrowser> browser, int device_units_per_inch) override;
+    virtual CefSize GetPdfPaperSize(int device_units_per_inch) override;
 
     virtual bool OnPrintDialog(
         CefRefPtr<CefBrowser> browser,
