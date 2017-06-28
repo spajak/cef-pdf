@@ -10,7 +10,7 @@
 #include <iostream>
 #include <string>
 #include <regex>
-#include <ctime>
+#include <iomanip>
 
 namespace cefpdf {
 namespace server {
@@ -92,9 +92,9 @@ void RequestHandler::Handle(const http::Request& request, http::Response& respon
 void RequestHandler::SetDate(http::Response& response)
 {
     std::time_t t = std::time(nullptr);
-    char buff[100];
-    strftime(buff, 100, "%a, %d %h %Y %T GMT", std::gmtime(&t));
-    response.headers.push_back({"Date", std::string(buff)});
+    std::ostringstream buffer;
+    buffer << std::put_time(std::gmtime(&t), "%a, %d %h %Y %T GMT");
+    response.headers.push_back({"Date", buffer.str()});
 }
 
 void RequestHandler::SetContentLength(http::Response& response)
