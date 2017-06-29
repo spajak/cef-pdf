@@ -7,37 +7,36 @@
 #include "include/base/cef_bind.h"
 #include "include/wrapper/cef_closure_task.h"
 
-#include <iostream>
 #include <string>
 #include <regex>
-#include <iomanip>
 
 namespace cefpdf {
 namespace server {
 
 void RequestHandler::Handle(const http::Request& request, http::Response& response)
 {
-    SetDate(response);
+    response.SetStatus(http::statuses::ok);
+    response.SetHeader(http::headers::date, formatDate());
 
     if (!(request.method == "GET" || request.method == "POST")) {
-        response.status = "HTTP/1.1 405 Method Not Allowed";
+        response.SetStatus(http::statuses::badMethod);
         return;
     }
 
     if (request.url == "/" || request.url == "/about") {
-        response.status = "HTTP/1.1 200 OK";
-        response.headers.push_back({"Content-Type", "application/json"});
-        response.content = "{\"status\":\"ok\",\"version\":\"" + cefpdf::constants::version + "\"}";
-        SetContentLength(response);
+        response.SetContent(
+            "{\"status\":\"ok\",\"version\":\"" + cefpdf::constants::version + "\"}",
+            "application/json"
+        );
         return;
     }
 
     // Parse url path
-    std::regex re("([^/]+)\\.pdf");
+    std::regex re("([^/]+\\.pdf)($|[^\\w])", std::regex_constants::icase);
     std::smatch match;
 
     if (!std::regex_search(request.url, match, re)) {
-        response.status = "HTTP/1.1 404 Not Found";
+        response.SetStatus(http::statuses::notFound);
         return;
     }
 
@@ -45,7 +44,7 @@ void RequestHandler::Handle(const http::Request& request, http::Response& respon
     std::string location;
 
     for (auto h: request.headers) {
-        if (h.name.compare("Content-Location") == 0) {
+        if (h.name.compare(http::headers::location) == 0) {
             location = h.value;
             break;
         }
@@ -55,12 +54,12 @@ void RequestHandler::Handle(const http::Request& request, http::Response& respon
 
     if (location.empty()) {
         if (request.method != "POST") {
-            response.status = "HTTP/1.1 405 Method Not Allowed";
+            response.SetStatus(http::statuses::badMethod);
             return;
         }
 
         if (request.content.empty()) {
-            response.status = "HTTP/1.1 400 Bad Request";
+            response.SetStatus(http::statuses::badRequest);
             return;
         }
 
@@ -76,30 +75,11 @@ void RequestHandler::Handle(const http::Request& request, http::Response& respon
     std::string result = future.get();
 
     if (result == "success") {
-        response.status = "HTTP/1.1 200 OK";
-
-        response.content = loadTempFile(job->GetOutputPath());
-
-        response.headers.push_back({"Content-Type", "application/pdf"});
-        response.headers.push_back({"Content-Disposition", "inline; filename=\"" + fileName + ".pdf\""});
-
-        SetContentLength(response);
+        response.SetContent(loadTempFile(job->GetOutputPath()), "application/pdf");
+        response.SetHeader(http::headers::disposition, "inline; filename=\"" + fileName + "\"");
     } else {
-        response.status = "HTTP/1.1 500 Internal Server Error";
+        response.SetStatus(http::statuses::error);
     }
-}
-
-void RequestHandler::SetDate(http::Response& response)
-{
-    std::time_t t = std::time(nullptr);
-    std::ostringstream buffer;
-    buffer << std::put_time(std::gmtime(&t), "%a, %d %h %Y %T GMT");
-    response.headers.push_back({"Date", buffer.str()});
-}
-
-void RequestHandler::SetContentLength(http::Response& response)
-{
-    response.headers.push_back({"Content-Length", std::to_string(response.content.size())});
 }
 
 } // namespace server

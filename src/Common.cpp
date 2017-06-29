@@ -10,6 +10,8 @@
 #include <functional>
 #include <random>
 #include <cstdlib>
+#include <sstream>
+#include <iomanip>
 
 #if !defined(OS_WIN)
 #include <unistd.h> // getcwd()
@@ -320,6 +322,14 @@ std::string loadTempFile(const std::string& path, bool remove)
 bool deleteTempFile(const std::string& path)
 {
     return 0 == std::remove(path.c_str());
+}
+
+std::string formatDate(const char* format, std::time_t* arg)
+{
+    std::time_t t = std::time(arg);
+    std::ostringstream buffer;
+    buffer << std::put_time(std::gmtime(&t), format);
+    return buffer.str();
 }
 
 } // namespace cefpdf

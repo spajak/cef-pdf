@@ -6,6 +6,7 @@
 #include <string>
 #include <list>
 #include <chrono>
+#include <ctime>
 
 namespace cefpdf {
 
@@ -72,6 +73,8 @@ std::string reserveTempFile();
 std::string loadTempFile(const std::string&, bool remove = true);
 
 bool deleteTempFile(const std::string&);
+
+std::string formatDate(const char* format = "%a, %d %h %Y %T GMT", std::time_t* arg = nullptr);
 
 } // namespace cefpdf
 
