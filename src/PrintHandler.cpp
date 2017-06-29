@@ -10,7 +10,9 @@ PrintHandler::PrintHandler() {}
 // -------------------------------------------------------------------------
 CefSize PrintHandler::GetPdfPaperSize(int device_units_per_inch)
 {
-    DLOG(INFO) << "PrintHandler::GetPdfPaperSize: " << device_units_per_inch;
+    DLOG(INFO)
+        << "PrintHandler::GetPdfPaperSize"
+        << " with device_units_per_inch: " << device_units_per_inch;
 
     return CefSize(device_units_per_inch*100, device_units_per_inch*100*2);
 }

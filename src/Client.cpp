@@ -110,6 +110,11 @@ void Client::OnRegisterCustomSchemes(CefRawPtr<CefSchemeRegistrar> registrar)
 
 void Client::OnBeforeCommandLineProcessing(const CefString& process_type, CefRefPtr<CefCommandLine> command_line)
 {
+    DLOG(INFO)
+        << "Client::OnBeforeCommandLineProcessing"
+        << " with process_type: " << process_type.ToString()
+        << ", command_line: " << command_line->GetCommandLineString().ToString();
+
     command_line->AppendSwitch("disable-gpu");
     command_line->AppendSwitch("disable-gpu-compositing");
 };
@@ -123,12 +128,14 @@ CefRefPtr<CefPrintHandler> Client::GetPrintHandler()
 
 void Client::OnBeforeChildProcessLaunch(CefRefPtr<CefCommandLine> command_line)
 {
-    DLOG(INFO) << "OnBeforeChildProcessLaunch: " << command_line->GetCommandLineString().ToString() ;
+    DLOG(INFO)
+        << "Client::OnBeforeChildProcessLaunch"
+        << " with command_line: " << command_line->GetCommandLineString().ToString();
 }
 
 void Client::OnContextInitialized()
 {
-    DLOG(INFO) << "OnContextInitialized";
+    DLOG(INFO) << "Client::OnContextInitialized";
 
     CEF_REQUIRE_UI_THREAD();
 
@@ -163,7 +170,7 @@ CefRefPtr<CefRequestHandler> Client::GetRequestHandler()
 // -----------------------------------------------------------------------------
 void Client::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 {
-    DLOG(INFO) << "OnAfterCreated";
+    DLOG(INFO) << "Client::OnAfterCreated";
 
     CEF_REQUIRE_UI_THREAD();
 
@@ -174,7 +181,7 @@ void Client::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 
 bool Client::DoClose(CefRefPtr<CefBrowser> browser)
 {
-    DLOG(INFO) << "DoClose";
+    DLOG(INFO) << "Client::DoClose";
 
     CEF_REQUIRE_UI_THREAD();
 
@@ -185,7 +192,7 @@ bool Client::DoClose(CefRefPtr<CefBrowser> browser)
 
 void Client::OnBeforeClose(CefRefPtr<CefBrowser> browser)
 {
-    DLOG(INFO) << "OnBeforeClose";
+    DLOG(INFO) << "Client::OnBeforeClose";
 
     CEF_REQUIRE_UI_THREAD();
 
@@ -201,7 +208,9 @@ void Client::OnBeforeClose(CefRefPtr<CefBrowser> browser)
 // -----------------------------------------------------------------------------
 void Client::OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, TransitionType transition_type)
 {
-    DLOG(INFO) << "OnLoadStart" << ", url: " << frame->GetURL().ToString();
+    DLOG(INFO)
+        << "Client::OnLoadStart"
+        << " with url: " << frame->GetURL().ToString();
 
     CEF_REQUIRE_UI_THREAD();
 }
@@ -209,8 +218,8 @@ void Client::OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> fram
 void Client::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode)
 {
     DLOG(INFO)
-        << "OnLoadEnd"
-        << ", url: " << frame->GetURL().ToString()
+        << "Client::OnLoadEnd"
+        << " with url: " << frame->GetURL().ToString()
         << ", httpStatusCode: " << httpStatusCode;
 
     CEF_REQUIRE_UI_THREAD();
@@ -228,8 +237,8 @@ void Client::OnLoadError(
     const CefString& failedUrl
 ) {
     DLOG(INFO)
-        << "OnLoadError"
-        << ", errorCode: " << errorCode
+        << "Client::OnLoadError"
+        << " with errorCode: " << errorCode
         << ", failedUrl: " << failedUrl.ToString();
 
     CEF_REQUIRE_UI_THREAD();

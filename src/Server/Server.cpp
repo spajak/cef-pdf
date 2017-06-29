@@ -66,7 +66,7 @@ void Server::Run()
     Listen();
     m_ioService.run();
 
-    DLOG(INFO) << "Server thread finished";
+    LOG(INFO) << "HTTP server thread finished";
 }
 
 void Server::Listen()
@@ -76,7 +76,7 @@ void Server::Listen()
 
 void Server::OnSignal(std::error_code error, int signno)
 {
-    DLOG(INFO) << "Received shutdown signal";
+    DLOG(INFO) << "HTTP server received shutdown signal";
 
     m_connectionManager->StopAll();
     m_acceptor.close();
@@ -98,7 +98,7 @@ void Server::OnConnection(std::error_code error)
             new Connection(m_connectionManager, std::move(m_socket))
         );
         ++m_counter;
-        LOG(INFO) << "Got hit no. " << m_counter << " from " << clientIp;
+        LOG(INFO) << "Got HTTP hit no. " << m_counter << " from " << clientIp;
         Listen();
     }
 }
