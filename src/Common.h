@@ -14,6 +14,8 @@ std::string getCurrentWorkingDirectory();
 
 std::string getTempDirectory();
 
+std::string getProcessId();
+
 namespace constants {
     // cef-pdf version number
     const std::string version = "0.3.0";
@@ -32,8 +34,10 @@ namespace constants {
 
     // Current working directory
     const std::string cwd = getCurrentWorkingDirectory();
-    // Temp directory including trailing slash
+    // Temp directory (including trailing slash)
     const std::string temp = getTempDirectory();
+    // Current process ID
+    const std::string pid = getProcessId();
 }
 
 struct PageSize

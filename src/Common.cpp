@@ -14,6 +14,8 @@
 #include <iomanip>
 
 #if !defined(OS_WIN)
+#include <sys/types.h> // pid_t
+#include <sys/stat.h> // stat()
 #include <unistd.h> // getcwd()
 #endif
 
@@ -259,7 +261,7 @@ std::string getCurrentWorkingDirectory()
     return result;
 #else
     char result[2*4096];
-    return getcwd(result, 2*4096);
+    return ::getcwd(result, sizeof(result));
 #endif // OS_WIN
 }
 
@@ -276,11 +278,25 @@ std::string getTempDirectory()
     for (int i = 0; i < 4; ++i) {
         char* val = std::getenv(vars[i]);
         if (val) {
-            return std::string(val) + "/";
+            auto p = std::string(val);
+            if (p.back() != '/') {
+                p += '/';
+            }
+
+            return p;
         }
     }
 
     return "/tmp/";
+#endif // OS_WIN
+}
+
+std::string getProcessId()
+{
+#if defined(OS_WIN)
+    return std::to_string(::GetCurrentProcessId());
+#else
+    return std::to_string(::getpid());
 #endif // OS_WIN
 }
 
