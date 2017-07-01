@@ -35,7 +35,7 @@ namespace constants {
     // Current working directory
     const std::string cwd = getCurrentWorkingDirectory();
     // Temp directory (including trailing slash)
-    const std::string temp = getTempDirectory();
+    const std::string tmp = getTempDirectory();
     // Current process ID
     const std::string pid = getProcessId();
 }
@@ -62,15 +62,13 @@ typedef std::list<PageSize> PageSizesMap;
 
 extern PageSizesMap pageSizesMap;
 
-std::string strtolower(std::string s);
-
 PageSize getPageSize(const CefString& str);
 
 PageMargin getPageMargin(const CefString& str);
 
-std::chrono::microseconds::rep microtime();
-
 std::string pathToUri(const std::string&);
+
+bool fileExists(const std::string& path);
 
 std::string reserveTempFile();
 
