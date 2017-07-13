@@ -13,6 +13,9 @@
 namespace cefpdf {
 namespace server {
 
+RequestHandler::RequestHandler(CefRefPtr<cefpdf::Client> client) :
+    m_client(client) {}
+
 void RequestHandler::Handle(const http::Request& request, http::Response& response)
 {
     response.SetStatus(http::statuses::ok);
@@ -69,9 +72,8 @@ void RequestHandler::Handle(const http::Request& request, http::Response& respon
     }
 
     auto future = job->GetFuture();
-
-    CefPostTask(TID_UI, base::Bind(&cefpdf::Client::PostJob, m_client.get(), job.get()));
-
+    //m_client->PostJob(job);
+    CefPostTask(TID_UI, base::Bind(&cefpdf::Client::AddJob, m_client, job.get()));
     std::string result = future.get();
 
     if (result == "success") {

@@ -13,11 +13,7 @@ class RequestHandler : public CefBaseRefCounted
 {
 
 public:
-    RequestHandler(CefRefPtr<cefpdf::Client> client) :
-        m_client(client) {}
-
-    RequestHandler(const RequestHandler&) = delete;
-    RequestHandler& operator=(const RequestHandler&) = delete;
+    RequestHandler(CefRefPtr<cefpdf::Client>);
 
     void Handle(const http::Request&, http::Response&);
 

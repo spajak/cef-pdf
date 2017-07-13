@@ -117,7 +117,7 @@ int runJob(CefRefPtr<cefpdf::Client> app, CefRefPtr<CefCommandLine> commandLine)
     }
 
     app->SetStopAfterLastJob(true);
-    app->PostJob(job);
+    app->AddJob(job);
     app->Run();
 
     return 0;

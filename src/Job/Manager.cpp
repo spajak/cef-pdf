@@ -50,9 +50,9 @@ void Manager::Assign(CefRefPtr<CefBrowser> browser)
 void Manager::Abort(CefRefPtr<CefBrowser> browser, Manager::ErrorCode errorCode)
 {
     auto it = Find(browser);
-    DCHECK(it != m_jobs.end());
-
-    Resolve(it, errorCode == ErrorCode::ERR_ABORTED ? "aborted" : "load-error");
+    if (it != m_jobs.end()) {
+        Resolve(it, errorCode == ErrorCode::ERR_ABORTED ? "aborted" : "load-error");
+    }
 }
 
 void Manager::Process(CefRefPtr<CefBrowser> browser, int httpStatusCode)
@@ -78,9 +78,9 @@ void Manager::Process(CefRefPtr<CefBrowser> browser, int httpStatusCode)
 void Manager::Finish(CefRefPtr<CefBrowser> browser, const CefString& path, bool ok)
 {
     auto it = Find(browser);
-    DCHECK(it != m_jobs.end());
-
-    Resolve(it, ok ? "success" : "print-error");
+    if (it != m_jobs.end()) {
+        Resolve(it, ok ? "success" : "print-error");
+    }
 }
 
 Manager::Iterator Manager::Find(CefRefPtr<CefBrowser> browser)
@@ -96,10 +96,29 @@ Manager::Iterator Manager::Find(CefRefPtr<CefBrowser> browser)
 
 void Manager::Resolve(Manager::Iterator it, const std::string& message)
 {
-    CefPostDelayedTask(TID_UI, base::Bind(&CefBrowserHost::CloseBrowser, it->browser->GetHost(), true), 50);
-
     it->job->Resolve(message);
+
+    auto host = it->browser->GetHost();
     m_jobs.erase(it);
+    host->CloseBrowser(true);
+}
+
+void Manager::StopAll()
+{
+    while (!m_jobsQueue.empty()) {
+        auto job = m_jobsQueue.front();
+        m_jobsQueue.pop();
+        job->Abort();
+    }
+
+    for (auto it = m_jobs.begin(); it != m_jobs.end(); ++it) {
+        it->job->Abort();
+        auto host = it->browser->GetHost();
+        it->browser = NULL;
+        host->CloseBrowser(true);
+    }
+
+    m_jobs.clear();
 }
 
 } // namespace job

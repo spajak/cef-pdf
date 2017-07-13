@@ -40,12 +40,18 @@ public:
     // Stop message loop and/or shutdown CEF
     void Stop();
 
+    // Post delayed stop
+    void PostStop();
+
+    // Add new job to the queue and process it
+    void AddJob(CefRefPtr<job::Job> job);
+
     // Add new job to the queue and process it
     void PostJob(CefRefPtr<job::Job> job);
 
     // Get the number of running job processes
     unsigned int GetProcessCount() {
-        return m_processCount;
+        return m_browsersCount;
     }
 
     void SetStopAfterLastJob(bool flag) {
@@ -107,15 +113,16 @@ public:
     ) override;
 
 private:
-    void ProcessJobsQueue();
-    std::queue<CefRefPtr<job::Job>> m_jobsQueue;
+    void CreateBrowser();
 
     CefSettings m_settings;
     CefWindowInfo m_windowInfo;
     CefBrowserSettings m_browserSettings;
     CefRefPtr<job::Manager> m_jobsManager;
-    unsigned int m_processCount;
+    unsigned int m_pendingBrowsersCount;
+    unsigned int m_browsersCount;
     bool m_initialized;
+    bool m_contextInitialized;
     bool m_running;
     bool m_stopAfterLastJob;
 

@@ -26,6 +26,10 @@ public:
         m_promise.set_value(value);
     }
 
+    void Abort() {
+        Resolve("aborted");
+    }
+
     virtual void accept(CefRefPtr<Visitor> visitor) = 0;
 
     const CefString& GetOutputPath() const {

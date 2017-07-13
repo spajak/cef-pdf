@@ -2,8 +2,6 @@
 #include "RequestHandler.h"
 
 #include "include/wrapper/cef_helpers.h"
-#include "include/base/cef_bind.h"
-#include "include/wrapper/cef_closure_task.h"
 
 #include <utility>
 #include <functional>
@@ -71,6 +69,7 @@ void Server::Run()
 
 void Server::Listen()
 {
+    LOG(INFO) << "Server::Listen";
     m_acceptor.async_accept(m_socket, std::bind(&Server::OnConnection, this, _1));
 }
 
@@ -81,11 +80,13 @@ void Server::OnSignal(std::error_code error, int signno)
     m_connectionManager->StopAll();
     m_acceptor.close();
 
-    CefPostDelayedTask(TID_UI, base::Bind(&cefpdf::Client::Stop, m_client.get()), 50);
+    m_client->PostStop();
 }
 
 void Server::OnConnection(std::error_code error)
 {
+    LOG(INFO) << "Server::OnConnection";
+
     // Check whether the server was stopped by a signal before this
     // completion handler had a chance to run.
     if (!m_acceptor.is_open()) {

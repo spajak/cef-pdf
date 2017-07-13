@@ -32,6 +32,8 @@ public:
 
     void Finish(CefRefPtr<CefBrowser> browser, const CefString& path, bool ok);
 
+    void StopAll();
+
 private:
     std::queue<CefRefPtr<Job>> m_jobsQueue;
 

@@ -14,8 +14,10 @@ namespace cefpdf {
 
 Client::Client() :
     m_jobsManager(new job::Manager()),
-    m_processCount(0),
+    m_pendingBrowsersCount(0),
+    m_browsersCount(0),
     m_initialized(false),
+    m_contextInitialized(false),
     m_running(false),
     m_stopAfterLastJob(false),
     m_printHandler(new PrintHandler),
@@ -43,14 +45,17 @@ int Client::ExecuteSubProcess(const CefMainArgs& mainArgs)
 void Client::Initialize(const CefMainArgs& mainArgs)
 {
     DCHECK(!m_initialized);
-    CefInitialize(mainArgs, m_settings, this, NULL);
+
     m_initialized = true;
+    CefInitialize(mainArgs, m_settings, this, NULL);
 }
 
 void Client::Shutdown()
 {
     DCHECK(m_initialized);
+
     CefShutdown();
+    m_contextInitialized = false;
     m_initialized = false;
 }
 
@@ -58,6 +63,7 @@ void Client::Run()
 {
     DCHECK(m_initialized);
     DCHECK(!m_running);
+
     m_running = true;
     CefRunMessageLoop();
     m_running = false;
@@ -66,34 +72,48 @@ void Client::Run()
 
 void Client::Stop()
 {
+    DCHECK(m_initialized);
+
     if (m_running) {
+        m_pendingBrowsersCount = 0;
+        m_jobsManager->StopAll();
+        CefDoMessageLoopWork();
         CefQuitMessageLoop();
-    } else if (m_initialized) {
-        Shutdown();
     }
+}
+
+void Client::AddJob(CefRefPtr<job::Job> job)
+{
+    m_jobsManager->Queue(job);
+
+    if (!m_contextInitialized) {
+        ++m_pendingBrowsersCount;
+    } else {
+        CreateBrowser();
+    }
+}
+
+void Client::PostStop()
+{
+    CefPostDelayedTask(TID_UI, base::Bind(&cefpdf::Client::Stop, this), 50);
 }
 
 void Client::PostJob(CefRefPtr<job::Job> job)
 {
-    m_jobsQueue.push(job);
-    if (m_initialized) {
-        ProcessJobsQueue();
-    }
+    CefPostTask(TID_UI, base::Bind(&cefpdf::Client::AddJob, this, job.get()));
 }
 
-void Client::ProcessJobsQueue()
+void Client::CreateBrowser()
 {
-    CEF_REQUIRE_UI_THREAD();
+    DCHECK(m_contextInitialized);
 
-    while (!m_jobsQueue.empty() && m_processCount < constants::maxProcesses) {
-        auto job = m_jobsQueue.front();
-        m_jobsManager->Queue(job);
-        m_jobsQueue.pop();
-        ++m_processCount;
-
-        // Create the browser window.
-        CefBrowserHost::CreateBrowser(m_windowInfo, this, "", m_browserSettings, NULL);
+    if (m_browsersCount > constants::maxProcesses) {
+        CefPostDelayedTask(TID_UI, base::Bind(&cefpdf::Client::CreateBrowser, this), 15*m_browsersCount);
+        return;
     }
+
+    ++m_browsersCount;
+    CefBrowserHost::CreateBrowser(m_windowInfo, this, "", m_browserSettings, NULL);
 }
 
 // CefApp methods:
@@ -139,9 +159,14 @@ void Client::OnContextInitialized()
 
     CEF_REQUIRE_UI_THREAD();
 
+    m_contextInitialized = true;
+
     CefRegisterSchemeHandlerFactory(constants::scheme, "", new SchemeHandlerFactory(m_jobsManager));
-    m_initialized = true;
-    ProcessJobsQueue();
+
+    while (m_pendingBrowsersCount > 0) {
+        --m_pendingBrowsersCount;
+        CreateBrowser();
+    }
 }
 
 // CefClient methods:
@@ -196,11 +221,10 @@ void Client::OnBeforeClose(CefRefPtr<CefBrowser> browser)
 
     CEF_REQUIRE_UI_THREAD();
 
-    --m_processCount;
-    ProcessJobsQueue();
+    --m_browsersCount;
 
-    if (0 == m_processCount && m_stopAfterLastJob) {
-        CefPostDelayedTask(TID_UI, base::Bind(&cefpdf::Client::Stop, this), 50);
+    if (0 == m_browsersCount && m_stopAfterLastJob) {
+        PostStop();
     }
 }
 
