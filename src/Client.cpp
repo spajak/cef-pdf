@@ -33,7 +33,6 @@ Client::Client() :
     m_browserSettings.windowless_frame_rate = 1;
     CefString(&m_browserSettings.default_encoding).FromString(constants::encoding);
     m_browserSettings.plugins = STATE_DISABLED;
-    m_browserSettings.javascript_open_windows = STATE_DISABLED;
     m_browserSettings.javascript_close_windows = STATE_DISABLED;
 }
 
