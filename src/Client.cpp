@@ -13,7 +13,7 @@
 namespace cefpdf {
 
 Client::Client() :
-    m_jobsManager(new job::Manager()),
+    m_jobManager(new job::Manager()),
     m_pendingBrowsersCount(0),
     m_browsersCount(0),
     m_initialized(false),
@@ -76,44 +76,30 @@ void Client::Stop()
 
     if (m_running) {
         m_pendingBrowsersCount = 0;
-        m_jobsManager->StopAll();
-        CefDoMessageLoopWork();
+        m_jobManager->StopAll();
         CefQuitMessageLoop();
     }
 }
 
 void Client::AddJob(CefRefPtr<job::Job> job)
 {
-    m_jobsManager->Queue(job);
+    m_jobManager->Queue(job);
+    CreateBrowsers(1);
+}
+
+void Client::CreateBrowsers(unsigned int browserCount)
+{
+    m_pendingBrowsersCount += browserCount;
 
     if (!m_contextInitialized) {
-        ++m_pendingBrowsersCount;
-    } else {
-        CreateBrowser();
-    }
-}
-
-void Client::PostStop()
-{
-    CefPostDelayedTask(TID_UI, base::Bind(&cefpdf::Client::Stop, this), 50);
-}
-
-void Client::PostJob(CefRefPtr<job::Job> job)
-{
-    CefPostTask(TID_UI, base::Bind(&cefpdf::Client::AddJob, this, job.get()));
-}
-
-void Client::CreateBrowser()
-{
-    DCHECK(m_contextInitialized);
-
-    if (m_browsersCount > constants::maxProcesses) {
-        CefPostDelayedTask(TID_UI, base::Bind(&cefpdf::Client::CreateBrowser, this), 15*m_browsersCount);
         return;
     }
 
-    ++m_browsersCount;
-    CefBrowserHost::CreateBrowser(m_windowInfo, this, "", m_browserSettings, NULL);
+    while (m_pendingBrowsersCount > 0 && m_browsersCount <= constants::maxProcesses) {
+        --m_pendingBrowsersCount;
+        ++m_browsersCount;
+        CefBrowserHost::CreateBrowser(m_windowInfo, this, "", m_browserSettings, NULL);
+    }
 }
 
 // CefApp methods:
@@ -137,6 +123,8 @@ void Client::OnBeforeCommandLineProcessing(const CefString& process_type, CefRef
 
     command_line->AppendSwitch("disable-gpu");
     command_line->AppendSwitch("disable-gpu-compositing");
+    command_line->AppendSwitch("disable-extensions");
+    command_line->AppendSwitch("disable-pinch");
 };
 
 // CefBrowserProcessHandler methods:
@@ -161,12 +149,9 @@ void Client::OnContextInitialized()
 
     m_contextInitialized = true;
 
-    CefRegisterSchemeHandlerFactory(constants::scheme, "", new SchemeHandlerFactory(m_jobsManager));
+    CefRegisterSchemeHandlerFactory(constants::scheme, "", new SchemeHandlerFactory(m_jobManager));
 
-    while (m_pendingBrowsersCount > 0) {
-        --m_pendingBrowsersCount;
-        CreateBrowser();
-    }
+    CreateBrowsers();
 }
 
 // CefClient methods:
@@ -201,7 +186,7 @@ void Client::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 
     // Assign this browser to the next job. JobsManager will
     // check if there is any queued job
-    m_jobsManager->Assign(browser);
+    m_jobManager->Assign(browser);
 }
 
 bool Client::DoClose(CefRefPtr<CefBrowser> browser)
@@ -224,7 +209,9 @@ void Client::OnBeforeClose(CefRefPtr<CefBrowser> browser)
     --m_browsersCount;
 
     if (0 == m_browsersCount && m_stopAfterLastJob) {
-        PostStop();
+        CefPostDelayedTask(TID_UI, base::Bind(&Client::Stop, this), 50);
+    } else {
+        CreateBrowsers();
     }
 }
 
@@ -249,7 +236,7 @@ void Client::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
     CEF_REQUIRE_UI_THREAD();
 
     if (frame->IsMain()) {
-        m_jobsManager->Process(browser, httpStatusCode);
+        m_jobManager->Process(browser, httpStatusCode);
     }
 }
 
@@ -268,7 +255,7 @@ void Client::OnLoadError(
     CEF_REQUIRE_UI_THREAD();
 
     if (frame->IsMain()) {
-        m_jobsManager->Abort(browser, errorCode);
+        m_jobManager->Abort(browser, errorCode);
     }
 }
 

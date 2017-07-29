@@ -26,11 +26,11 @@ public:
 
     CefRefPtr<CefStreamReader> GetStreamReader(CefRefPtr<CefBrowser> browser);
 
-    void Abort(CefRefPtr<CefBrowser> browser, ErrorCode errorCode);
-
     void Process(CefRefPtr<CefBrowser> browser, int httpStatusCode);
 
     void Finish(CefRefPtr<CefBrowser> browser, const CefString& path, bool ok);
+
+    void Abort(CefRefPtr<CefBrowser> browser, ErrorCode errorCode);
 
     void StopAll();
 

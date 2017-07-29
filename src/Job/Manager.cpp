@@ -12,6 +12,8 @@ namespace job {
 
 std::size_t Manager::Queue(CefRefPtr<Job> job)
 {
+    DLOG(INFO) << "Manager::Queue";
+
     m_jobsQueue.push(job);
     return m_jobsQueue.size();
 }
@@ -32,31 +34,27 @@ CefRefPtr<CefStreamReader> Manager::GetStreamReader(CefRefPtr<CefBrowser> browse
 
 void Manager::Assign(CefRefPtr<CefBrowser> browser)
 {
+    DLOG(INFO) << "Manager::Assign";
+
     DCHECK(Find(browser) == m_jobs.end());
 
-    CefRefPtr<Job> job = m_jobsQueue.front();
+    if (!m_jobsQueue.empty()) {
+        CefRefPtr<Job> job = m_jobsQueue.front();
 
-    DCHECK(job.get());
+        m_jobsQueue.pop();
 
-    m_jobsQueue.pop();
+        m_jobs.push_back(BrowserJob({browser, job, NULL}));
 
-    m_jobs.push_back(BrowserJob({browser, job, NULL}));
-
-    // Load URL to print
-    CefRefPtr<Loader> loader = new Loader(browser->GetMainFrame());
-    job->accept(loader);
-}
-
-void Manager::Abort(CefRefPtr<CefBrowser> browser, Manager::ErrorCode errorCode)
-{
-    auto it = Find(browser);
-    if (it != m_jobs.end()) {
-        Resolve(it, errorCode == ErrorCode::ERR_ABORTED ? "aborted" : "load-error");
+        // Load URL to print
+        CefRefPtr<Loader> loader = new Loader(browser->GetMainFrame());
+        job->accept(loader);
     }
 }
 
 void Manager::Process(CefRefPtr<CefBrowser> browser, int httpStatusCode)
 {
+    DLOG(INFO) << "Manager::Process";
+
     auto it = Find(browser);
 
     if (it != m_jobs.end()) {
@@ -83,6 +81,14 @@ void Manager::Finish(CefRefPtr<CefBrowser> browser, const CefString& path, bool 
     }
 }
 
+void Manager::Abort(CefRefPtr<CefBrowser> browser, Manager::ErrorCode errorCode)
+{
+    auto it = Find(browser);
+    if (it != m_jobs.end()) {
+        Resolve(it, errorCode == ErrorCode::ERR_ABORTED ? "aborted" : "load-error");
+    }
+}
+
 Manager::Iterator Manager::Find(CefRefPtr<CefBrowser> browser)
 {
     for (auto it = m_jobs.begin(); it != m_jobs.end(); ++it) {
@@ -96,26 +102,22 @@ Manager::Iterator Manager::Find(CefRefPtr<CefBrowser> browser)
 
 void Manager::Resolve(Manager::Iterator it, const std::string& message)
 {
-    it->job->Resolve(message);
+    DLOG(INFO) << "Manager::Resolve: " << message;
 
-    auto host = it->browser->GetHost();
+    it->job->ExecuteCallback(message);
+
+    it->browser->GetHost()->CloseBrowser(true);
     m_jobs.erase(it);
-    host->CloseBrowser(true);
 }
 
 void Manager::StopAll()
 {
     while (!m_jobsQueue.empty()) {
-        auto job = m_jobsQueue.front();
         m_jobsQueue.pop();
-        job->Abort();
     }
 
     for (auto it = m_jobs.begin(); it != m_jobs.end(); ++it) {
-        it->job->Abort();
-        auto host = it->browser->GetHost();
-        it->browser = NULL;
-        host->CloseBrowser(true);
+        it->browser->GetHost()->CloseBrowser(true);
     }
 
     m_jobs.clear();

@@ -1,6 +1,8 @@
-#ifndef SERVER_CONNECTION_H_
-#define SERVER_CONNECTION_H_
+#ifndef SERVER_SESSION_H_
+#define SERVER_SESSION_H_
 
+#include "../Client.h"
+#include "../Job/Job.h"
 #include "Http.h"
 
 #include "include/cef_base.h"
@@ -14,34 +16,32 @@
 namespace cefpdf {
 namespace server {
 
-class ConnectionManager;
+class SessionManager;
 
-class Connection : public CefBaseRefCounted
+class Session : public CefBaseRefCounted
 {
 
 public:
-    Connection(
-        CefRefPtr<ConnectionManager> connectionManager,
+    Session(
+        CefRefPtr<cefpdf::Client>,
+        CefRefPtr<SessionManager>,
         asio::ip::tcp::socket socket
-    ) :
-        m_connectionManager(connectionManager),
-        m_socket(std::move(socket)) {}
+    );
 
-    Connection(const Connection&) = delete;
-    Connection& operator=(const Connection&) = delete;
+    Session(const Session&) = delete;
+
+    Session& operator=(const Session&) = delete;
 
     void Start() {
-        ReadSome();
-    }
-
-    void Write();
-
-    bool isOpen() {
-        return m_socket.is_open();
+        Read();
     }
 
     void Close() {
         m_socket.close();
+    }
+
+    bool IsOpen() {
+        return m_socket.is_open();
     }
 
     const http::Request& GetRequest() const {
@@ -53,25 +53,41 @@ public:
     }
 
 private:
-    void ReadSome();
-    void AsyncReadSome(std::error_code, std::size_t);
-    void AsyncWrite(std::error_code, std::size_t);
+    void Read();
+
+    void Write();
+
+    void OnRead(std::error_code, std::size_t);
+
+    void OnWrite(std::error_code, std::size_t);
+
     void ParseRequest();
+
     std::vector<asio::const_buffer> ResponseToBuffers();
 
-    CefRefPtr<ConnectionManager> m_connectionManager;
+    bool Handle();
+
+    void OnResolve(const std::string&, CefRefPtr<cefpdf::job::Job>);
+
+    CefRefPtr<cefpdf::Client> m_client;
+
+    CefRefPtr<SessionManager> m_sessionManager;
+
     http::Request m_request;
+
     http::Response m_response;
 
     asio::ip::tcp::socket m_socket;
+
     std::array<char, 1024*16> m_buffer;
+
     std::string m_requestData;
 
     // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(Connection)
+    IMPLEMENT_REFCOUNTING(Session)
 };
 
 } // namespace server
 } // namespace cefpdf
 
-#endif // SERVER_CONNECTION_H_
+#endif // SERVER_SESSION_H_
