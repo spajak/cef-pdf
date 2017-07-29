@@ -8,6 +8,7 @@
 
 #include <string>
 #include <future>
+#include <functional>
 
 namespace cefpdf {
 namespace job {
@@ -16,14 +17,18 @@ class Job : public CefBaseRefCounted
 {
 
 public:
+    typedef std::function<void(const std::string&, CefRefPtr<Job>)> Callback;
+
     Job();
 
-    std::future<std::string> GetFuture() {
-        return m_promise.get_future();
+    void SetCallback(Callback callback) {
+        m_callback = callback;
     }
 
-    void Resolve(std::string value) {
-        m_promise.set_value(value);
+    void ExecuteCallback(const std::string& reason) {
+        if (m_callback != nullptr) {
+            m_callback(reason, this);
+        }
     }
 
     virtual void accept(CefRefPtr<Visitor> visitor) = 0;
@@ -54,6 +59,7 @@ private:
     PageMargin m_pageMargin;
     bool m_backgrounds;
     std::promise<std::string> m_promise;
+    Callback m_callback;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(Job)

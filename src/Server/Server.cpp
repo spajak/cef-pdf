@@ -1,5 +1,4 @@
 #include "Server.h"
-#include "RequestHandler.h"
 
 #include "include/wrapper/cef_helpers.h"
 #include "include/base/cef_bind.h"
@@ -7,8 +6,6 @@
 
 #include <utility>
 #include <functional>
-
-using namespace std::placeholders;
 
 namespace cefpdf {
 namespace server {
@@ -24,7 +21,7 @@ Server::Server(
     m_signals(m_ioService),
     m_acceptor(m_ioService),
     m_socket(m_ioService),
-    m_connectionManager(new ConnectionManager(new RequestHandler(client))),
+    m_sessionManager(new SessionManager),
     m_counter(0)
 {
     m_signals.add(SIGINT);
@@ -39,7 +36,6 @@ Server::Server(
     m_acceptor.open(endpoint.protocol());
     m_acceptor.set_option(asio::ip::tcp::acceptor::reuse_address(true));
     m_acceptor.bind(endpoint);
-    m_acceptor.listen();
 }
 
 void Server::Start()
@@ -54,7 +50,14 @@ void Server::Start()
 
 void Server::Run()
 {
-    m_signals.async_wait(std::bind(&Server::OnSignal, this, _1, _2));
+    m_acceptor.listen();
+
+    m_signals.async_wait(std::bind(
+        &Server::OnSignal,
+        this,
+        std::placeholders::_1,
+        std::placeholders::_2
+    ));
 
     auto endpoint = m_acceptor.local_endpoint();
 
@@ -66,22 +69,28 @@ void Server::Run()
     Listen();
     m_ioService.run();
 
-    DLOG(INFO) << "Server thread finished";
+    CefPostTask(TID_UI, base::Bind(&cefpdf::Client::Stop, m_client));
+
+    LOG(INFO) << "HTTP server thread finished";
 }
 
 void Server::Listen()
 {
-    m_acceptor.async_accept(m_socket, std::bind(&Server::OnConnection, this, _1));
+    DLOG(INFO) << "Server::Listen";
+
+    m_acceptor.async_accept(m_socket, std::bind(
+        &Server::OnConnection,
+        this,
+        std::placeholders::_1
+    ));
 }
 
 void Server::OnSignal(std::error_code error, int signno)
 {
-    DLOG(INFO) << "Received shutdown signal";
+    DLOG(INFO) << "HTTP server received shutdown signal";
 
-    m_connectionManager->StopAll();
     m_acceptor.close();
-
-    CefPostDelayedTask(TID_UI, base::Bind(&cefpdf::Client::Stop, m_client.get()), 50);
+    m_sessionManager->CloseAll();
 }
 
 void Server::OnConnection(std::error_code error)
@@ -94,11 +103,11 @@ void Server::OnConnection(std::error_code error)
 
     if (!error) {
         auto clientIp = m_socket.remote_endpoint().address().to_string();
-        m_connectionManager->Start(
-            new Connection(m_connectionManager, std::move(m_socket))
+        m_sessionManager->Start(
+            new Session(m_client, m_sessionManager, std::move(m_socket))
         );
         ++m_counter;
-        LOG(INFO) << "Got hit no. " << m_counter << " from " << clientIp;
+        LOG(INFO) << "Got HTTP hit no. " << m_counter << " from " << clientIp;
         Listen();
     }
 }

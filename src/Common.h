@@ -6,6 +6,7 @@
 #include <string>
 #include <list>
 #include <chrono>
+#include <ctime>
 
 namespace cefpdf {
 
@@ -13,9 +14,11 @@ std::string getCurrentWorkingDirectory();
 
 std::string getTempDirectory();
 
+std::string getProcessId();
+
 namespace constants {
     // cef-pdf version number
-    const std::string version = "0.3.0";
+    const std::string version = "0.3.1";
     // Internal scheme
     const std::string scheme = "cefpdf";
     // Default page size
@@ -31,8 +34,10 @@ namespace constants {
 
     // Current working directory
     const std::string cwd = getCurrentWorkingDirectory();
-    // Temp directory including trailing slash
-    const std::string temp = getTempDirectory();
+    // Temp directory (including trailing slash)
+    const std::string tmp = getTempDirectory();
+    // Current process ID
+    const std::string pid = getProcessId();
 }
 
 struct PageSize
@@ -57,21 +62,21 @@ typedef std::list<PageSize> PageSizesMap;
 
 extern PageSizesMap pageSizesMap;
 
-std::string strtolower(std::string s);
-
 PageSize getPageSize(const CefString& str);
 
 PageMargin getPageMargin(const CefString& str);
 
-std::chrono::microseconds::rep microtime();
-
 std::string pathToUri(const std::string&);
+
+bool fileExists(const std::string& path);
 
 std::string reserveTempFile();
 
 std::string loadTempFile(const std::string&, bool remove = true);
 
 bool deleteTempFile(const std::string&);
+
+std::string formatDate(const char* format = "%a, %d %h %Y %T GMT", std::time_t* arg = nullptr);
 
 } // namespace cefpdf
 
