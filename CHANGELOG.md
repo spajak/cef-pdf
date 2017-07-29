@@ -1,5 +1,11 @@
 Changelog
 ===
+### 0.3.1 (2017-07-29)
+* Building with CEF 3.3112.1649.g0dba8a1 / Chromium 60.0.3112.78 (Windows, Linux & OS X, 64bit)
+* Better and faster concurrent requests handling
+* Full Unicode file names support on Windows (Linux & OS X already have it)
+* Code fixes and optimisations
+
 ### 0.3.0 (2017-06-18)
 * Building with CEF 3.3071.1640.g1ebbf3c / Chromium 59.0.3071.82 (Windows, Linux & OS X, 64bit)
 * Now possible to build on Mac OS X. Tested on 10.11.6 with XCode ver. 8.2.0. Experimental
