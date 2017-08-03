@@ -262,6 +262,10 @@ std::chrono::microseconds::rep microtime()
 
 std::string pathToUri(const std::string& path)
 {
+    if (path.empty()) {
+        return std::string("");
+    }
+
     std::string uri = path;
 
 #if defined(OS_WIN)

@@ -74,16 +74,25 @@ int runJob(CefRefPtr<cefpdf::Client> app, CefRefPtr<CefCommandLine> commandLine)
     CefRefPtr<cefpdf::job::Job> job;
 
     try {
+        std::string url;
+
         if (commandLine->HasSwitch("url")) {
-            job = new cefpdf::job::Remote(commandLine->GetSwitchValue("url"));
+            url = commandLine->GetSwitchValue("url").ToString();
         } else if (commandLine->HasSwitch("file")) {
-            job = new cefpdf::job::Remote(
-                cefpdf::pathToUri(commandLine->GetSwitchValue("file").ToString())
-            );
-        } else {
-            //job = new cefpdf::job::StdInput;
+            auto path = commandLine->GetSwitchValue("file").ToString();
+
+            if (!cefpdf::fileExists(path)) {
+                throw std::string("input file does not exist");
+            }
+
+            url = cefpdf::pathToUri(path);
+        }
+
+        if (url.empty()) {
             throw std::string("no input specified");
         }
+
+        job = new cefpdf::job::Remote(url);
 
         // Set output file
         CefCommandLine::ArgumentList args;
