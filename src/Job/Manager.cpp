@@ -45,6 +45,8 @@ void Manager::Assign(CefRefPtr<CefBrowser> browser)
 
         m_jobs.push_back(BrowserJob({browser, job, NULL}));
 
+        job->SetStatus(Job::Status::LOADING);
+
         // Load URL to print
         CefRefPtr<Loader> loader = new Loader(browser->GetMainFrame());
         job->accept(loader);
@@ -64,11 +66,13 @@ void Manager::Process(CefRefPtr<CefBrowser> browser, int httpStatusCode)
                 it->job->SetOutputPath(reserveTempFile());
             }
 
+            it->job->SetStatus(Job::Status::PRINTING);
+
             // Print PDF
             CefRefPtr<Printer> printer = new Printer(this, browser);
             it->job->accept(printer);
         } else {
-            Resolve(it, "status-error");
+            Resolve(it, Job::Status::HTTP_ERROR);
         }
     }
 }
@@ -77,15 +81,15 @@ void Manager::Finish(CefRefPtr<CefBrowser> browser, const CefString& path, bool 
 {
     auto it = Find(browser);
     if (it != m_jobs.end()) {
-        Resolve(it, ok ? "success" : "print-error");
+        Resolve(it, ok ? Job::Status::SUCCESS : Job::Status::PRINT_ERROR);
     }
 }
 
-void Manager::Abort(CefRefPtr<CefBrowser> browser, Manager::ErrorCode errorCode)
+void Manager::Abort(CefRefPtr<CefBrowser> browser, CefLoadHandler::ErrorCode errorCode)
 {
     auto it = Find(browser);
     if (it != m_jobs.end()) {
-        Resolve(it, errorCode == ErrorCode::ERR_ABORTED ? "aborted" : "load-error");
+        Resolve(it, errorCode == CefLoadHandler::ErrorCode::ERR_ABORTED ? Job::Status::ABORTED : Job::Status::LOAD_ERROR);
     }
 }
 
@@ -100,11 +104,12 @@ Manager::Iterator Manager::Find(CefRefPtr<CefBrowser> browser)
     return m_jobs.end();
 }
 
-void Manager::Resolve(Manager::Iterator it, const std::string& message)
+void Manager::Resolve(Manager::Iterator it, const Job::Status& status)
 {
-    DLOG(INFO) << "Manager::Resolve: " << message;
+    DLOG(INFO) << "Manager::Resolve";
 
-    it->job->ExecuteCallback(message);
+    it->job->SetStatus(status);
+    it->job->ExecuteCallback();
 
     it->browser->GetHost()->CloseBrowser(true);
     m_jobs.erase(it);
@@ -117,6 +122,7 @@ void Manager::StopAll()
     }
 
     for (auto it = m_jobs.begin(); it != m_jobs.end(); ++it) {
+        it->job->SetStatus(Job::Status::ABORTED);
         it->browser->GetHost()->CloseBrowser(true);
     }
 

@@ -129,6 +129,12 @@ int runJob(CefRefPtr<cefpdf::Client> app, CefRefPtr<CefCommandLine> commandLine)
     app->AddJob(job);
     app->Run();
 
+    if (job->GetStatus() == cefpdf::job::Job::Status::SUCCESS) {
+        std::cout << "Printing document finished successfully" << std::endl;
+    } else {
+        std::cout << "Printing document failed!!" << std::endl;
+    }
+
     return 0;
 }
 

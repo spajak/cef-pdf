@@ -190,21 +190,20 @@ bool Session::Handle()
     job->SetCallback(std::bind(
         &Session::OnResolve,
         this,
-        std::placeholders::_1,
-        std::placeholders::_2
+        std::placeholders::_1
     ));
 
     CefPostTask(TID_UI, base::Bind(&cefpdf::Client::AddJob, m_client, job));
     return true;
 }
 
-void Session::OnResolve(const std::string& result, CefRefPtr<cefpdf::job::Job> job)
+void Session::OnResolve(CefRefPtr<cefpdf::job::Job> job)
 {
     if (!m_socket.is_open()) {
         return;
     }
 
-    if (result == "success") {
+    if (job->GetStatus() == cefpdf::job::Job::Status::SUCCESS) {
         m_response.SetContent(loadTempFile(job->GetOutputPath()), "application/pdf");
     } else {
         m_response.SetStatus(http::statuses::error);

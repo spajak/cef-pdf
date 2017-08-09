@@ -53,7 +53,7 @@ private:
 
     bool Handle();
 
-    void OnResolve(const std::string&, CefRefPtr<cefpdf::job::Job>);
+    void OnResolve(CefRefPtr<cefpdf::job::Job>);
 
     CefRefPtr<cefpdf::Client> m_client;
 
