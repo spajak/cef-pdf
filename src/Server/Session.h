@@ -10,8 +10,6 @@
 
 #include <functional>
 #include <utility>
-#include <vector>
-#include <array>
 
 namespace cefpdf {
 namespace server {
@@ -44,14 +42,6 @@ public:
         return m_socket.is_open();
     }
 
-    const http::Request& GetRequest() const {
-        return m_request;
-    }
-
-    http::Response& GetResponse() {
-        return m_response;
-    }
-
 private:
     void Read();
 
@@ -59,11 +49,7 @@ private:
 
     void OnRead(std::error_code, std::size_t);
 
-    void OnWrite(std::error_code, std::size_t);
-
     void ParseRequest();
-
-    std::vector<asio::const_buffer> ResponseToBuffers();
 
     bool Handle();
 
@@ -79,7 +65,7 @@ private:
 
     asio::ip::tcp::socket m_socket;
 
-    std::array<char, 1024*16> m_buffer;
+    asio::streambuf m_buffer;
 
     std::string m_requestData;
 

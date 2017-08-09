@@ -10,6 +10,8 @@
 
 #include <iostream>
 #include <string>
+#include <sstream>
+#include <ostream>
 #include <functional>
 #include <regex>
 
@@ -28,8 +30,10 @@ Session::Session(
 
 void Session::Read()
 {
-    m_socket.async_read_some(
-        asio::buffer(m_buffer),
+    asio::async_read_until(
+        m_socket,
+        m_buffer,
+        http::crlf + http::crlf,
         std::bind(
             &Session::OnRead,
             this,
@@ -41,16 +45,23 @@ void Session::Read()
 
 void Session::Write()
 {
-    asio::async_write(
-        m_socket,
-        ResponseToBuffers(),
-        std::bind(
-            &Session::OnWrite,
-            this,
-            std::placeholders::_1,
-            std::placeholders::_2
-        )
-    );
+    std::error_code error;
+    asio::streambuf buffer;
+    std::ostream os(&buffer);
+
+    m_response.WriteToStream(os);
+
+    asio::write(m_socket, buffer, error);
+
+    if (!error) {
+        // Initiate graceful connection closure.
+        asio::error_code ignored_ec;
+        m_socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignored_ec);
+    }
+
+    if (error != asio::error::operation_aborted) {
+        m_sessionManager->Stop(this);
+    }
 }
 
 void Session::OnRead(std::error_code ec, std::size_t bytes_transferred)
@@ -59,10 +70,22 @@ void Session::OnRead(std::error_code ec, std::size_t bytes_transferred)
         return;
     }
 
-    m_requestData += std::string(m_buffer.data(), bytes_transferred);
+    std::ostringstream ss;
+    ss << &m_buffer;
+    m_requestData += ss.str();
 
     if (m_socket.available() > 0) {
-        Read();
+        asio::async_read(
+            m_socket,
+            m_buffer,
+            asio::transfer_exactly(m_socket.available()),
+            std::bind(
+                &Session::OnRead,
+                this,
+                std::placeholders::_1,
+                std::placeholders::_2
+            )
+        );
     } else {
         ParseRequest();
         if (!Handle()) {
@@ -71,31 +94,8 @@ void Session::OnRead(std::error_code ec, std::size_t bytes_transferred)
     }
 }
 
-void Session::OnWrite(std::error_code ec, std::size_t bytes_transferred)
-{
-    if (!ec) {
-        // Initiate graceful connection closure.
-        asio::error_code ignored_ec;
-        m_socket.shutdown(asio::ip::tcp::socket::shutdown_both, ignored_ec);
-    }
-
-    if (ec != asio::error::operation_aborted) {
-        m_sessionManager->Stop(this);
-    }
-}
-
 void Session::ParseRequest()
 {
-    // Parse status line
-    std::regex re("^([A-Z]+) (\\S+) HTTP/(.+)\r\n");
-    std::smatch match;
-
-    if (std::regex_search(m_requestData, match, re)) {
-        m_request.method = match[1];
-        m_request.url = match[2];
-        m_request.version = match[3];
-    }
-
     // Separate headers section from request content
     std::string headerData;
     auto sepIndex = m_requestData.find(http::crlf + http::crlf);
@@ -103,15 +103,25 @@ void Session::ParseRequest()
     if (sepIndex == std::string::npos) {
         headerData = m_requestData;
     } else {
-        headerData = m_requestData.substr(0, sepIndex);
+        headerData = m_requestData.substr(0, sepIndex + 2);
         m_request.content = m_requestData.substr(sepIndex + 4, m_requestData.size() - sepIndex + 4);
     }
 
+    // Parse status line
+    std::regex re("^([A-Z]+) (\\S+) HTTP/(.+)" + http::crlf);
+    std::smatch match;
+
+    if (std::regex_search(headerData, match, re)) {
+        m_request.method = match[1];
+        m_request.url = match[2];
+        m_request.version = match[3];
+    }
+
     // Collect request headers
-    std::regex re2("(.+): (.+)\r\n");
+    std::regex re2("(.+): (.+)" + http::crlf);
     std::string::const_iterator it, end;
     it = match[0].second;
-    end = m_requestData.end();
+    end = headerData.end();
 
     while (std::regex_search(it, end, match, re2)) {
         m_request.headers.push_back({match[1], match[2]});
@@ -152,7 +162,7 @@ bool Session::Handle()
 
     std::string location;
 
-    for (auto h: m_request.headers) {
+    for (auto const &h: m_request.headers) {
         if (h.name.compare(http::headers::location) == 0) {
             location = h.value;
             break;
@@ -200,35 +210,7 @@ void Session::OnResolve(const std::string& result, CefRefPtr<cefpdf::job::Job> j
         m_response.SetStatus(http::statuses::error);
     }
 
-    std::error_code error;
-
-    asio::write(
-        m_socket,
-        ResponseToBuffers(),
-        error
-    );
-
-    OnWrite(error, 0);
-}
-
-std::vector<asio::const_buffer> Session::ResponseToBuffers()
-{
-    std::vector<asio::const_buffer> buffers;
-
-    buffers.push_back(asio::buffer(m_response.status));
-    buffers.push_back(asio::buffer(http::crlf));
-
-    for (std::size_t i = 0; i < m_response.headers.size(); ++i) {
-        buffers.push_back(asio::buffer(m_response.headers[i].name));
-        buffers.push_back(asio::buffer(http::hsep));
-        buffers.push_back(asio::buffer(m_response.headers[i].value));
-        buffers.push_back(asio::buffer(http::crlf));
-    }
-
-    buffers.push_back(asio::buffer(http::crlf));
-    buffers.push_back(asio::buffer(m_response.content));
-
-    return buffers;
+    Write();
 }
 
 } // namespace server

@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <ostream>
 
 namespace cefpdf {
 namespace server {
@@ -58,6 +59,15 @@ struct Response {
         content = c;
         SetHeader(cefpdf::server::http::headers::type, t);
         SetHeader(cefpdf::server::http::headers::length, std::to_string(content.size()));
+    }
+
+    void WriteToStream(std::ostream& stream) {
+        stream << status << crlf;
+        for (auto const &header: headers) {
+            stream << header.name << hsep << header.value << crlf;
+        }
+
+        stream << crlf << content;
     }
 };
 
