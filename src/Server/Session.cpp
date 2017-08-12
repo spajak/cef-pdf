@@ -163,7 +163,7 @@ bool Session::Handle()
     std::string location;
 
     for (auto const &h: m_request.headers) {
-        if (h.name.compare(http::headers::location) == 0) {
+        if (stringsEqual(h.name, http::headers::location)) {
             location = h.value;
             break;
         }

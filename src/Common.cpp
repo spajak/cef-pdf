@@ -383,4 +383,21 @@ std::string formatDate(const char* format, std::time_t* arg)
     return buffer.str();
 }
 
+bool stringsEqual(const std::string& a, const std::string& b)
+{
+    auto sz = a.size();
+
+    if (b.size() != sz) {
+        return false;
+    }
+
+    for (unsigned int i = 0; i < sz; ++i) {
+        if (std::tolower(a[i]) != std::tolower(b[i])) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 } // namespace cefpdf

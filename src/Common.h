@@ -78,6 +78,8 @@ bool deleteTempFile(const std::string&);
 
 std::string formatDate(const char* format = "%a, %d %h %Y %T GMT", std::time_t* arg = nullptr);
 
+bool stringsEqual(const std::string& a, const std::string& b);
+
 } // namespace cefpdf
 
 #endif // COMMON_H_
