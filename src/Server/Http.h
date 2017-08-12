@@ -14,6 +14,7 @@ const std::string crlf     = "\r\n";
 const std::string hsep     = ": ";
 
 namespace statuses {
+    const std::string cont       = "100 Continue";
     const std::string ok         = "200 OK";
     const std::string badRequest = "400 Bad Request";
     const std::string notFound   = "404 Not Found";
@@ -27,6 +28,8 @@ namespace headers {
     const std::string length      = "Content-Length";
     const std::string disposition = "Content-Disposition";
     const std::string location    = "Content-Location";
+    const std::string encoding    = "Transfer-Encoding";
+    const std::string expect      = "Expect";
 } // namespace headers
 
 struct Header {
@@ -40,6 +43,11 @@ struct Request {
     std::string version;
     std::vector<Header> headers;
     std::string content;
+
+    std::size_t contentLength;
+    std::string transferEncoding;
+    std::string expect;
+    std::string location;
 };
 
 struct Response {

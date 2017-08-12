@@ -8,6 +8,7 @@
 #include "include/cef_base.h"
 #include <asio.hpp>
 
+#include <string>
 #include <functional>
 #include <utility>
 
@@ -31,7 +32,7 @@ public:
     Session& operator=(const Session&) = delete;
 
     void Start() {
-        Read();
+        ReadHeaders();
     }
 
     void Close() {
@@ -43,17 +44,27 @@ public:
     }
 
 private:
-    void Read();
+    void ReadHeaders();
+
+    void ReadExactly(std::size_t);
+
+    void ReadAll();
 
     void Write();
 
     void OnRead(std::error_code, std::size_t);
 
-    void ParseRequest();
+    void ParseRequestHeaders();
 
-    bool Handle();
+    void HandleGET();
+
+    void HandlePOST();
 
     void OnResolve(CefRefPtr<cefpdf::job::Job>);
+
+    void Write100Continue();
+
+    std::string FetchBuffer();
 
     CefRefPtr<cefpdf::Client> m_client;
 
@@ -66,8 +77,6 @@ private:
     asio::ip::tcp::socket m_socket;
 
     asio::streambuf m_buffer;
-
-    std::string m_requestData;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(Session)
