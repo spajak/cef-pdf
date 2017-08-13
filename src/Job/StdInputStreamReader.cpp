@@ -3,16 +3,21 @@
 namespace cefpdf {
 namespace job {
 
-void StdInputStreamReader::Initialize() {
-    if (!m_initialized) {
-        std::cout << "Waiting for input until EOF (Unix: Ctrl+D, Windows: Ctrl+Z)" << std::endl;
-        m_initialized = true;
-    }
+StdInputStreamReader::StdInputStreamReader()
+{}
+
+int StdInputStreamReader::Eof()
+{
+    return std::cin.eof() ? 1 : 0;
+}
+
+bool StdInputStreamReader::MayBlock()
+{
+    return true;
 }
 
 std::size_t StdInputStreamReader::Read(void* ptr, std::size_t size, std::size_t n)
 {
-    Initialize();
     std::cin.read(static_cast<char*>(ptr), size);
     return std::cin.gcount();
 }
@@ -36,6 +41,11 @@ int StdInputStreamReader::Seek(int64 offset, int whence)
 
     std::cin.seekg(offset, dir);
     return std::cin.good() ? 0 : 1;
+}
+
+int64 StdInputStreamReader::Tell()
+{
+    return std::cin.tellg();
 }
 
 } // namespace job

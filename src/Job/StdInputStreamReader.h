@@ -15,29 +15,19 @@ class StdInputStreamReader : public CefReadHandler
 {
 
 public:
-    StdInputStreamReader() : m_initialized(false) {}
+    StdInputStreamReader();
 
-    void Initialize();
+    virtual int Eof() override;
 
-    virtual int Eof() override {
-        return std::cin.eof() ? 1 : 0;
-    }
-
-    virtual bool MayBlock() override {
-        return true;
-    }
+    virtual bool MayBlock() override;
 
     virtual std::size_t Read(void* ptr, std::size_t size, std::size_t n) override;
 
     virtual int Seek(int64 offset, int whence) override;
 
-    virtual int64 Tell() override {
-        return std::cin.tellg();
-    }
+    virtual int64 Tell() override;
 
 private:
-    bool m_initialized;
-
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(StdInputStreamReader)
 };
