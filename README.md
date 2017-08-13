@@ -41,7 +41,7 @@ Execute `cef-pdf` with `--server` option and visit `localhost:9288` with web bro
 
 To receive a PDF, just make POST request to `localhost:9288/foo.pdf`with some HTML content as the request body. `foo` may be any name you choose, `.pdf` suffix is always required. The response will contain the PDF data, with `application/pdf` as the content type.
 
-In addition to POSTing content inside the request body, special HTTP header `Content-Location` is supported, which should be an URL to some external content. `cef-pdf`will try to grab the content from this URL and use it just like it was the request's body.
+In addition to POSTing content inside the request body, special HTTP header `Content-Location` is supported, which should be an URL to some external content. `cef-pdf` will try to grab the content from this URL and use it just like it was the request's body.
 
 ### Building
 
