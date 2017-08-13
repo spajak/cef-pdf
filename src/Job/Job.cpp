@@ -3,12 +3,17 @@
 namespace cefpdf {
 namespace job {
 
-Job::Job()
+Job::Job() :
+    m_outputPath(),
+    m_pageSize(),
+    m_pageOrientation(PageOrientation::PORTRAIT),
+    m_pageMargin(),
+    m_backgrounds(false),
+    m_status(Job::Status::PENDING),
+    m_callback()
 {
     SetPageSize(cefpdf::constants::pageSize);
     SetPageMargin("default");
-    m_pageOrientation = PageOrientation::PORTRAIT;
-    m_backgrounds = false;
 }
 
 void Job::SetPageSize(const CefString& pageSize)

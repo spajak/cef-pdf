@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <ostream>
 
 namespace cefpdf {
 namespace server {
@@ -13,6 +14,7 @@ const std::string crlf     = "\r\n";
 const std::string hsep     = ": ";
 
 namespace statuses {
+    const std::string cont       = "100 Continue";
     const std::string ok         = "200 OK";
     const std::string badRequest = "400 Bad Request";
     const std::string notFound   = "404 Not Found";
@@ -26,6 +28,8 @@ namespace headers {
     const std::string length      = "Content-Length";
     const std::string disposition = "Content-Disposition";
     const std::string location    = "Content-Location";
+    const std::string encoding    = "Transfer-Encoding";
+    const std::string expect      = "Expect";
 } // namespace headers
 
 struct Header {
@@ -39,6 +43,11 @@ struct Request {
     std::string version;
     std::vector<Header> headers;
     std::string content;
+
+    std::size_t contentLength;
+    std::string transferEncoding;
+    std::string expect;
+    std::string location;
 };
 
 struct Response {
@@ -58,6 +67,15 @@ struct Response {
         content = c;
         SetHeader(cefpdf::server::http::headers::type, t);
         SetHeader(cefpdf::server::http::headers::length, std::to_string(content.size()));
+    }
+
+    void WriteToStream(std::ostream& stream) {
+        stream << status << crlf;
+        for (auto const &header: headers) {
+            stream << header.name << hsep << header.value << crlf;
+        }
+
+        stream << crlf << content;
     }
 };
 

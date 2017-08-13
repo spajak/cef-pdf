@@ -4,6 +4,7 @@
 #include "include/base/cef_bind.h"
 #include "include/wrapper/cef_closure_task.h"
 
+#include <iostream>
 #include <utility>
 #include <functional>
 
@@ -62,16 +63,17 @@ void Server::Run()
     auto endpoint = m_acceptor.local_endpoint();
 
     // Welcome message
-    LOG(INFO) << "Starting HTTP server on "
+    std::cout << "Starting HTTP server on "
               << endpoint.address().to_string()
-              << ":" << endpoint.port();
+              << ":" << endpoint.port()
+              << std::endl;
 
     Listen();
     m_ioService.run();
 
     CefPostTask(TID_UI, base::Bind(&cefpdf::Client::Stop, m_client));
 
-    LOG(INFO) << "HTTP server thread finished";
+    DLOG(INFO) << "HTTP server thread finished";
 }
 
 void Server::Listen()
@@ -107,7 +109,8 @@ void Server::OnConnection(std::error_code error)
             new Session(m_client, m_sessionManager, std::move(m_socket))
         );
         ++m_counter;
-        LOG(INFO) << "Got HTTP hit no. " << m_counter << " from " << clientIp;
+        DLOG(INFO) << "Got HTTP hit no. " << m_counter
+                   << " from " << clientIp;
         Listen();
     }
 }

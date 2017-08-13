@@ -10,6 +10,7 @@
       --help -h        This help screen.
       --url=<url>      URL to load, may be http, file, data, anything supported by Chromium.
       --file=<path>    File path to load using file:// scheme. May be relative to current directory.
+      --stdin          Read content from standard input until EOF (Unix: Ctrl+D, Windows: Ctrl+Z).
       --size=<spec>    Size (format) of the paper: A3, B2.. or custom <width>x<height> in mm.
                        A4 is the default.
       --list-sizes     Show all defined page sizes.
@@ -27,7 +28,7 @@
       --port=<port>    Specify server port number. Default is 9288
 
     Output:
-      PDF file name to create. Default is output.pdf
+      PDF file name to create. Default is to write binary data to standard output.
 
 ### HTTP server usage
 
@@ -40,7 +41,7 @@ Execute `cef-pdf` with `--server` option and visit `localhost:9288` with web bro
 
 To receive a PDF, just make POST request to `localhost:9288/foo.pdf`with some HTML content as the request body. `foo` may be any name you choose, `.pdf` suffix is always required. The response will contain the PDF data, with `application/pdf` as the content type.
 
-In addition to POSTing content inside the request body, special HTTP header `Content-Location` is supported, which should be an URL to some external content. `cef-pdf`will try to grab the content from this URL and use it just like it was the request's body. In this case, instead of POST, GET request is more appropriate (at the time of writing this, both methods are allowed).
+In addition to POSTing content inside the request body, special HTTP header `Content-Location` is supported, which should be an URL to some external content. `cef-pdf` will try to grab the content from this URL and use it just like it was the request's body.
 
 ### Building
 

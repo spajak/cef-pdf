@@ -16,8 +16,6 @@ class Manager : public CefBaseRefCounted
 {
 
 public:
-    typedef CefLoadHandler::ErrorCode ErrorCode;
-
     Manager() {}
 
     std::size_t Queue(CefRefPtr<Job> job);
@@ -30,7 +28,7 @@ public:
 
     void Finish(CefRefPtr<CefBrowser> browser, const CefString& path, bool ok);
 
-    void Abort(CefRefPtr<CefBrowser> browser, ErrorCode errorCode);
+    void Abort(CefRefPtr<CefBrowser> browser, CefLoadHandler::ErrorCode errorCode);
 
     void StopAll();
 
@@ -49,7 +47,7 @@ private:
 
     Iterator Find(CefRefPtr<CefBrowser> browser);
 
-    void Resolve(Manager::Iterator it, const std::string&);
+    void Resolve(Manager::Iterator it, const Job::Status&);
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(Manager)

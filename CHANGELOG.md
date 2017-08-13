@@ -1,5 +1,13 @@
 Changelog
 ===
+### 0.3.2 (2017-08-13)
+* Building with CEF 3.3112.1656.g9ec3e42 / Chromium 60.0.3112.90 (Windows, Linux & OS X, 64bit)
+* Added support to read content from standard input (`--stdin`) and write pdf data to standard output
+* Added support for `100 Continue` HTTP status (chunked encoding is not supported yet)
+* Fixed reading HTTP request body in some cases
+* Added input file validation
+* Added print success/fail message
+
 ### 0.3.1 (2017-07-29)
 * Building with CEF 3.3112.1649.g0dba8a1 / Chromium 60.0.3112.78 (Windows, Linux & OS X, 64bit)
 * Better and faster concurrent requests handling

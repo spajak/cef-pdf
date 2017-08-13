@@ -262,6 +262,10 @@ std::chrono::microseconds::rep microtime()
 
 std::string pathToUri(const std::string& path)
 {
+    if (path.empty()) {
+        return std::string("");
+    }
+
     std::string uri = path;
 
 #if defined(OS_WIN)
@@ -377,6 +381,23 @@ std::string formatDate(const char* format, std::time_t* arg)
     std::ostringstream buffer;
     buffer << std::put_time(std::gmtime(&t), format);
     return buffer.str();
+}
+
+bool stringsEqual(const std::string& a, const std::string& b)
+{
+    auto sz = a.size();
+
+    if (b.size() != sz) {
+        return false;
+    }
+
+    for (unsigned int i = 0; i < sz; ++i) {
+        if (std::tolower(a[i]) != std::tolower(b[i])) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 } // namespace cefpdf

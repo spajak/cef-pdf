@@ -8,10 +8,9 @@
 #include "include/cef_base.h"
 #include <asio.hpp>
 
+#include <string>
 #include <functional>
 #include <utility>
-#include <vector>
-#include <array>
 
 namespace cefpdf {
 namespace server {
@@ -33,7 +32,7 @@ public:
     Session& operator=(const Session&) = delete;
 
     void Start() {
-        Read();
+        ReadHeaders();
     }
 
     void Close() {
@@ -44,30 +43,28 @@ public:
         return m_socket.is_open();
     }
 
-    const http::Request& GetRequest() const {
-        return m_request;
-    }
-
-    http::Response& GetResponse() {
-        return m_response;
-    }
-
 private:
-    void Read();
+    void ReadHeaders();
+
+    void ReadExactly(std::size_t);
+
+    void ReadAll();
 
     void Write();
 
     void OnRead(std::error_code, std::size_t);
 
-    void OnWrite(std::error_code, std::size_t);
+    void ParseRequestHeaders();
 
-    void ParseRequest();
+    void HandleGET();
 
-    std::vector<asio::const_buffer> ResponseToBuffers();
+    void HandlePOST();
 
-    bool Handle();
+    void OnResolve(CefRefPtr<cefpdf::job::Job>);
 
-    void OnResolve(const std::string&, CefRefPtr<cefpdf::job::Job>);
+    void Write100Continue();
+
+    std::string FetchBuffer();
 
     CefRefPtr<cefpdf::Client> m_client;
 
@@ -79,9 +76,7 @@ private:
 
     asio::ip::tcp::socket m_socket;
 
-    std::array<char, 1024*16> m_buffer;
-
-    std::string m_requestData;
+    asio::streambuf m_buffer;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(Session)

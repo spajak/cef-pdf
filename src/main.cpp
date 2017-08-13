@@ -7,6 +7,11 @@
 #include <list>
 #include <iostream>
 
+#if defined(OS_WIN)
+#include <io.h>
+#include <fcntl.h>
+#endif // OS_WIN
+
 void printSizes()
 {
     cefpdf::PageSizesMap::const_iterator it;
@@ -28,6 +33,7 @@ void printHelp(std::string name)
     std::cout << "  --help -h        This help screen." << std::endl;
     std::cout << "  --url=<url>      URL to load, may be http, file, data, anything supported by Chromium." << std::endl;
     std::cout << "  --file=<path>    File path to load using file:// scheme. May be relative to current directory." << std::endl;
+    std::cout << "  --stdin          Read content from standard input until EOF (Unix: Ctrl+D, Windows: Ctrl+Z)." << std::endl;
     std::cout << "  --size=<spec>    Size (format) of the paper: A3, B2.. or custom <width>x<height> in mm." << std::endl;
     std::cout << "                   " << cefpdf::constants::pageSize << " is the default." << std::endl;
     std::cout << "  --list-sizes     Show all defined page sizes." << std::endl;
@@ -45,7 +51,7 @@ void printHelp(std::string name)
     std::cout << "  --port=<port>    Specify server port number. Default is " << cefpdf::constants::serverPort << std::endl;
     std::cout << std::endl;
     std::cout << "Output:" << std::endl;
-    std::cout << "  PDF file name to create. Default is output.pdf" << std::endl;
+    std::cout << "  PDF file name to create. Default is to write binary data to standard output." << std::endl;
     std::cout << std::endl;
 }
 
@@ -72,17 +78,33 @@ std::string getExecutableName(CefRefPtr<CefCommandLine> commandLine)
 int runJob(CefRefPtr<cefpdf::Client> app, CefRefPtr<CefCommandLine> commandLine)
 {
     CefRefPtr<cefpdf::job::Job> job;
+    bool readFromStdIn = false;
+    bool writeToStdOut = false;
 
     try {
-        if (commandLine->HasSwitch("url")) {
-            job = new cefpdf::job::Remote(commandLine->GetSwitchValue("url"));
-        } else if (commandLine->HasSwitch("file")) {
-            job = new cefpdf::job::Remote(
-                cefpdf::pathToUri(commandLine->GetSwitchValue("file").ToString())
-            );
+        if (commandLine->HasSwitch("stdin")) {
+            job = new cefpdf::job::StdInput();
+            readFromStdIn = true;
         } else {
-            //job = new cefpdf::job::StdInput;
-            throw std::string("no input specified");
+            std::string url;
+
+            if (commandLine->HasSwitch("url")) {
+                url = commandLine->GetSwitchValue("url").ToString();
+            } else if (commandLine->HasSwitch("file")) {
+                auto path = commandLine->GetSwitchValue("file").ToString();
+
+                if (!cefpdf::fileExists(path)) {
+                    throw std::string("input file does not exist");
+                }
+
+                url = cefpdf::pathToUri(path);
+            }
+
+            if (url.empty()) {
+                throw std::string("no input specified");
+            }
+
+            job = new cefpdf::job::Remote(url);
         }
 
         // Set output file
@@ -91,7 +113,7 @@ int runJob(CefRefPtr<cefpdf::Client> app, CefRefPtr<CefCommandLine> commandLine)
         if (!args.empty()) {
             job->SetOutputPath(args[0]);
         } else {
-            job->SetOutputPath("output.pdf");
+            writeToStdOut = true;
         }
 
         if (commandLine->HasSwitch("size")) {
@@ -116,9 +138,28 @@ int runJob(CefRefPtr<cefpdf::Client> app, CefRefPtr<CefCommandLine> commandLine)
         return 1;
     }
 
+    if (readFromStdIn && !writeToStdOut) {
+        std::cout << "Waiting for input until EOF (Unix: Ctrl+D, Windows: Ctrl+Z)" << std::endl;
+    }
+
     app->SetStopAfterLastJob(true);
     app->AddJob(job);
     app->Run();
+
+    if (writeToStdOut) {
+#if defined(OS_WIN)
+        // On Windows, in text mode, new line characters are translated to CRLF
+        // So we need to switch to binary mode
+        _setmode(_fileno(stdout), _O_BINARY);
+#endif // OS_WIN
+        std::cout << cefpdf::loadTempFile(job->GetOutputPath());
+    } else {
+        if (job->GetStatus() == cefpdf::job::Job::Status::SUCCESS) {
+            std::cout << "Printing document finished successfully" << std::endl;
+        } else {
+            std::cout << "Printing document failed!!" << std::endl;
+        }
+    }
 
     return 0;
 }
