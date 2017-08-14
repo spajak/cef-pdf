@@ -7,6 +7,7 @@
 #include "include/cef_app.h"
 #include "include/cef_client.h"
 #include "include/cef_browser.h"
+#include "include/wrapper/cef_message_router.h"
 
 #include <queue>
 #include <set>
@@ -17,7 +18,8 @@ class Client : public CefApp,
                public CefBrowserProcessHandler,
                public CefClient,
                public CefLifeSpanHandler,
-               public CefLoadHandler
+               public CefLoadHandler,
+               public CefMessageRouterBrowserSide::Handler
 {
 
 public:
@@ -66,10 +68,13 @@ public:
         m_requestHandler->ClearAllowedSchemes();
     }
 
+    void SetRemoteTrigger(bool flag = true);
+
     // CefApp methods:
     virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() override;
     virtual void OnRegisterCustomSchemes(CefRawPtr<CefSchemeRegistrar> registrar) override;
     virtual void OnBeforeCommandLineProcessing(const CefString& process_type, CefRefPtr<CefCommandLine> command_line) override;
+    virtual CefRefPtr<CefRenderProcessHandler> GetRenderProcessHandler() override;
 
     // CefBrowserProcessHandler methods:
     virtual CefRefPtr<CefPrintHandler> GetPrintHandler() override;
@@ -81,6 +86,11 @@ public:
     virtual CefRefPtr<CefLoadHandler> GetLoadHandler() override;
     virtual CefRefPtr<CefRenderHandler> GetRenderHandler() override;
     virtual CefRefPtr<CefRequestHandler> GetRequestHandler() override;
+    virtual bool OnProcessMessageReceived(
+        CefRefPtr<CefBrowser> browser,
+        CefProcessId source_process,
+        CefRefPtr<CefProcessMessage> message
+    ) override;
 
     // CefLifeSpanHandler methods:
     virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser) override;
@@ -106,6 +116,16 @@ public:
         const CefString& failedUrl
     ) override;
 
+    // CefMessageRouterBrowserSide::Handler methods:
+    virtual bool OnQuery(
+        CefRefPtr<CefBrowser> browser,
+        CefRefPtr<CefFrame> frame,
+        int64 query_id,
+        const CefString& request,
+        bool persistent,
+        CefRefPtr<Callback> callback
+    ) override;
+
 private:
     void CreateBrowsers(unsigned int browserCount = 0);
 
@@ -119,9 +139,11 @@ private:
     bool m_contextInitialized;
     bool m_running;
     bool m_stopAfterLastJob;
+    bool m_remote_trigger;
 
     CefRefPtr<CefPrintHandler> m_printHandler;
     CefRefPtr<CefRenderHandler> m_renderHandler;
+    CefRefPtr<CefRenderProcessHandler> m_renderProcessHandler;
     CefRefPtr<RequestHandler> m_requestHandler;
 
     // Include the default reference counting implementation.

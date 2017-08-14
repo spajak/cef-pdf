@@ -49,6 +49,8 @@ void printHelp(std::string name)
     std::cout << "  --host=<host>    If starting server, specify ip address to bind to." << std::endl;
     std::cout << "                   Default is " << cefpdf::constants::serverHost << std::endl;
     std::cout << "  --port=<port>    Specify server port number. Default is " << cefpdf::constants::serverPort << std::endl;
+    std::cout << "  --remote-trigger Defer printing until page evaluates the following:" << std::endl;
+    std::cout << "                   window.cefPdf({request: \"\", onSuccess: function () {}, onFailure: function () {}});" << std::endl;
     std::cout << std::endl;
     std::cout << "Output:" << std::endl;
     std::cout << "  PDF file name to create. Default is to write binary data to standard output." << std::endl;
@@ -130,6 +132,14 @@ int runJob(CefRefPtr<cefpdf::Client> app, CefRefPtr<CefCommandLine> commandLine)
 
         if (commandLine->HasSwitch("backgrounds")) {
             job->SetBackgrounds();
+        }
+
+        if (commandLine->HasSwitch("backgrounds")) {
+            job->SetBackgrounds();
+        }
+
+        if (commandLine->HasSwitch("remote-trigger")) {
+            app->SetRemoteTrigger();
         }
 
     } catch (std::string error) {
@@ -221,8 +231,9 @@ int main(int argc, char* argv[])
         return 0;
     }
 
+    bool javascript = commandLine->HasSwitch("javascript") || commandLine->HasSwitch("remote-trigger");
     app->Initialize(mainArgs);
-    app->SetDisableJavaScript(!commandLine->HasSwitch("javascript"));
+    app->SetDisableJavaScript(!javascript);
 
     return commandLine->HasSwitch("server") ? runServer(app, commandLine) : runJob(app, commandLine);
 }
