@@ -30,6 +30,9 @@ namespace headers {
     const std::string location    = "Content-Location";
     const std::string encoding    = "Transfer-Encoding";
     const std::string expect      = "Expect";
+    const std::string pageSize    = "PDF-Page-Size";
+    const std::string pageMargin  = "PDF-Page-Margin";
+    const std::string pdfOptions  = "PDF-Options";
 } // namespace headers
 
 struct Header {
@@ -48,6 +51,9 @@ struct Request {
     std::string transferEncoding;
     std::string expect;
     std::string location;
+    std::string pageSize;
+    std::string pageMargin;
+    std::string pdfOptions;
 };
 
 struct Response {

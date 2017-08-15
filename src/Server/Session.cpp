@@ -195,6 +195,12 @@ void Session::ParseRequestHeaders()
             m_request.expect = match[2];
         } else if (stringsEqual(match[1], http::headers::location)) {
             m_request.location = match[2];
+        } else if (stringsEqual(match[1], http::headers::pageSize)) {
+            m_request.pageSize = match[2];
+        } else if (stringsEqual(match[1], http::headers::pageMargin)) {
+            m_request.pageMargin = match[2];
+        } else if (stringsEqual(match[1], http::headers::pdfOptions)) {
+            m_request.pdfOptions = match[2];
         }
 
         it = match[0].second;
@@ -243,6 +249,28 @@ void Session::HandlePOST()
         job = new cefpdf::job::Local(m_request.content);
     } else {
         job = new cefpdf::job::Remote(m_request.location);
+    }
+
+    if (!m_request.pageSize.empty()) {
+        try {
+            job->SetPageSize(m_request.pageSize);
+        } catch (...) {}
+    }
+
+    if (!m_request.pageMargin.empty()) {
+        try {
+            job->SetPageMargin(m_request.pageMargin);
+        } catch (...) {}
+    }
+
+    if (!m_request.pdfOptions.empty()) {
+        if (std::string::npos != m_request.pdfOptions.find("landscape")) {
+            job->SetLandscape(true);
+        }
+
+        if (std::string::npos != m_request.pdfOptions.find("backgrounds")) {
+            job->SetBackgrounds(true);
+        }
     }
 
     job->SetCallback(std::bind(
