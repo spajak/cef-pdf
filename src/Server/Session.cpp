@@ -94,50 +94,10 @@ void Session::Write()
     }
 }
 
-void Session::OnRead(std::error_code ec, std::size_t bytes_transferred)
+void Session::Write(const std::string& status)
 {
-    if (ec) {
-        return;
-    }
-
-    if (m_request.method.empty()) {
-        ParseRequestHeaders();
-
-        if (m_request.method == "POST") {
-            if (stringsEqual(m_request.expect, "100-continue")) {
-                Write100Continue();
-            }
-
-            if (m_request.contentLength > 0) {
-                std::size_t bytes_to_read = m_request.contentLength - m_request.content.size();
-                if (bytes_to_read > 0) {
-                    ReadExactly(bytes_to_read);
-                } else {
-                    HandlePOST();
-                }
-            } else {
-                // No content length: read until connection closes
-                ReadAll();
-            }
-
-        } else if (m_request.method == "GET") {
-            HandleGET();
-        } else {
-            m_response.SetStatus(http::statuses::badMethod);
-            Write();
-        }
-    } else {
-        m_request.content += FetchBuffer();
-        HandlePOST();
-    }
-}
-
-std::string Session::FetchBuffer()
-{
-    std::ostringstream ss;
-    ss << &m_buffer;
-
-    return ss.str();
+    m_response.SetStatus(status);
+    Write();
 }
 
 void Session::Write100Continue()
@@ -149,6 +109,57 @@ void Session::Write100Continue()
     os << http::protocol << " " << http::statuses::cont << http::crlf << http::crlf;
 
     asio::write(m_socket, buffer, error);
+}
+
+void Session::OnRead(std::error_code ec, std::size_t bytes_transferred)
+{
+    if (ec) {
+        return;
+    }
+
+    if (m_request.method.empty()) {
+        ParseRequestHeaders();
+
+        if (m_request.method == "GET") {
+            Handle();
+        } else if (m_request.method == "POST") {
+            if (!(m_request.encoding.empty() || m_request.encoding == "identity")) {
+                // No transfer encoding supported yet
+                Write(http::statuses::unsupported);
+                return;
+            }
+
+            if (stringsEqual(m_request.expect, "100-continue")) {
+                Write100Continue();
+            }
+
+            if (m_request.length > 0) {
+                std::size_t bytesToRead = m_request.length - m_request.content.size();
+                if (bytesToRead > 0) {
+                    ReadExactly(bytesToRead);
+                } else {
+                    Handle();
+                }
+            } else if (!m_request.location.empty()) {
+                Handle();
+            } else {
+                Write(http::statuses::lengthRequired);
+            }
+        } else {
+            Write(http::statuses::badMethod);
+        }
+    } else {
+        m_request.content += FetchBuffer();
+        Handle();
+    }
+}
+
+std::string Session::FetchBuffer()
+{
+    std::ostringstream ss;
+    ss << &m_buffer;
+
+    return ss.str();
 }
 
 void Session::ParseRequestHeaders()
@@ -176,21 +187,20 @@ void Session::ParseRequestHeaders()
         m_request.version = match[3];
     }
 
-    m_request.contentLength = 0;
-
     // Collect request headers
     std::regex re2("(.+): (.+)" + http::crlf);
     std::string::const_iterator it, end;
     it = match[0].second;
     end = headerData.end();
+    m_request.length = 0;
 
     while (std::regex_search(it, end, match, re2)) {
         m_request.headers.push_back({match[1], match[2]});
 
         if (stringsEqual(match[1], http::headers::encoding)) {
-            m_request.transferEncoding = match[2];
+            m_request.encoding = match[2];
         } else if (stringsEqual(match[1], http::headers::length)) {
-            m_request.contentLength = std::stoi(match[2]);
+            m_request.length = std::stoi(match[2]);
         } else if (stringsEqual(match[1], http::headers::expect)) {
             m_request.expect = match[2];
         } else if (stringsEqual(match[1], http::headers::location)) {
@@ -207,7 +217,7 @@ void Session::ParseRequestHeaders()
     }
 }
 
-void Session::HandleGET()
+void Session::Handle()
 {
     m_response.SetStatus(http::statuses::ok);
     m_response.SetHeader(http::headers::date, formatDate());
@@ -217,30 +227,26 @@ void Session::HandleGET()
             "{\"status\":\"ok\",\"version\":\"" + cefpdf::constants::version + "\"}",
             "application/json"
         );
+        Write();
     } else {
-        m_response.SetStatus(http::statuses::notFound);
-    }
+        // Parse url path
+        std::regex re("([^/]+\\.pdf)($|[^\\w])", std::regex_constants::icase);
+        std::smatch match;
 
-    Write();
+        if (std::regex_search(m_request.url, match, re)) {
+            if (m_request.method == "GET" && m_request.location.empty()) {
+                Write(http::statuses::badMethod);
+            } else {
+                HandlePDF(match[1]);
+            }
+        } else {
+            Write(http::statuses::notFound);
+        }
+    }
 }
 
-void Session::HandlePOST()
+void Session::HandlePDF(const std::string& fileName)
 {
-    m_response.SetStatus(http::statuses::ok);
-    m_response.SetHeader(http::headers::date, formatDate());
-
-    // Parse url path
-    std::regex re("([^/]+\\.pdf)($|[^\\w])", std::regex_constants::icase);
-    std::smatch match;
-
-    if (!std::regex_search(m_request.url, match, re)) {
-        m_response.SetStatus(http::statuses::notFound);
-        Write();
-        return;
-    }
-
-    std::string fileName = match[1];
-
     m_response.SetHeader(http::headers::disposition, "inline; filename=\"" + fileName + "\"");
 
     CefRefPtr<cefpdf::job::Job> job;

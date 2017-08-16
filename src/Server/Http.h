@@ -14,12 +14,14 @@ const std::string crlf     = "\r\n";
 const std::string hsep     = ": ";
 
 namespace statuses {
-    const std::string cont       = "100 Continue";
-    const std::string ok         = "200 OK";
-    const std::string badRequest = "400 Bad Request";
-    const std::string notFound   = "404 Not Found";
-    const std::string badMethod  = "405 Method Not Allowed";
-    const std::string error      = "500 Internal Server Error";
+    const std::string cont           = "100 Continue";
+    const std::string ok             = "200 OK";
+    const std::string badRequest     = "400 Bad Request";
+    const std::string notFound       = "404 Not Found";
+    const std::string badMethod      = "405 Method Not Allowed";
+    const std::string lengthRequired = "411 Length Required";
+    const std::string unsupported    = "415 Unsupported Media Type";
+    const std::string error          = "500 Internal Server Error";
 } // namespace statuses
 
 namespace headers {
@@ -47,8 +49,8 @@ struct Request {
     std::vector<Header> headers;
     std::string content;
 
-    std::size_t contentLength;
-    std::string transferEncoding;
+    std::size_t length;
+    std::string encoding;
     std::string expect;
     std::string location;
     std::string pageSize;

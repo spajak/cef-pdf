@@ -52,13 +52,15 @@ private:
 
     void Write();
 
+    void Write(const std::string&);
+
     void OnRead(std::error_code, std::size_t);
 
     void ParseRequestHeaders();
 
-    void HandleGET();
+    void Handle();
 
-    void HandlePOST();
+    void HandlePDF(const std::string&);
 
     void OnResolve(CefRefPtr<cefpdf::job::Job>);
 

@@ -21,9 +21,14 @@ public:
     }
 
     virtual void visit(CefRefPtr<Local> job) override {
+        auto content = job->GetContent();
+        if (content.empty()) {
+            content = "<!DOCTYPE html>";
+        }
+
         m_reader = CefStreamReader::CreateForData(
-            static_cast<void*>(const_cast<char*>(job->GetContent().c_str())),
-            job->GetContent().size()
+            static_cast<void*>(const_cast<char*>(content.c_str())),
+            content.size()
         );
     }
 
