@@ -43,14 +43,14 @@ void printHelp(std::string name)
     std::cout << "                   If omitted some default margin is applied." << std::endl;
     std::cout << "  --javascript     Enable JavaScript." << std::endl;
     std::cout << "  --backgrounds    Print with backgrounds. Default is without." << std::endl;
+    std::cout << "  --remote-trigger Defer printing until page evaluates the following:" << std::endl;
+    std::cout << "                   window.cefPdf({request: \"\", onSuccess: function () {}, onFailure: function () {}});" << std::endl;
     std::cout << std::endl;
     std::cout << "Server options:" << std::endl;
     std::cout << "  --server         Start HTTP server" << std::endl;
     std::cout << "  --host=<host>    If starting server, specify ip address to bind to." << std::endl;
     std::cout << "                   Default is " << cefpdf::constants::serverHost << std::endl;
     std::cout << "  --port=<port>    Specify server port number. Default is " << cefpdf::constants::serverPort << std::endl;
-    std::cout << "  --remote-trigger Defer printing until page evaluates the following:" << std::endl;
-    std::cout << "                   window.cefPdf({request: \"\", onSuccess: function () {}, onFailure: function () {}});" << std::endl;
     std::cout << std::endl;
     std::cout << "Output:" << std::endl;
     std::cout << "  PDF file name to create. Default is to write binary data to standard output." << std::endl;
