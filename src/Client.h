@@ -139,7 +139,7 @@ private:
     bool m_contextInitialized;
     bool m_running;
     bool m_stopAfterLastJob;
-    bool m_remote_trigger;
+    bool m_remoteTrigger;
 
     CefRefPtr<CefPrintHandler> m_printHandler;
     CefRefPtr<CefRenderHandler> m_renderHandler;

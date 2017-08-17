@@ -106,7 +106,7 @@ void Client::CreateBrowsers(unsigned int browserCount)
 
 void Client::SetRemoteTrigger(bool flag)
 {
-    m_remote_trigger = flag;
+    m_remoteTrigger = flag;
 }
 
 // CefApp methods:
@@ -268,7 +268,7 @@ void Client::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
 
     CEF_REQUIRE_UI_THREAD();
 
-    if (frame->IsMain() && !m_remote_trigger) {
+    if (frame->IsMain() && !m_remoteTrigger) {
         m_jobManager->Process(browser, httpStatusCode);
     }
 }
@@ -305,7 +305,7 @@ bool Client::OnQuery(
 
     CEF_REQUIRE_UI_THREAD();
 
-    if (frame->IsMain() && m_remote_trigger) {
+    if (frame->IsMain() && m_remoteTrigger) {
         m_jobManager->Process(browser, 200);
         callback->Success("OK");
         return true;
