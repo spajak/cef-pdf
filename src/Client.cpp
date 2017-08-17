@@ -210,8 +210,10 @@ void Client::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 
     CEF_REQUIRE_UI_THREAD();
 
-    m_requestHandler->m_messageRouterBrowserSide = CefMessageRouterBrowserSide::Create(constants::messageRouterConfig);
-    m_requestHandler->m_messageRouterBrowserSide->AddHandler(this, true);
+    if (!m_requestHandler->m_messageRouterBrowserSide) {
+        m_requestHandler->m_messageRouterBrowserSide = CefMessageRouterBrowserSide::Create(constants::messageRouterConfig);
+        m_requestHandler->m_messageRouterBrowserSide->AddHandler(this, true);
+    }
 
     // Assign this browser to the next job. JobsManager will
     // check if there is any queued job
