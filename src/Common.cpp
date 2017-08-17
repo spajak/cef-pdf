@@ -331,14 +331,6 @@ std::string getProcessId()
 #endif // OS_WIN
 }
 
-CefMessageRouterConfig getConfig()
-{
-    CefMessageRouterConfig config;
-    config.js_query_function = "cefPdf";
-    config.js_cancel_function = "cefPdfCancel";
-    return config;
-}
-
 bool fileExists(const std::string& path)
 {
 #if defined(OS_WIN)

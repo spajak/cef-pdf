@@ -48,7 +48,12 @@ void RenderProcessHandler::OnWebKitInitialized()
 {
     DLOG(INFO) << "RenderProcessHandler::OnWebKitInitialized";
     CEF_REQUIRE_RENDERER_THREAD();
-    m_messageRouterRendererSide = CefMessageRouterRendererSide::Create(constants::messageRouterConfig);
+
+    CefMessageRouterConfig config;
+    config.js_query_function = constants::jsQueryFunction;
+    config.js_cancel_function = constants::jsCancelFunction;
+
+    m_messageRouterRendererSide = CefMessageRouterRendererSide::Create(config);
 }
 
 } // namespace cefpdf

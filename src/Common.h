@@ -2,7 +2,6 @@
 #define COMMON_H_
 
 #include "include/internal/cef_types.h"
-#include "include/wrapper/cef_message_router.h"
 
 #include <string>
 #include <list>
@@ -16,8 +15,6 @@ std::string getCurrentWorkingDirectory();
 std::string getTempDirectory();
 
 std::string getProcessId();
-
-CefMessageRouterConfig getConfig();
 
 namespace constants {
     // cef-pdf version number
@@ -41,7 +38,8 @@ namespace constants {
     const std::string tmp = getTempDirectory();
     // Current process ID
     const std::string pid = getProcessId();
-    const CefMessageRouterConfig messageRouterConfig = getConfig();
+    const std::string jsQueryFunction = "cefPdf";
+    const std::string jsCancelFunction = "cefPdfCancel";
 }
 
 struct PageSize

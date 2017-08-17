@@ -166,7 +166,10 @@ void Client::OnContextInitialized()
     CreateBrowsers();
 
     if (!m_requestHandler->m_messageRouterBrowserSide) {
-        m_requestHandler->m_messageRouterBrowserSide = CefMessageRouterBrowserSide::Create(constants::messageRouterConfig);
+        CefMessageRouterConfig config;
+        config.js_query_function = constants::jsQueryFunction;
+        config.js_cancel_function = constants::jsCancelFunction;
+        m_requestHandler->m_messageRouterBrowserSide = CefMessageRouterBrowserSide::Create(config);
         m_requestHandler->m_messageRouterBrowserSide->AddHandler(this, true);
     }
 }
