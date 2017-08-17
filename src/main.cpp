@@ -138,10 +138,6 @@ int runJob(CefRefPtr<cefpdf::Client> app, CefRefPtr<CefCommandLine> commandLine)
             job->SetBackgrounds();
         }
 
-        if (commandLine->HasSwitch("remote-trigger")) {
-            app->SetRemoteTrigger();
-        }
-
     } catch (std::string error) {
         std::cerr << "ERROR: " << error << std::endl;
         app->Shutdown();
@@ -234,6 +230,10 @@ int main(int argc, char* argv[])
     bool javascript = commandLine->HasSwitch("javascript") || commandLine->HasSwitch("remote-trigger");
     app->Initialize(mainArgs);
     app->SetDisableJavaScript(!javascript);
+
+    if (commandLine->HasSwitch("remote-trigger")) {
+        app->SetRemoteTrigger();
+    }
 
     return commandLine->HasSwitch("server") ? runServer(app, commandLine) : runJob(app, commandLine);
 }
