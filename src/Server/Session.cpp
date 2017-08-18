@@ -123,7 +123,7 @@ void Session::OnRead(std::error_code ec, std::size_t bytes_transferred)
         if (m_request.method == "GET") {
             Handle();
         } else if (m_request.method == "POST") {
-            if (!(m_request.encoding.empty() || m_request.encoding == "identity")) {
+            if (!(m_request.encoding.empty() || stringsEqual(m_request.encoding, "identity"))) {
                 // No transfer encoding supported yet
                 Write(http::statuses::unsupported);
                 return;
@@ -223,10 +223,7 @@ void Session::Handle()
     m_response.SetHeader(http::headers::date, formatDate());
 
     if (m_request.url == "/" || m_request.url == "/about") {
-        m_response.SetContent(
-            "{\"status\":\"ok\",\"version\":\"" + cefpdf::constants::version + "\"}",
-            "application/json"
-        );
+        m_response.SetContent(GetAboutReply(), "application/json");
         Write();
     } else {
         // Parse url path
@@ -243,6 +240,23 @@ void Session::Handle()
             Write(http::statuses::notFound);
         }
     }
+}
+
+std::string Session::GetAboutReply()
+{
+    std::string content;
+
+    content += "{";
+    content += "\"status\": \"ok\", ";
+    content += "\"version\": \"" + cefpdf::constants::version + "\", ";
+    content += "\"headers\": [";
+    content += "\"" + http::headers::location + "\", ";
+    content += "\"" + http::headers::pageSize + "\", ";
+    content += "\"" + http::headers::pageMargin + "\", ";
+    content += "\"" + http::headers::pdfOptions + "(landscape|backgrounds)\"";
+    content += "]}";
+
+    return content;
 }
 
 void Session::HandlePDF(const std::string& fileName)

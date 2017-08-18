@@ -66,6 +66,8 @@ private:
 
     void Write100Continue();
 
+    std::string GetAboutReply();
+
     std::string FetchBuffer();
 
     CefRefPtr<cefpdf::Client> m_client;
