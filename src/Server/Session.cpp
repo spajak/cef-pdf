@@ -225,6 +225,9 @@ void Session::Handle()
     if (m_request.url == "/" || m_request.url == "/about") {
         m_response.SetContent(GetAboutReply(), "application/json");
         Write();
+    } else if (m_request.url == "/list-sizes") {
+        m_response.SetContent(GetPageSizesReply(), "application/json");
+        Write();
     } else {
         // Parse url path
         std::regex re("([^/]+\\.pdf)($|[^\\w])", std::regex_constants::icase);
@@ -255,6 +258,26 @@ std::string Session::GetAboutReply()
     content += "\"" + http::headers::pageMargin + "\", ";
     content += "\"" + http::headers::pdfOptions + "(landscape|backgrounds)\"";
     content += "]}";
+
+    return content;
+}
+
+std::string Session::GetPageSizesReply()
+{
+    std::string content;
+
+    content += "[";
+    cefpdf::PageSizesMap::const_iterator it;
+
+    for (it = cefpdf::pageSizesMap.begin(); it != cefpdf::pageSizesMap.end(); ++it) {
+        if (content.size() > 1) {
+            content += ", ";
+        }
+
+        content += "\"" + it->name + "\"";
+    }
+
+    content += "]";
 
     return content;
 }

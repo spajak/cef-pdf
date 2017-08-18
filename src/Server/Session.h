@@ -68,6 +68,8 @@ private:
 
     std::string GetAboutReply();
 
+    std::string GetPageSizesReply();
+
     std::string FetchBuffer();
 
     CefRefPtr<cefpdf::Client> m_client;
