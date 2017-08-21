@@ -218,15 +218,18 @@ void Client::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 
     CEF_REQUIRE_UI_THREAD();
 
-    CefRefPtr<CefFrame> frame = browser->GetMainFrame();
+    if (m_remoteTrigger) {
+        CefRefPtr<CefFrame> frame = browser->GetMainFrame();
 
-    frame->ExecuteJavaScript(
-        "window.triggerCefPdf = function () { window."
-        + constants::jsQueryFunction
-        + "({request: "", onSuccess: function () {}, onFailure: function () {}}); };"
-        , frame->GetURL()
-        , 0
-    );
+        frame->ExecuteJavaScript(
+            "window.triggerCefPdf = function () { window."
+            + constants::jsQueryFunction
+            + "({request: "", onSuccess: function () {}, onFailure: function () {}}); };"
+            , frame->GetURL()
+            , 0
+        );
+    }
+
     // Assign this browser to the next job. JobsManager will
     // check if there is any queued job
     m_jobManager->Assign(browser);
