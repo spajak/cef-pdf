@@ -133,10 +133,6 @@ int runJob(CefRefPtr<cefpdf::Client> app, CefRefPtr<CefCommandLine> commandLine)
             job->SetBackgrounds();
         }
 
-        if (commandLine->HasSwitch("backgrounds")) {
-            job->SetBackgrounds();
-        }
-
     } catch (std::string error) {
         std::cerr << "ERROR: " << error << std::endl;
         app->Shutdown();
