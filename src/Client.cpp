@@ -221,10 +221,13 @@ void Client::OnAfterCreated(CefRefPtr<CefBrowser> browser)
     if (m_remoteTrigger) {
         CefRefPtr<CefFrame> frame = browser->GetMainFrame();
 
+	// Add convenience functions.
         frame->ExecuteJavaScript(
-            "window.triggerCefPdf = function () { window."
+            "window.cefpdf = { trigger: function () { window."
             + constants::jsQueryFunction
-            + "({request: "", onSuccess: function () {}, onFailure: function () {}}); };"
+            + "({request: \"trigger\", onSuccess: function () {}, onFailure: function () {}}); }, abort: function () { window."
+            + constants::jsQueryFunction
+            + "({request: \"abort\", onSuccess: function () {}, onFailure: function () {}}); } };"
             , frame->GetURL()
             , 0
         );
@@ -321,9 +324,17 @@ bool Client::OnQuery(
     CEF_REQUIRE_UI_THREAD();
 
     if (frame->IsMain() && m_remoteTrigger) {
-        m_jobManager->Process(browser, 200);
-        callback->Success("OK");
-        return true;
+	if (request == "trigger") {
+            callback->Success("Processing");
+            m_jobManager->Process(browser, 200);
+            return true;
+	} else if (request == "abort") {
+            callback->Failure(ERR_ABORTED, "Aborted");
+            m_jobManager->Abort(browser, ERR_ABORTED);
+	    return true;
+	} else {
+            return false;
+	}
     }
     return false;
 }
