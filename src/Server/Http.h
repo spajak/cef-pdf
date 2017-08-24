@@ -51,6 +51,7 @@ struct Request {
 
     std::size_t length;
     std::string encoding;
+    bool chunked;
     std::string expect;
     std::string location;
     std::string pageSize;

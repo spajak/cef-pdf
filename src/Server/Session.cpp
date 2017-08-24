@@ -35,7 +35,7 @@ void Session::ReadHeaders()
         m_buffer,
         http::crlf + http::crlf,
         std::bind(
-            &Session::OnRead,
+            &Session::OnReadHeaders,
             this,
             std::placeholders::_1,
             std::placeholders::_2
@@ -43,7 +43,22 @@ void Session::ReadHeaders()
     );
 }
 
-void Session::ReadExactly(std::size_t bytes)
+void Connection::ReadChunk()
+{
+    asio::async_read_until(
+        m_socket,
+        m_buffer,
+        http::crlf,
+        std::bind(
+            &Connection::OnReadChunk,
+            this,
+            std::placeholders::_1,
+            std::placeholders::_2
+        )
+    );
+}
+
+void Session::Read(std::size_t bytes)
 {
     asio::async_read(
         m_socket,
@@ -111,47 +126,72 @@ void Session::Write100Continue()
     asio::write(m_socket, buffer, error);
 }
 
+void Session::OnReadHeaders(std::error_code ec, std::size_t bytes_transferred)
+{
+    ParseRequestHeaders();
+
+    if (m_request.method == "GET") {
+        Handle();
+    } else if (m_request.method == "POST") {
+        if (!(m_request.encoding.empty() || m_request.chunked)) {
+            // No transfer encoding supported yet
+            Write(http::statuses::unsupported);
+            return;
+        }
+
+        if (stringsEqual(m_request.expect, "100-continue")) {
+            Write100Continue();
+        }
+
+        if (m_request.chunked) {
+            ReadChunk();
+            return;
+        }
+
+        if (m_request.length > 0) {
+            std::size_t bytesToRead = m_request.length - m_request.content.size();
+            if (bytesToRead > 0) {
+                Read(bytesToRead);
+            } else {
+                Handle();
+            }
+        } else if (!m_request.location.empty()) {
+            Handle();
+        } else {
+            Write(http::statuses::lengthRequired);
+        }
+    } else {
+        Write(http::statuses::badMethod);
+    }
+}
+
+void Connection::OnReadChunk(std::error_code ec, std::size_t bytes_transferred)
+{
+    auto content = fetchBuffer();
+
+    auto idx = content.find(http::crlf);
+
+    if (idx != std::string::npos) {
+        auto size = std::stoi(content.substr(0, idx));
+        if (size > 0) {
+            Read(size);
+            return;
+        }
+    }
+
+    Handle();
+}
+
 void Session::OnRead(std::error_code ec, std::size_t bytes_transferred)
 {
-    if (ec) {
+    m_request.content += FetchBuffer();
+
+    if (m_request.chunked) {
+        ReadChunk();
         return;
     }
 
-    if (m_request.method.empty()) {
-        ParseRequestHeaders();
-
-        if (m_request.method == "GET") {
-            Handle();
-        } else if (m_request.method == "POST") {
-            if (!(m_request.encoding.empty() || stringsEqual(m_request.encoding, "identity"))) {
-                // No transfer encoding supported yet
-                Write(http::statuses::unsupported);
-                return;
-            }
-
-            if (stringsEqual(m_request.expect, "100-continue")) {
-                Write100Continue();
-            }
-
-            if (m_request.length > 0) {
-                std::size_t bytesToRead = m_request.length - m_request.content.size();
-                if (bytesToRead > 0) {
-                    ReadExactly(bytesToRead);
-                } else {
-                    Handle();
-                }
-            } else if (!m_request.location.empty()) {
-                Handle();
-            } else {
-                Write(http::statuses::lengthRequired);
-            }
-        } else {
-            Write(http::statuses::badMethod);
-        }
-    } else {
-        m_request.content += FetchBuffer();
-        Handle();
-    }
+    Handle();
 }
 
 std::string Session::FetchBuffer()
@@ -174,7 +214,7 @@ void Session::ParseRequestHeaders()
         headerData = requestData;
     } else {
         headerData = requestData.substr(0, sepIndex + 2);
-        m_request.content = requestData.substr(sepIndex + 4, requestData.size() - sepIndex + 4);
+        m_request.content = requestData.substr(sepIndex + 4);
     }
 
     // Parse status line
@@ -192,13 +232,19 @@ void Session::ParseRequestHeaders()
     std::string::const_iterator it, end;
     it = match[0].second;
     end = headerData.end();
+    m_request.chunked = false;
     m_request.length = 0;
 
     while (std::regex_search(it, end, match, re2)) {
         m_request.headers.push_back({match[1], match[2]});
 
         if (stringsEqual(match[1], http::headers::encoding)) {
-            m_request.encoding = match[2];
+            if (!stringsEqual(match[2], "identity")) {
+                m_request.encoding = match[2];
+                if (stringsEqual(m_request.encoding, "chunked")) {
+                    m_request.chunked = true;
+                }
+            }
         } else if (stringsEqual(match[1], http::headers::length)) {
             m_request.length = std::stoi(match[2]);
         } else if (stringsEqual(match[1], http::headers::expect)) {

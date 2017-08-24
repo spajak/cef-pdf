@@ -46,13 +46,19 @@ public:
 private:
     void ReadHeaders();
 
-    void ReadExactly(std::size_t);
+    void ReadChunk();
+
+    void Read(std::size_t);
 
     void ReadAll();
 
     void Write();
 
     void Write(const std::string&);
+
+    void OnReadHeaders(std::error_code, std::size_t);
+
+    void OnReadChunk(std::error_code, std::size_t);
 
     void OnRead(std::error_code, std::size_t);
 
