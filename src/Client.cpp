@@ -332,8 +332,6 @@ bool Client::OnQuery(
             callback->Failure(ERR_ABORTED, "Aborted");
             m_jobManager->Abort(browser, ERR_ABORTED);
 	    return true;
-	} else {
-            return false;
 	}
     }
     return false;
