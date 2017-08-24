@@ -38,6 +38,8 @@ namespace constants {
     const std::string tmp = getTempDirectory();
     // Current process ID
     const std::string pid = getProcessId();
+    const std::string jsQueryFunction = "cefPdf";
+    const std::string jsCancelFunction = "cefPdfCancel";
 }
 
 struct PageSize
