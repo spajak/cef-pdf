@@ -43,14 +43,14 @@ void Session::ReadHeaders()
     );
 }
 
-void Connection::ReadChunk()
+void Session::ReadChunk()
 {
     asio::async_read_until(
         m_socket,
         m_buffer,
         http::crlf,
         std::bind(
-            &Connection::OnReadChunk,
+            &Session::OnReadChunk,
             this,
             std::placeholders::_1,
             std::placeholders::_2
@@ -126,7 +126,7 @@ void Session::Write100Continue()
     asio::write(m_socket, buffer, error);
 }
 
-void Session::OnReadHeaders(std::error_code ec, std::size_t bytes_transferred)
+void Session::OnReadHeaders(const std::error_code& ec, std::size_t bytes_transferred)
 {
     ParseRequestHeaders();
 
@@ -165,30 +165,26 @@ void Session::OnReadHeaders(std::error_code ec, std::size_t bytes_transferred)
     }
 }
 
-void Connection::OnReadChunk(std::error_code ec, std::size_t bytes_transferred)
+void Session::OnReadChunk(const std::error_code& ec, std::size_t bytes_transferred)
 {
-    auto content = fetchBuffer();
-
-    auto idx = content.find(http::crlf);
-
-    if (idx != std::string::npos) {
-        auto size = std::stoi(content.substr(0, idx));
-        if (size > 0) {
-            Read(size);
-            return;
-        }
+    if (ParseChunks(FetchBuffer())) {
+        Handle();
     }
-
-    Handle();
 }
 
-void Session::OnRead(std::error_code ec, std::size_t bytes_transferred)
+void Session::OnRead(const std::error_code& ec, std::size_t bytes_transferred)
 {
-    m_request.content += FetchBuffer();
+    auto content = FetchBuffer();
 
     if (m_request.chunked) {
+        if (content.size() > http::crlf.size()) {
+            m_request.content += content.substr(0, content.size() - http::crlf.size());
+        }
+
         ReadChunk();
         return;
+    } else {
+        m_request.content += content;
     }
 
     Handle();
@@ -200,6 +196,39 @@ std::string Session::FetchBuffer()
     ss << &m_buffer;
 
     return ss.str();
+}
+
+bool Session::ParseChunks(const std::string& content)
+{
+    std::string data = content;
+    std::size_t chunkSize, pos = 0;
+    auto separatorSize = http::crlf.size();
+    auto idx = data.find(http::crlf);
+
+    while (idx != std::string::npos) {
+        chunkSize = std::stoi(data.substr(pos, idx - pos), nullptr, 16);
+        if (0 == chunkSize) {
+            // Zero chunk, this is the end
+            return true;
+        }
+
+        m_request.content += data.substr(idx + separatorSize, chunkSize);
+        pos = idx + chunkSize + 2 * separatorSize;
+
+        if (data.size() == pos) {
+            break;
+        } else if (data.size() < pos) {
+            // Read rest of the chunk data
+            Read(pos - data.size());
+            return false;
+        }
+
+        idx = data.find(http::crlf, pos);
+    }
+
+    // Read next chunk
+    ReadChunk();
+    return false;
 }
 
 void Session::ParseRequestHeaders()

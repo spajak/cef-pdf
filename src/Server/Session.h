@@ -56,11 +56,11 @@ private:
 
     void Write(const std::string&);
 
-    void OnReadHeaders(std::error_code, std::size_t);
+    void OnReadHeaders(const std::error_code&, std::size_t);
 
-    void OnReadChunk(std::error_code, std::size_t);
+    void OnReadChunk(const std::error_code&, std::size_t);
 
-    void OnRead(std::error_code, std::size_t);
+    void OnRead(const std::error_code&, std::size_t);
 
     void ParseRequestHeaders();
 
@@ -69,6 +69,8 @@ private:
     void HandlePDF(const std::string&);
 
     void OnResolve(CefRefPtr<cefpdf::job::Job>);
+
+    bool ParseChunks(const std::string&);
 
     void Write100Continue();
 
