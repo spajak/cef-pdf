@@ -154,12 +154,18 @@ int runJob(CefRefPtr<cefpdf::Client> app, CefRefPtr<CefCommandLine> commandLine)
         _setmode(_fileno(stdout), _O_BINARY);
 #endif // OS_WIN
         std::cout << cefpdf::loadTempFile(job->GetOutputPath());
-    } else {
-        if (job->GetStatus() == cefpdf::job::Job::Status::SUCCESS) {
-            std::cout << "Printing document finished successfully" << std::endl;
-        } else {
-            std::cout << "Printing document failed!!" << std::endl;
-        }
+    }
+
+    switch (job->GetStatus()) {
+        case cefpdf::job::Job::Status::SUCCESS:
+            std::clog << "Printing document finished successfully" << std::endl;
+            break;
+        case cefpdf::job::Job::Status::PRINT_ERROR:
+            std::clog << "Printing document failed!!" << std::endl;
+            return 1;
+        default:
+            std::clog << "Loading document failed!!" << std::endl;
+            return 1;
     }
 
     return 0;

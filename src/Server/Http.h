@@ -14,12 +14,14 @@ const std::string crlf     = "\r\n";
 const std::string hsep     = ": ";
 
 namespace statuses {
-    const std::string cont       = "100 Continue";
-    const std::string ok         = "200 OK";
-    const std::string badRequest = "400 Bad Request";
-    const std::string notFound   = "404 Not Found";
-    const std::string badMethod  = "405 Method Not Allowed";
-    const std::string error      = "500 Internal Server Error";
+    const std::string cont           = "100 Continue";
+    const std::string ok             = "200 OK";
+    const std::string badRequest     = "400 Bad Request";
+    const std::string notFound       = "404 Not Found";
+    const std::string badMethod      = "405 Method Not Allowed";
+    const std::string lengthRequired = "411 Length Required";
+    const std::string unsupported    = "415 Unsupported Media Type";
+    const std::string error          = "500 Internal Server Error";
 } // namespace statuses
 
 namespace headers {
@@ -30,6 +32,9 @@ namespace headers {
     const std::string location    = "Content-Location";
     const std::string encoding    = "Transfer-Encoding";
     const std::string expect      = "Expect";
+    const std::string pageSize    = "PDF-Page-Size";
+    const std::string pageMargin  = "PDF-Page-Margin";
+    const std::string pdfOptions  = "PDF-Options";
 } // namespace headers
 
 struct Header {
@@ -44,10 +49,14 @@ struct Request {
     std::vector<Header> headers;
     std::string content;
 
-    std::size_t contentLength;
-    std::string transferEncoding;
+    std::size_t length;
+    std::string encoding;
+    bool chunked;
     std::string expect;
     std::string location;
+    std::string pageSize;
+    std::string pageMargin;
+    std::string pdfOptions;
 };
 
 struct Response {

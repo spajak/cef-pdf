@@ -46,23 +46,37 @@ public:
 private:
     void ReadHeaders();
 
-    void ReadExactly(std::size_t);
+    void ReadChunk();
+
+    void Read(std::size_t);
 
     void ReadAll();
 
     void Write();
 
-    void OnRead(std::error_code, std::size_t);
+    void Write(const std::string&);
+
+    void OnReadHeaders(const std::error_code&, std::size_t);
+
+    void OnReadChunk(const std::error_code&, std::size_t);
+
+    void OnRead(const std::error_code&, std::size_t);
 
     void ParseRequestHeaders();
 
-    void HandleGET();
+    void Handle();
 
-    void HandlePOST();
+    void HandlePDF(const std::string&);
 
     void OnResolve(CefRefPtr<cefpdf::job::Job>);
 
+    bool ParseChunks(const std::string&);
+
     void Write100Continue();
+
+    std::string GetAboutReply();
+
+    std::string GetPageSizesReply();
 
     std::string FetchBuffer();
 
