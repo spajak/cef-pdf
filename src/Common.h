@@ -18,7 +18,7 @@ std::string getProcessId();
 
 namespace constants {
     // cef-pdf version number
-    const std::string version = "0.3.2";
+    const std::string version = "0.3.3";
     // Internal scheme
     const std::string scheme = "cefpdf";
     // Default page size

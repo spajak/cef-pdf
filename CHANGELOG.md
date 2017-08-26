@@ -1,5 +1,12 @@
 Changelog
 ===
+### 0.3.3 (2017-08-26)
+* Added `Transfer-Encoding: chunked` support for HTTP requests
+* Added `--remote-trigger` option to defer printing until JavaScript function is called
+* Added HTTP headers for pdf printing options
+* Added `/list-sizes` enpoint to list available page sizes
+* Fixed bug related to `Content-Location` handling in HTTP request
+
 ### 0.3.2 (2017-08-13)
 * Building with CEF 3.3112.1656.g9ec3e42 / Chromium 60.0.3112.90 (Windows, Linux & OS X, 64bit)
 * Added support to read content from standard input (`--stdin`) and write pdf data to standard output
