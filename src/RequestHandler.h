@@ -2,6 +2,7 @@
 #define REQUEST_HANDLER_H_
 
 #include "include/cef_request_handler.h"
+#include "include/wrapper/cef_message_router.h"
 
 #include <string>
 #include <set>
@@ -36,6 +37,13 @@ public:
         CefRefPtr<CefRequest> request,
         bool is_redirect
     ) override;
+    virtual void OnRenderProcessTerminated(
+        CefRefPtr<CefBrowser> browser,
+        CefRequestHandler::TerminationStatus status
+    ) override;
+
+    // Public members: 
+    CefRefPtr<CefMessageRouterBrowserSide> m_messageRouterBrowserSide;
 
 private:
     std::set<std::string> m_schemes;

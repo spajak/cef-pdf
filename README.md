@@ -26,6 +26,7 @@
       --host=<host>    If starting server, specify ip address to bind to.
                        Default is 127.0.0.1
       --port=<port>    Specify server port number. Default is 9288
+      --remote-trigger Defer printing until page evaluates window.triggerCefPdf()
 
     Output:
       PDF file name to create. Default is to write binary data to standard output.

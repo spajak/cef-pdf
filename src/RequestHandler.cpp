@@ -12,9 +12,13 @@ bool RequestHandler::OnBeforeBrowse(
     CefRefPtr<CefRequest> request,
     bool is_redirect
 ) {
+    DLOG(INFO) << "RequestHandler::OnBeforeBrowse";
+
+    m_messageRouterBrowserSide->OnBeforeBrowse(browser, frame);
     if (m_schemes.empty()) {
         return false;
     }
+
 
     std::string regex;
 
@@ -32,6 +36,14 @@ bool RequestHandler::OnBeforeBrowse(
     // Allow only specified schemes
     std::regex re(regex, std::regex_constants::icase);
     return !std::regex_search(url, re, std::regex_constants::match_continuous);
+}
+
+void RequestHandler::OnRenderProcessTerminated(
+    CefRefPtr<CefBrowser> browser,
+    CefRequestHandler::TerminationStatus status
+) {
+    DLOG(INFO) << "RequestHandler::OnRenderProcessTerminated";
+    m_messageRouterBrowserSide->OnRenderProcessTerminated(browser);
 }
 
 } // namespace cefpdf
