@@ -2,11 +2,11 @@
 #define CLIENT_H_
 
 #include "Job/Manager.h"
-#include "RequestHandler.h"
 
 #include "include/cef_app.h"
 #include "include/cef_client.h"
 #include "include/cef_browser.h"
+#include "include/cef_request_handler.h"
 #include "include/wrapper/cef_message_router.h"
 
 #include <queue>
@@ -19,6 +19,7 @@ class Client : public CefApp,
                public CefClient,
                public CefLifeSpanHandler,
                public CefLoadHandler,
+               public CefRequestHandler,
                public CefMessageRouterBrowserSide::Handler
 {
 
@@ -58,14 +59,25 @@ public:
         m_browserSettings.javascript = flag ? STATE_DISABLED : STATE_ENABLED;
     }
 
+    void AddAllowedScheme(const std::string& scheme) {
+        m_schemes.insert(scheme);
+    }
+
     void SetAllowedSchemes(const std::set<std::string>& schemes) {
-        for (auto s: schemes) {
-            m_requestHandler->AddAllowedScheme(s);
+        for (const auto &s: schemes) {
+            AddAllowedScheme(s);
         }
     }
 
     void ClearAllowedSchemes() {
-        m_requestHandler->ClearAllowedSchemes();
+        m_schemes.clear();
+    }
+
+    void RemoveAllowedScheme(const std::string& scheme) {
+        auto i = m_schemes.find(scheme);
+        if (i != m_schemes.end()) {
+            m_schemes.erase(i);
+        }
     }
 
     void SetRemoteTrigger(bool flag = true);
@@ -116,6 +128,19 @@ public:
         const CefString& failedUrl
     ) override;
 
+    // CefRequestHandler methods:
+    virtual bool OnBeforeBrowse(
+        CefRefPtr<CefBrowser> browser,
+        CefRefPtr<CefFrame> frame,
+        CefRefPtr<CefRequest> request,
+        bool is_redirect
+    ) override;
+
+    virtual void OnRenderProcessTerminated(
+        CefRefPtr<CefBrowser> browser,
+        CefRequestHandler::TerminationStatus status
+    ) override;
+
     // CefMessageRouterBrowserSide::Handler methods:
     virtual bool OnQuery(
         CefRefPtr<CefBrowser> browser,
@@ -133,6 +158,7 @@ private:
     CefWindowInfo m_windowInfo;
     CefBrowserSettings m_browserSettings;
     CefRefPtr<job::Manager> m_jobManager;
+    std::set<std::string> m_schemes;
     unsigned int m_pendingBrowsersCount;
     unsigned int m_browsersCount;
     bool m_initialized;
@@ -144,7 +170,7 @@ private:
     CefRefPtr<CefPrintHandler> m_printHandler;
     CefRefPtr<CefRenderHandler> m_renderHandler;
     CefRefPtr<CefRenderProcessHandler> m_renderProcessHandler;
-    CefRefPtr<RequestHandler> m_requestHandler;
+    CefRefPtr<CefMessageRouterBrowserSide> m_messageRouterBrowserSide;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(Client)

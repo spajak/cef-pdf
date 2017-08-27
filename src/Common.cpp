@@ -400,4 +400,10 @@ bool stringsEqual(const std::string& a, const std::string& b)
     return true;
 }
 
+bool matchScheme(const std::string& url, const std::string& scheme)
+{
+    std::string s = strtolower(scheme) + ":";
+    return 0 == strtolower(url).find(s);
+}
+
 } // namespace cefpdf

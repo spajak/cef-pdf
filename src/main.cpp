@@ -43,7 +43,7 @@ void printHelp(std::string name)
     std::cout << "                   If omitted some default margin is applied." << std::endl;
     std::cout << "  --javascript     Enable JavaScript." << std::endl;
     std::cout << "  --backgrounds    Print with backgrounds. Default is without." << std::endl;
-    std::cout << "  --remote-trigger Defer printing until page evaluates window.triggerCefPdf()" << std::endl;
+    std::cout << "  --remote-trigger Defer printing until page evaluates window.cefpdf.trigger()" << std::endl;
     std::cout << std::endl;
     std::cout << "Server options:" << std::endl;
     std::cout << "  --server         Start HTTP server" << std::endl;
