@@ -20,7 +20,6 @@
                        If omitted some default margin is applied.
       --javascript     Enable JavaScript.
       --backgrounds    Print with backgrounds. Default is without.
-      --remote-trigger Defer printing until page evaluates window.cefpdf.trigger()
 
     Server options:
       --server         Start HTTP server
