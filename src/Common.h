@@ -38,7 +38,9 @@ namespace constants {
     const std::string tmp = getTempDirectory();
     // Current process ID
     const std::string pid = getProcessId();
-    const std::string jsQueryFunction = "cefPdf";
+
+    // JavaScript functions
+    const std::string jsQueryFunction = "cefPdfQuery";
     const std::string jsCancelFunction = "cefPdfCancel";
 }
 
@@ -80,7 +82,9 @@ bool deleteTempFile(const std::string&);
 
 std::string formatDate(const char* format = "%a, %d %h %Y %T GMT", std::time_t* arg = nullptr);
 
-bool stringsEqual(const std::string& a, const std::string& b);
+bool stringsEqual(const std::string&, const std::string&);
+
+bool matchScheme(const std::string&, const std::string&);
 
 } // namespace cefpdf
 

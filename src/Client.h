@@ -2,12 +2,11 @@
 #define CLIENT_H_
 
 #include "Job/Manager.h"
-#include "RequestHandler.h"
 
 #include "include/cef_app.h"
 #include "include/cef_client.h"
 #include "include/cef_browser.h"
-#include "include/wrapper/cef_message_router.h"
+#include "include/cef_request_handler.h"
 
 #include <queue>
 #include <set>
@@ -19,7 +18,7 @@ class Client : public CefApp,
                public CefClient,
                public CefLifeSpanHandler,
                public CefLoadHandler,
-               public CefMessageRouterBrowserSide::Handler
+               public CefRequestHandler
 {
 
 public:
@@ -58,17 +57,26 @@ public:
         m_browserSettings.javascript = flag ? STATE_DISABLED : STATE_ENABLED;
     }
 
+    void AddAllowedScheme(const std::string& scheme) {
+        m_schemes.insert(scheme);
+    }
+
     void SetAllowedSchemes(const std::set<std::string>& schemes) {
-        for (auto s: schemes) {
-            m_requestHandler->AddAllowedScheme(s);
+        for (const auto &s: schemes) {
+            AddAllowedScheme(s);
         }
     }
 
     void ClearAllowedSchemes() {
-        m_requestHandler->ClearAllowedSchemes();
+        m_schemes.clear();
     }
 
-    void SetRemoteTrigger(bool flag = true);
+    void RemoveAllowedScheme(const std::string& scheme) {
+        auto i = m_schemes.find(scheme);
+        if (i != m_schemes.end()) {
+            m_schemes.erase(i);
+        }
+    }
 
     // CefApp methods:
     virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() override;
@@ -116,14 +124,17 @@ public:
         const CefString& failedUrl
     ) override;
 
-    // CefMessageRouterBrowserSide::Handler methods:
-    virtual bool OnQuery(
+    // CefRequestHandler methods:
+    virtual bool OnBeforeBrowse(
         CefRefPtr<CefBrowser> browser,
         CefRefPtr<CefFrame> frame,
-        int64 query_id,
-        const CefString& request,
-        bool persistent,
-        CefRefPtr<Callback> callback
+        CefRefPtr<CefRequest> request,
+        bool is_redirect
+    ) override;
+
+    virtual void OnRenderProcessTerminated(
+        CefRefPtr<CefBrowser> browser,
+        CefRequestHandler::TerminationStatus status
     ) override;
 
 private:
@@ -133,18 +144,17 @@ private:
     CefWindowInfo m_windowInfo;
     CefBrowserSettings m_browserSettings;
     CefRefPtr<job::Manager> m_jobManager;
+    std::set<std::string> m_schemes;
     unsigned int m_pendingBrowsersCount;
     unsigned int m_browsersCount;
     bool m_initialized;
     bool m_contextInitialized;
     bool m_running;
     bool m_stopAfterLastJob;
-    bool m_remoteTrigger;
 
     CefRefPtr<CefPrintHandler> m_printHandler;
     CefRefPtr<CefRenderHandler> m_renderHandler;
     CefRefPtr<CefRenderProcessHandler> m_renderProcessHandler;
-    CefRefPtr<RequestHandler> m_requestHandler;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(Client)
