@@ -7,7 +7,6 @@
 #include "include/cef_client.h"
 #include "include/cef_browser.h"
 #include "include/cef_request_handler.h"
-#include "include/wrapper/cef_message_router.h"
 
 #include <queue>
 #include <set>
@@ -19,8 +18,7 @@ class Client : public CefApp,
                public CefClient,
                public CefLifeSpanHandler,
                public CefLoadHandler,
-               public CefRequestHandler,
-               public CefMessageRouterBrowserSide::Handler
+               public CefRequestHandler
 {
 
 public:
@@ -79,8 +77,6 @@ public:
             m_schemes.erase(i);
         }
     }
-
-    void SetRemoteTrigger(bool flag = true);
 
     // CefApp methods:
     virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() override;
@@ -141,16 +137,6 @@ public:
         CefRequestHandler::TerminationStatus status
     ) override;
 
-    // CefMessageRouterBrowserSide::Handler methods:
-    virtual bool OnQuery(
-        CefRefPtr<CefBrowser> browser,
-        CefRefPtr<CefFrame> frame,
-        int64 query_id,
-        const CefString& request,
-        bool persistent,
-        CefRefPtr<Callback> callback
-    ) override;
-
 private:
     void CreateBrowsers(unsigned int browserCount = 0);
 
@@ -165,12 +151,10 @@ private:
     bool m_contextInitialized;
     bool m_running;
     bool m_stopAfterLastJob;
-    bool m_remoteTrigger;
 
     CefRefPtr<CefPrintHandler> m_printHandler;
     CefRefPtr<CefRenderHandler> m_renderHandler;
     CefRefPtr<CefRenderProcessHandler> m_renderProcessHandler;
-    CefRefPtr<CefMessageRouterBrowserSide> m_messageRouterBrowserSide;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(Client)
