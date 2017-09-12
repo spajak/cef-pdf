@@ -43,6 +43,7 @@ void printHelp(std::string name)
     std::cout << "                   If omitted some default margin is applied." << std::endl;
     std::cout << "  --javascript     Enable JavaScript." << std::endl;
     std::cout << "  --backgrounds    Print with backgrounds. Default is without." << std::endl;
+    std::cout << "  --remote-trigger Defer printing until page evaluates window.cefpdf.trigger()" << std::endl;
     std::cout << std::endl;
     std::cout << "Server options:" << std::endl;
     std::cout << "  --server         Start HTTP server" << std::endl;
@@ -227,8 +228,13 @@ int main(int argc, char* argv[])
         return 0;
     }
 
+    bool javascript = commandLine->HasSwitch("javascript") || commandLine->HasSwitch("remote-trigger");
     app->Initialize(mainArgs);
-    app->SetDisableJavaScript(!commandLine->HasSwitch("javascript"));
+    app->SetDisableJavaScript(!javascript);
+
+    if (commandLine->HasSwitch("remote-trigger")) {
+        app->SetRemoteTrigger();
+    }
 
     return commandLine->HasSwitch("server") ? runServer(app, commandLine) : runJob(app, commandLine);
 }
