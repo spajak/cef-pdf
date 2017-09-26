@@ -218,6 +218,8 @@ int main(int argc, char* argv[])
     commandLine->InitFromArgv(argc, argv);
 #endif // OS_WIN
 
+    bool remoteTrigger = commandLine->HasSwitch("remote-trigger") && !commandLine->HasSwitch("server");
+
     if (commandLine->HasSwitch("help") || commandLine->HasSwitch("h")) {
         printHelp(getExecutableName(commandLine));
         return 0;
@@ -228,13 +230,11 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    bool javascript = commandLine->HasSwitch("javascript") || commandLine->HasSwitch("remote-trigger");
+    bool javascript = commandLine->HasSwitch("javascript") || remoteTrigger;
     app->Initialize(mainArgs);
     app->SetDisableJavaScript(!javascript);
 
-    if (commandLine->HasSwitch("remote-trigger")) {
-        app->SetRemoteTrigger();
-    }
+    app->SetRemoteTrigger(remoteTrigger);
 
     return commandLine->HasSwitch("server") ? runServer(app, commandLine) : runJob(app, commandLine);
 }
