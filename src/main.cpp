@@ -44,6 +44,7 @@ void printHelp(std::string name)
     std::cout << "  --javascript     Enable JavaScript." << std::endl;
     std::cout << "  --backgrounds    Print with backgrounds. Default is without." << std::endl;
     std::cout << "  --remote-trigger Defer printing until page evaluates window.cefpdf.trigger()" << std::endl;
+    std::cout << "                   Remote trigger is not available in HTTP server mode." << std::endl;
     std::cout << std::endl;
     std::cout << "Server options:" << std::endl;
     std::cout << "  --server         Start HTTP server" << std::endl;
