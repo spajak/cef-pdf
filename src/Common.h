@@ -39,7 +39,7 @@ namespace constants {
     // Current process ID
     const std::string pid = getProcessId();
 
-    // JavaScript functions
+    // JavaScript trigger functions
     const std::string jsQueryFunction = "cefPdfQuery";
     const std::string jsCancelFunction = "cefPdfCancel";
 }
