@@ -43,8 +43,11 @@ void printHelp(std::string name)
     std::cout << "                   If omitted some default margin is applied." << std::endl;
     std::cout << "  --javascript     Enable JavaScript." << std::endl;
     std::cout << "  --backgrounds    Print with backgrounds. Default is without." << std::endl;
-    std::cout << "  --remote-trigger Defer printing until page evaluates window.cefpdf.trigger()" << std::endl;
-    std::cout << "                   Remote trigger is not available in HTTP server mode." << std::endl;
+    std::cout << "  --remote-trigger Defer printing until page evaluates:";
+    std::cout << "                   window.cefPdfQuery({request: \"trigger\", onSuccess: function () {}, onFailure: function () {}});";
+    std::cout << "                   Will abort immediately if the page doesn't evaluate:";
+    std::cout << "                   window.cefPdfQuery({request: \"register\", onSuccess: function () {}, onFailure: function () {}});";
+    std::cout << "                   synchronously during load (e.g. in a script tag in the body).";
     std::cout << std::endl;
     std::cout << "Server options:" << std::endl;
     std::cout << "  --server         Start HTTP server" << std::endl;
