@@ -9,6 +9,7 @@ Job::Job() :
     m_pageOrientation(PageOrientation::PORTRAIT),
     m_pageMargin(),
     m_backgrounds(false),
+    m_remoteTriggerRegistered(false),
     m_status(Job::Status::PENDING),
     m_callback()
 {
@@ -34,6 +35,16 @@ void Job::SetPageMargin(const CefString& pageMargin)
 void Job::SetBackgrounds(bool flag)
 {
     m_backgrounds = flag;
+}
+
+bool Job::GetRemoteTriggerRegistered()
+{
+    return m_remoteTriggerRegistered;
+}
+
+void Job::SetRemoteTriggerRegistered(bool flag)
+{
+    m_remoteTriggerRegistered = flag;
 }
 
 CefPdfPrintSettings Job::GetCefPdfPrintSettings() const

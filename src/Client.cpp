@@ -252,29 +252,6 @@ void Client::OnBeforeClose(CefRefPtr<CefBrowser> browser)
     }
 }
 
-// CefLoadHandler methods:
-// -----------------------------------------------------------------------------
-void Client::OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, TransitionType transition_type)
-{
-    DLOG(INFO)
-        << "Client::OnLoadStart"
-        << " with url: " << frame->GetURL().ToString();
-
-    CEF_REQUIRE_UI_THREAD();
-
-    if (frame->IsMain() && m_remoteTrigger) {
-        std::ostringstream os;
-
-        os << "window.cefpdf = {";
-        os << "trigger: function () { window." << constants::jsQueryFunction;
-        os << "({request: \"trigger\", onSuccess: function () {}, onFailure: function () {}}); }, ";
-        os << "abort: function () { window." << constants::jsQueryFunction;
-        os << "({request: \"abort\", onSuccess: function () {}, onFailure: function () {}}); }};";
-
-        frame->ExecuteJavaScript(os.str(), frame->GetURL(), 0);
-    }
-}
-
 void Client::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode)
 {
     DLOG(INFO)
@@ -286,6 +263,8 @@ void Client::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
 
     if (frame->IsMain() && !m_remoteTrigger) {
         m_jobManager->Process(browser, httpStatusCode);
+    } else if (frame->IsMain() && m_remoteTrigger) {
+        m_jobManager->AbortIfRemoteTriggerUnregistered(browser);
     }
 }
 
@@ -357,7 +336,11 @@ bool Client::OnQuery(
     CEF_REQUIRE_UI_THREAD();
 
     if (frame->IsMain() && m_remoteTrigger) {
-        if (request == "trigger") {
+        if (request == "register") {
+            m_jobManager->RegisterRemoteTrigger(browser);
+            callback->Success("Registered");
+            return true;
+        } else if (request == "trigger") {
             callback->Success("Processing");
             m_jobManager->Process(browser, 200);
             return true;

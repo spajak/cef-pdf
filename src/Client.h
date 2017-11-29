@@ -110,11 +110,6 @@ public:
     virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) override;
 
     // CefLoadHandler methods:
-    virtual void OnLoadStart(
-        CefRefPtr<CefBrowser> browser,
-        CefRefPtr<CefFrame> frame,
-        TransitionType transition_type
-    ) override;
     virtual void OnLoadEnd(
         CefRefPtr<CefBrowser> browser,
         CefRefPtr<CefFrame> frame,
