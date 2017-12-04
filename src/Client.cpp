@@ -2,7 +2,6 @@
 #include "Common.h"
 #include "SchemeHandlerFactory.h"
 #include "PrintHandler.h"
-#include "RenderHandler.h"
 #include "RenderProcessHandler.h"
 
 #include "include/base/cef_logging.h"
@@ -25,7 +24,6 @@ Client::Client() :
     m_stopAfterLastJob(false),
     m_remoteTrigger(false),
     m_printHandler(new PrintHandler),
-    m_renderHandler(new RenderHandler),
     m_renderProcessHandler(new RenderProcessHandler)
 {
     m_settings.no_sandbox = true;
@@ -189,7 +187,7 @@ CefRefPtr<CefLoadHandler> Client::GetLoadHandler()
 
 CefRefPtr<CefRenderHandler> Client::GetRenderHandler()
 {
-    return m_renderHandler;
+    return m_jobManager;
 }
 
 CefRefPtr<CefRequestHandler> Client::GetRequestHandler()

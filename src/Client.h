@@ -168,7 +168,6 @@ private:
     bool m_remoteTrigger;
 
     CefRefPtr<CefPrintHandler> m_printHandler;
-    CefRefPtr<CefRenderHandler> m_renderHandler;
     CefRefPtr<CefRenderProcessHandler> m_renderProcessHandler;
     CefRefPtr<CefMessageRouterBrowserSide> m_messageRouterBrowserSide;
 

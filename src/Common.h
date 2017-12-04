@@ -42,6 +42,9 @@ namespace constants {
     // JavaScript trigger functions
     const std::string jsQueryFunction = "cefPdfQuery";
     const std::string jsCancelFunction = "cefPdfCancel";
+
+    // Used to calulate browser size and based on Chromium defaults
+    const double micronPerPx = 264;
 }
 
 struct PageSize

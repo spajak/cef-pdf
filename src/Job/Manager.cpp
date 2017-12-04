@@ -6,6 +6,9 @@
 #include "include/wrapper/cef_helpers.h"
 #include "include/base/cef_bind.h"
 #include "include/wrapper/cef_closure_task.h"
+#include "include/cef_render_handler.h"
+
+#include <math.h>
 
 namespace cefpdf {
 namespace job {
@@ -127,6 +130,68 @@ void Manager::StopAll()
     }
 
     m_jobs.clear();
+}
+
+// CefRenderHandler methods:
+// -------------------------------------------------------------------------
+bool Manager::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect)
+{
+    auto it = Find(browser);
+    if (it != m_jobs.end()) {
+        CefPdfPrintSettings settings = it->job->GetCefPdfPrintSettings();
+
+        int horizontalMargin;
+        int verticalMargin;
+
+        if (settings.margin_type == PDF_PRINT_MARGIN_DEFAULT) {
+           if (settings.page_width >= 25400) {
+              horizontalMargin = 20000;
+           } else {
+               horizontalMargin = 0;
+           }
+           if (settings.page_height >= 25400) {
+               verticalMargin = 20000;
+           } else {
+               verticalMargin = 0;
+           }
+        } else if (settings.margin_type == PDF_PRINT_MARGIN_MINIMUM) {
+           horizontalMargin = 0;
+           verticalMargin = 0;
+        } else if (settings.margin_type == PDF_PRINT_MARGIN_NONE) {
+           horizontalMargin = 0;
+           verticalMargin = 0;
+        } else { // Custom
+           horizontalMargin = ceil((settings.margin_left + settings.margin_right) * 1000);
+           verticalMargin = ceil((settings.margin_top + settings.margin_bottom) * 1000);
+        }
+
+        int width = floor((settings.page_width - horizontalMargin) * (1 / constants::micronPerPx));
+        int height = floor((settings.page_height - verticalMargin) * (1 / constants::micronPerPx));
+
+        rect.x = 0;
+        rect.y = 0;
+
+        if (settings.landscape) {
+          rect.width = height;
+          rect.height = width;
+        } else {
+          rect.width = width;
+          rect.height = height;
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+void Manager::OnPaint(
+    CefRefPtr<CefBrowser> browser,
+    CefRenderHandler::PaintElementType type,
+    const CefRenderHandler::RectList& dirtyRects,
+    const void* buffer, int width, int height
+) {
+
 }
 
 } // namespace job
