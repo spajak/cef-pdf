@@ -20,6 +20,11 @@
                        If omitted some default margin is applied.
       --javascript     Enable JavaScript.
       --backgrounds    Print with backgrounds. Default is without.
+      --remote-trigger Defer printing until page evaluates:
+                       window.cefPdfQuery({request: "trigger", onSuccess: function () {}, onFailure: function () {}});
+                       Will abort immediately if the page doesn't evaluate:
+                       window.cefPdfQuery({request: "register", onSuccess: function () {}, onFailure: function () {}});
+                       synchronously during load (e.g. in a script tag in the body).
 
     Server options:
       --server         Start HTTP server

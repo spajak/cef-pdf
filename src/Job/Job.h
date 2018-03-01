@@ -59,6 +59,10 @@ public:
 
     void SetBackgrounds(bool flag = true);
 
+    bool GetRemoteTriggerRegistered();
+
+    void SetRemoteTriggerRegistered(bool flag = true);
+
     // Get prepared PDF setting for CEF
     CefPdfPrintSettings GetCefPdfPrintSettings() const;
 
@@ -76,6 +80,7 @@ private:
     PageOrientation m_pageOrientation;
     PageMargin m_pageMargin;
     bool m_backgrounds;
+    bool m_remoteTriggerRegistered;
     Status m_status;
     Callback m_callback;
 

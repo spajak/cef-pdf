@@ -77,6 +77,22 @@ void Manager::Process(CefRefPtr<CefBrowser> browser, int httpStatusCode)
     }
 }
 
+void Manager::RegisterRemoteTrigger(CefRefPtr<CefBrowser> browser)
+{
+    auto it = Find(browser);
+    if (it != m_jobs.end()) {
+        it->job->SetRemoteTriggerRegistered();
+    }
+}
+
+void Manager::AbortIfRemoteTriggerUnregistered(CefRefPtr<CefBrowser> browser)
+{
+    auto it = Find(browser);
+    if (it != m_jobs.end() && !it->job->GetRemoteTriggerRegistered()) {
+        Abort(browser, ERR_ABORTED);
+    }
+}
+
 void Manager::Finish(CefRefPtr<CefBrowser> browser, const CefString& path, bool ok)
 {
     auto it = Find(browser);

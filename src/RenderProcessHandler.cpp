@@ -6,7 +6,6 @@ namespace cefpdf {
 RenderProcessHandler::RenderProcessHandler() {}
 
 // CefRenderProcessHandler methods:
-// -----------------------------------------------------------------------------
 void RenderProcessHandler::OnContextCreated(
     CefRefPtr<CefBrowser> browser,
     CefRefPtr<CefFrame> frame,
