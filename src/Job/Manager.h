@@ -5,6 +5,7 @@
 
 #include "include/cef_browser.h"
 #include "include/cef_load_handler.h"
+#include "include/cef_render_handler.h"
 
 #include <vector>
 #include <queue>
@@ -12,7 +13,7 @@
 namespace cefpdf {
 namespace job {
 
-class Manager : public CefBaseRefCounted
+class Manager : public CefRenderHandler
 {
 
 public:
@@ -31,6 +32,16 @@ public:
     void Abort(CefRefPtr<CefBrowser> browser, CefLoadHandler::ErrorCode errorCode);
 
     void StopAll();
+
+    // CefRenderHandler methods:
+    virtual bool GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) override;
+
+    virtual void OnPaint(
+        CefRefPtr<CefBrowser> browser,
+        CefRenderHandler::PaintElementType type,
+        const CefRenderHandler::RectList& dirtyRects,
+        const void* buffer, int width, int height
+    ) override;
 
 private:
     std::queue<CefRefPtr<Job>> m_jobsQueue;

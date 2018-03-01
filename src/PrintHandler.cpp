@@ -14,7 +14,10 @@ CefSize PrintHandler::GetPdfPaperSize(int device_units_per_inch)
         << "PrintHandler::GetPdfPaperSize"
         << " with device_units_per_inch: " << device_units_per_inch;
 
-    return CefSize(device_units_per_inch*100, device_units_per_inch*100*2);
+    // Reportedly this must be implemented in order for Linux to be supported
+    // but its implementation won't affect the output when page_width and
+    // page_height are set in CefPrintSettings which they always should be.
+    return CefSize(1, 1);
 }
 
 bool PrintHandler::OnPrintDialog(

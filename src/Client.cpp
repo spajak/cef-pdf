@@ -2,13 +2,15 @@
 #include "Common.h"
 #include "SchemeHandlerFactory.h"
 #include "PrintHandler.h"
-#include "RenderHandler.h"
 #include "RenderProcessHandler.h"
 
 #include "include/base/cef_logging.h"
 #include "include/wrapper/cef_helpers.h"
 #include "include/base/cef_bind.h"
 #include "include/wrapper/cef_closure_task.h"
+#include "include/wrapper/cef_message_router.h"
+
+#include <sstream>
 
 namespace cefpdf {
 
@@ -20,8 +22,8 @@ Client::Client() :
     m_contextInitialized(false),
     m_running(false),
     m_stopAfterLastJob(false),
+    m_remoteTrigger(false),
     m_printHandler(new PrintHandler),
-    m_renderHandler(new RenderHandler),
     m_renderProcessHandler(new RenderProcessHandler)
 {
     m_settings.no_sandbox = true;
@@ -101,6 +103,11 @@ void Client::CreateBrowsers(unsigned int browserCount)
     }
 }
 
+void Client::SetRemoteTrigger(bool flag)
+{
+    m_remoteTrigger = flag;
+}
+
 // CefApp methods:
 // -----------------------------------------------------------------------------
 CefRefPtr<CefBrowserProcessHandler> Client::GetBrowserProcessHandler()
@@ -156,6 +163,14 @@ void Client::OnContextInitialized()
     CefRegisterSchemeHandlerFactory(constants::scheme, "", new SchemeHandlerFactory(m_jobManager));
 
     CreateBrowsers();
+
+    if (!m_messageRouterBrowserSide) {
+        CefMessageRouterConfig config;
+        config.js_query_function = constants::jsQueryFunction;
+        config.js_cancel_function = constants::jsCancelFunction;
+        m_messageRouterBrowserSide = CefMessageRouterBrowserSide::Create(config);
+        m_messageRouterBrowserSide->AddHandler(this, true);
+    }
 }
 
 // CefClient methods:
@@ -172,7 +187,7 @@ CefRefPtr<CefLoadHandler> Client::GetLoadHandler()
 
 CefRefPtr<CefRenderHandler> Client::GetRenderHandler()
 {
-    return m_renderHandler;
+    return m_jobManager;
 }
 
 CefRefPtr<CefRequestHandler> Client::GetRequestHandler()
@@ -189,6 +204,7 @@ bool Client::OnProcessMessageReceived(
 
     CEF_REQUIRE_UI_THREAD();
 
+    m_messageRouterBrowserSide->OnProcessMessageReceived(browser, source_process, message);
     return true;
 }
 
@@ -225,6 +241,8 @@ void Client::OnBeforeClose(CefRefPtr<CefBrowser> browser)
 
     --m_browsersCount;
 
+    m_messageRouterBrowserSide->OnBeforeClose(browser);
+
     if (0 == m_browsersCount && m_stopAfterLastJob) {
         CefPostDelayedTask(TID_UI, base::Bind(&Client::Stop, this), 50);
     } else {
@@ -241,6 +259,18 @@ void Client::OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> fram
         << " with url: " << frame->GetURL().ToString();
 
     CEF_REQUIRE_UI_THREAD();
+
+    if (frame->IsMain() && m_remoteTrigger) {
+        std::ostringstream os;
+
+        os << "window.cefpdf = {";
+        os << "trigger: function () { window." << constants::jsQueryFunction;
+        os << "({request: \"trigger\", onSuccess: function () {}, onFailure: function () {}}); }, ";
+        os << "abort: function () { window." << constants::jsQueryFunction;
+        os << "({request: \"abort\", onSuccess: function () {}, onFailure: function () {}}); }};";
+
+        frame->ExecuteJavaScript(os.str(), frame->GetURL(), 0);
+    }
 }
 
 void Client::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode)
@@ -252,7 +282,7 @@ void Client::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
 
     CEF_REQUIRE_UI_THREAD();
 
-    if (frame->IsMain()) {
+    if (frame->IsMain() && !m_remoteTrigger) {
         m_jobManager->Process(browser, httpStatusCode);
     }
 }
@@ -286,6 +316,7 @@ bool Client::OnBeforeBrowse(
 ) {
     DLOG(INFO) << "Client::OnBeforeBrowse";
 
+    m_messageRouterBrowserSide->OnBeforeBrowse(browser, frame);
     if (m_schemes.empty()) {
         return false;
     }
@@ -306,6 +337,36 @@ void Client::OnRenderProcessTerminated(
     CefRequestHandler::TerminationStatus status
 ) {
     DLOG(INFO) << "Client::OnRenderProcessTerminated";
+
+    m_messageRouterBrowserSide->OnRenderProcessTerminated(browser);
+}
+
+// CefMessageRouterBrowserSide::Handler methods:
+bool Client::OnQuery(
+    CefRefPtr<CefBrowser> browser,
+    CefRefPtr<CefFrame> frame,
+    int64 query_id,
+    const CefString& request,
+    bool persistent,
+    CefRefPtr<Callback> callback
+) {
+    DLOG(INFO) << "Client::OnQuery";
+
+    CEF_REQUIRE_UI_THREAD();
+
+    if (frame->IsMain() && m_remoteTrigger) {
+        if (request == "trigger") {
+            callback->Success("Processing");
+            m_jobManager->Process(browser, 200);
+            return true;
+        } else if (request == "abort") {
+            callback->Failure(ERR_ABORTED, "Aborted");
+            m_jobManager->Abort(browser, ERR_ABORTED);
+            return true;
+        }
+    }
+
+    return false;
 }
 
 } // namespace cefpdf
