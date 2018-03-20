@@ -200,30 +200,35 @@ std::string Session::FetchBuffer()
 
 bool Session::ParseChunks(const std::string& content)
 {
-    std::string data = content;
     std::size_t chunkSize, pos = 0;
     auto separatorSize = http::crlf.size();
-    auto idx = data.find(http::crlf);
+    auto idx = content.find(http::crlf);
 
     while (idx != std::string::npos) {
-        chunkSize = std::stoi(data.substr(pos, idx - pos), nullptr, 16);
+        chunkSize = std::stoi(m_chunkStart + content.substr(pos, idx - pos), nullptr, 16);
+        m_chunkStart.clear();
+
         if (0 == chunkSize) {
             // Zero chunk, this is the end
             return true;
         }
 
-        m_request.content += data.substr(idx + separatorSize, chunkSize);
+        m_request.content += content.substr(idx + separatorSize, chunkSize);
         pos = idx + chunkSize + 2 * separatorSize;
 
-        if (data.size() == pos) {
+        if (content.size() == pos) {
             break;
-        } else if (data.size() < pos) {
+        } else if (content.size() < pos) {
             // Read rest of the chunk data
-            Read(pos - data.size());
+            Read(pos - content.size());
             return false;
         }
 
-        idx = data.find(http::crlf, pos);
+        idx = content.find(http::crlf, pos);
+
+        if (idx == std::string::npos) {
+            m_chunkStart = content.substr(pos);
+        }
     }
 
     // Read next chunk
