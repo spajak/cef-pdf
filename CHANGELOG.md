@@ -1,5 +1,9 @@
 Changelog
 ===
+### 0.3.4 (2018-03-20)
+* Building with CEF 3.3325.1750.gaabe4c4 / Chromium 65.0.3325.146 (Windows, Linux & OS X, 64bit)
+* Bug fixes
+
 ### 0.3.3 (2017-08-26)
 * Added `Transfer-Encoding: chunked` support for HTTP requests
 * Added HTTP headers for pdf printing options
