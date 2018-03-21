@@ -120,8 +120,8 @@ void Client::OnBeforeCommandLineProcessing(const CefString& process_type, CefRef
         << " with process_type: " << process_type.ToString()
         << ", command_line: " << command_line->GetCommandLineString().ToString();
 
-    command_line->AppendSwitch("disable-gpu");
-    command_line->AppendSwitch("disable-gpu-compositing");
+    //command_line->AppendSwitch("disable-gpu");
+    //command_line->AppendSwitch("disable-gpu-compositing");
     command_line->AppendSwitch("disable-extensions");
     command_line->AppendSwitch("disable-pinch");
 };
