@@ -246,6 +246,12 @@ void Client::OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> fram
     CEF_REQUIRE_UI_THREAD();
 }
 
+void Client::Process(CefRefPtr<CefBrowser> browser)
+{
+   DLOG(INFO) << "Client::Process - generating PDF";
+   m_jobManager->Process(browser, 200);
+}
+
 void Client::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode)
 {
     DLOG(INFO)
@@ -256,11 +262,12 @@ void Client::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
     CEF_REQUIRE_UI_THREAD();
 
     if (frame->IsMain()) {
-        if (m_delay) {
-           DLOG(INFO) << "Client::OnLoadEnd - waiting for " << m_delay << "ms before generating PDF";
-           std::this_thread::sleep_for(std::chrono::milliseconds(m_delay));
+        if (httpStatusCode == 200 && m_delay > 0) {
+            DLOG(INFO) << "Client::OnLoadEnd - waiting for " << m_delay << "ms before generating PDF";
+            CefPostDelayedTask(TID_UI, base::Bind(&Client::Process, this, browser), m_delay);
         }
-        m_jobManager->Process(browser, httpStatusCode);
+        else
+            m_jobManager->Process(browser, httpStatusCode);
     }
 }
 

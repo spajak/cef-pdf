@@ -85,6 +85,8 @@ public:
     void SetViewWidth(int viewWidth);
     void SetViewHeight(int viewHeight);
 
+    void Process(CefRefPtr<CefBrowser> browser);
+
     // CefApp methods:
     virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() override;
     virtual void OnRegisterCustomSchemes(CefRawPtr<CefSchemeRegistrar> registrar) override;
