@@ -78,6 +78,13 @@ public:
         }
     }
 
+    void SetDelay(int delay) {
+        m_delay = delay;
+    }
+
+    void SetViewWidth(int viewWidth);
+    void SetViewHeight(int viewHeight);
+
     // CefApp methods:
     virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() override;
     virtual void OnRegisterCustomSchemes(CefRawPtr<CefSchemeRegistrar> registrar) override;
@@ -151,6 +158,7 @@ private:
     bool m_contextInitialized;
     bool m_running;
     bool m_stopAfterLastJob;
+    int  m_delay;
 
     CefRefPtr<CefPrintHandler> m_printHandler;
     CefRefPtr<CefRenderHandler> m_renderHandler;

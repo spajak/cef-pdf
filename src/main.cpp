@@ -43,6 +43,10 @@ void printHelp(std::string name)
     std::cout << "                   If omitted some default margin is applied." << std::endl;
     std::cout << "  --javascript     Enable JavaScript." << std::endl;
     std::cout << "  --backgrounds    Print with backgrounds. Default is without." << std::endl;
+    std::cout << "  --scale=<%>      Scale the output. Default is 100." << std::endl;
+    std::cout << "  --delay=<ms>     Wait after page load before creating PDF. Default is 0." << std::endl;
+    std::cout << "  --viewwidth=<px> Width of viewport. Default is 128." << std::endl;
+    std::cout << "  --viewheight=<px> Height of viewport. Default is 128." << std::endl;
     std::cout << std::endl;
     std::cout << "Server options:" << std::endl;
     std::cout << "  --server         Start HTTP server" << std::endl;
@@ -130,6 +134,22 @@ int runJob(CefRefPtr<cefpdf::Client> app, CefRefPtr<CefCommandLine> commandLine)
 
         if (commandLine->HasSwitch("backgrounds")) {
             job->SetBackgrounds();
+        }
+
+        if (commandLine->HasSwitch("scale")) {
+            job->SetScale(atoi(commandLine->GetSwitchValue("scale").ToString().c_str()));
+        }
+
+        if (commandLine->HasSwitch("delay")) {
+            app->SetDelay(atoi(commandLine->GetSwitchValue("delay").ToString().c_str()));
+        }
+
+        if (commandLine->HasSwitch("viewwidth")) {
+            app->SetViewWidth(atoi(commandLine->GetSwitchValue("viewwidth").ToString().c_str()));
+        }
+
+        if (commandLine->HasSwitch("viewheight")) {
+            app->SetViewHeight(atoi(commandLine->GetSwitchValue("viewheight").ToString().c_str()));
         }
 
     } catch (std::string error) {

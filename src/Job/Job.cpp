@@ -10,7 +10,8 @@ Job::Job() :
     m_pageMargin(),
     m_backgrounds(false),
     m_status(Job::Status::PENDING),
-    m_callback()
+    m_callback(),
+    m_scale(100)
 {
     SetPageSize(cefpdf::constants::pageSize);
     SetPageMargin("default");
@@ -36,10 +37,17 @@ void Job::SetBackgrounds(bool flag)
     m_backgrounds = flag;
 }
 
+void Job::SetScale(int scale)
+{
+    DLOG(INFO) << "Scale factor: " << m_scale;
+    m_scale = scale;
+}
+
 CefPdfPrintSettings Job::GetCefPdfPrintSettings() const
 {
     CefPdfPrintSettings pdfSettings;
 
+    pdfSettings.scale_factor = m_scale;
     pdfSettings.backgrounds_enabled = m_backgrounds;
     pdfSettings.landscape = (m_pageOrientation == PageOrientation::LANDSCAPE);
 

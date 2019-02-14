@@ -10,6 +10,8 @@
 #include "include/base/cef_bind.h"
 #include "include/wrapper/cef_closure_task.h"
 
+#include <thread>
+
 namespace cefpdf {
 
 Client::Client() :
@@ -34,6 +36,7 @@ Client::Client() :
     CefString(&m_browserSettings.default_encoding).FromString(constants::encoding);
     m_browserSettings.plugins = STATE_DISABLED;
     m_browserSettings.javascript_close_windows = STATE_DISABLED;
+    m_delay = 0;
 }
 
 int Client::ExecuteSubProcess(const CefMainArgs& mainArgs)
@@ -253,6 +256,10 @@ void Client::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
     CEF_REQUIRE_UI_THREAD();
 
     if (frame->IsMain()) {
+        if (m_delay) {
+           DLOG(INFO) << "Client::OnLoadEnd - waiting for " << m_delay << "ms before generating PDF";
+           std::this_thread::sleep_for(std::chrono::milliseconds(m_delay));
+        }
         m_jobManager->Process(browser, httpStatusCode);
     }
 }
@@ -306,6 +313,18 @@ void Client::OnRenderProcessTerminated(
     CefRequestHandler::TerminationStatus status
 ) {
     DLOG(INFO) << "Client::OnRenderProcessTerminated";
+}
+
+void Client::SetViewWidth(int viewWidth)
+{
+   RenderHandler *renderHandler = (RenderHandler*)(m_renderHandler.get());
+   renderHandler->SetViewWidth(viewWidth);
+}
+
+void Client::SetViewHeight(int viewHeight)
+{
+   RenderHandler *renderHandler = (RenderHandler*)(m_renderHandler.get());
+   renderHandler->SetViewHeight(viewHeight);
 }
 
 } // namespace cefpdf
