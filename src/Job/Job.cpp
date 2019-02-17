@@ -39,7 +39,7 @@ void Job::SetBackgrounds(bool flag)
 
 void Job::SetScale(int scale)
 {
-    DLOG(INFO) << "Scale factor: " << m_scale;
+    DLOG(INFO) << "Scale factor: " << scale;
     m_scale = scale;
 }
 
