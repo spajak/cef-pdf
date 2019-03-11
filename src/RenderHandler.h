@@ -12,7 +12,7 @@ public:
     RenderHandler();
 
     // CefRenderHandler methods:
-    virtual bool GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) override;
+	virtual void GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) override;
 
     virtual void OnPaint(
         CefRefPtr<CefBrowser> browser,

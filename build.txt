@@ -1,0 +1,82 @@
+
+"C:\Users\Administrator\Documents\Visual Studio 2017\Projects\cef-pdf"
+"C:\Users\Administrator\Documents\Visual Studio 2017\CEF\cef_binary_3.3626.1895.g7001d56_windows64_minimal"
+
+cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCEF_ROOT=/path/to/cef/release /path/to/cef-pdf
+ninja
+
+
+cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCEF_ROOT=/path/to/cef/release /path/to/cef-pdf
+make
+
+cd /d "C:\Users\Administrator\Documents\Visual Studio 2017\Projects\cef-pdf\build"
+cmake -G "Visual Studio 15 2017" -DCMAKE_BUILD_TYPE=Release -DCEF_ROOT="C:\Users\Administrator\Documents\Visual Studio 2017\CEF\cef_binary_3.3626.1895.g7001d56_windows64_minimal" "C:\Users\Administrator\Documents\Visual Studio 2017\Projects\cef-pdf"
+
+
+  Invalid escape sequence \U
+  Invalid escape sequence \S
+
+==> forward slash ...
+
+cmake -G "Visual Studio 15 2017" -DCMAKE_BUILD_TYPE=Release -DCEF_ROOT="C:/Users/Administrator/Documents/Visual Studio 2017/CEF/cef_binary_3.3626.1895.g7001d56_windows64_minimal" "C:/Users/Administrator/Documents/Visual Studio 2017/Projects/cef-pdf"
+
+cmake -G "Visual Studio 15 2017" -DCMAKE_BUILD_TYPE=Release -DCEF_ROOT="C:/Users/Administrator/Documents/Visual Studio 2017/CEF/cef_binary_3.3626.1895.g7001d56_windows32_minimal" "C:/Users/Administrator/Documents/Visual Studio 2017/Projects/cef-pdf"
+
+
+-------------------------------------------------------------------------------
+
+
+
+cd /root/Desktop/nana/build
+cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCEF_ROOT=/root/Desktop/nana/cef_binary_3.3626.1895.g7001d56_linux64_minimal /root/Desktop/nana/cef-pdf
+
+
+
+cmake: /usr/local/lib/libcurl.so.4: no version information available (required by cmake)
+cmake: /usr/local/lib/libcurl.so.4: no version information available (required by cmake)
+
+
+cmake --version
+
+// https://stackoverflow.com/questions/30017397/error-curl-usr-local-lib-libcurl-so-4-no-version-information-available-requ
+sudo rm /usr/local/lib/libcurl.so.4
+sudo ln -s /usr/lib/x86_64-linux-gnu/libcurl.so.4.4.0 /usr/local/lib/libcurl.so.4
+http://www.cmake.org/download/
+
+
+https://stackoverflow.com/questions/42167432/cmake-list-does-not-recognize-sub-command-filter
+That is to be expected, list(FILTER was introduced in CMake 3.6.
+https://askubuntu.com/questions/355565/how-do-i-install-the-latest-version-of-cmake-from-the-command-line
+
+
+https://askubuntu.com/questions/952429/is-there-a-good-ppa-for-cmake-backports
+wget https://cmake.org/files/v3.14/cmake-3.12.0-Linux-x86_64.sh
+
+wget https://cmake.org/files/v3.14/cmake-3.14.0-rc4-Linux-x86_64.sh
+sudo sh cmake-3.14.0-rc4-Linux-x86_64.sh --prefix=/usr/local --exclude-subdir
+
+
+
+./include/wrapper/cef_helpers.h:#define CEF_REQUIRE_RENDERER_THREAD() DCHECK(CefCurrentlyOn(TID_RENDERER));
+
+/include/base/cef_logging.h:#define DCHECK(condition)  
+
+./include/base/cef_logging.h:#define LAZY_STREAM(stream, condi
+
+
+
+#define DCHECK(condition)                                         \
+  LAZY_STREAM(LOG_STREAM(DCHECK), DCHECK_IS_ON() && !(condition)) \
+      << "Check failed: " #condition ". "
+
+#define LAZY_STREAM(stream, condition) \
+  !(condition) ? (void)0 : ::cef::logging::LogMessageVoidify() & (stream)
+
+
+
+
+cd /root/Desktop/nana/build
+cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCEF_ROOT=/root/Desktop/nana/cef_binary_3.3626.1895.g7001d56_linux64_minimal /root/Desktop/nana/cef-pdf
+
+
+
