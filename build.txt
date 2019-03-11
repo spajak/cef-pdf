@@ -1,4 +1,13 @@
 
+Note:
+The chromium-embedded builds can be downloaded from 
+http://opensource.spotify.com/cefbuilds/index.html
+
+
+
+
+
+
 "C:\Users\Administrator\Documents\Visual Studio 2017\Projects\cef-pdf"
 "C:\Users\Administrator\Documents\Visual Studio 2017\CEF\cef_binary_3.3626.1895.g7001d56_windows64_minimal"
 
