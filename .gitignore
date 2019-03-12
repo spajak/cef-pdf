@@ -1,5 +1,5 @@
-build/
-buildx64/
-buildx86/
-cef/
-.DS_Store
+[Bb][uU][iI][lL][dD]/
+[Bb][uU][iI][lL][dD][xX]64/
+[Bb][uU][iI][lL][dD][xX]86/
+[Cc][Ee][Ff]/
+.[Dd][Ss]_[Ss][Tt][Oo][Rr][Ee]
