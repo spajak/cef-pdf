@@ -3,6 +3,8 @@ Note:
 The chromium-embedded builds can be downloaded from 
 http://opensource.spotify.com/cefbuilds/index.html
 
+Find Chromium releases for Windows by version: ('download' link, 'show more' link)
+https://chocolatey.org/packages/chromium/
 
 
 
@@ -29,7 +31,24 @@ cmake -G "Visual Studio 15 2017" -DCMAKE_BUILD_TYPE=Release -DCEF_ROOT="C:\Users
 
 cmake -G "Visual Studio 15 2017" -DCMAKE_BUILD_TYPE=Release -DCEF_ROOT="C:/Users/Administrator/Documents/Visual Studio 2017/CEF/cef_binary_3.3626.1895.g7001d56_windows64_minimal" "C:/Users/Administrator/Documents/Visual Studio 2017/Projects/cef-pdf"
 
-cmake -G "Visual Studio 15 2017" -DCMAKE_BUILD_TYPE=Release -DCEF_ROOT="C:/Users/Administrator/Documents/Visual Studio 2017/CEF/cef_binary_3.3626.1895.g7001d56_windows32_minimal" "C:/Users/Administrator/Documents/Visual Studio 2017/Projects/cef-pdf"
+cmake -G "Visual Studio 15 2017" -DCMAKE_BUILD_TYPE=Release -DCEF_ROOT="D:/username/Documents/Visual Studio 2017/CEF/cef_binary_3.3626.1895.g7001d56_windows32_minimal" "D:/username/Documents/Visual Studio 2017/Projects/cef-pdf"
+
+cd /d "D:\Stefan.Steiger\Documents\Visual Studio 2017\Projects\cef-pdf\build" 
+cmake -G "Visual Studio 15 2017" -DPROJECT_ARCH="x86_64" -DCMAKE_BUILD_TYPE=Release -DCEF_ROOT="D:/username/Documents/Visual Studio 2017/CEF/cef_binary_3.3626.1895.g7001d56_windows64" "D:/username/Documents/Visual Studio 2017/Projects/cef-pdf"
+
+
+
+cd /d "D:\Stefan.Steiger\Documents\Visual Studio 2017\Projects\cef-pdf\build" 
+cmake -G "Visual Studio 15 2017 Win64" -DCMAKE_BUILD_TYPE=Release -DCEF_ROOT="D:/username/Documents/Visual Studio 2017/CEF/cef_binary_3.3626.1895.g7001d56_windows64" "D:/username/Documents/Visual Studio 2017/Projects/cef-pdf"
+
+
+
+cd /d "D:\Stefan.Steiger\Documents\Visual Studio 2017\Projects\cef-pdf\buildx86" 
+cmake -G "Visual Studio 15 2017" -DCMAKE_BUILD_TYPE=Release -DCEF_ROOT="D:/username/Documents/Visual Studio 2017/CEF/cef_binary_3.3626.1895.g7001d56_windows32_minimal" "D:/username/Documents/Visual Studio 2017/Projects/cef-pdf"
+
+
+cd /d "D:\Stefan.Steiger\Documents\Visual Studio 2017\Projects\cef-pdf\buildx64" 
+cmake -G "Visual Studio 15 2017 Win64" -DCMAKE_BUILD_TYPE=Release -DCEF_ROOT="D:/username/Documents/Visual Studio 2017/CEF/cef_binary_3.3626.1895.g7001d56_windows64" "D:/username/Documents/Visual Studio 2017/Projects/cef-pdf"
 
 
 -------------------------------------------------------------------------------
