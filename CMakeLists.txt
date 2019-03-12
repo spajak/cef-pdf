@@ -37,7 +37,7 @@
 #
 # The below requirements must be met to build this CEF binary distribution.
 #
-# - CMake version 2.8.12.1 or newer.
+# - CMake version 3.6 or newer.
 #
 # - Linux requirements:
 #   Currently supported distributions include Debian Wheezy, Ubuntu Precise, and
@@ -111,7 +111,7 @@
 # Global setup.
 #
 
-cmake_minimum_required(VERSION 2.8.12.1)
+cmake_minimum_required(VERSION 3.6)
 
 if(APPLE)
     set(PROJECT_ARCH x86_64)
