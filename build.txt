@@ -44,7 +44,7 @@ cmake -G "Visual Studio 15 2017 Win64" -DCMAKE_BUILD_TYPE=Release -DCEF_ROOT="D:
 
 
 cd /d "D:\Stefan.Steiger\Documents\Visual Studio 2017\Projects\cef-pdf\buildx86" 
-cmake -G "Visual Studio 15 2017" -DCMAKE_BUILD_TYPE=Release -DCEF_ROOT="D:/username/Documents/Visual Studio 2017/CEF/cef_binary_3.3626.1895.g7001d56_windows32_minimal" "D:/username/Documents/Visual Studio 2017/Projects/cef-pdf"
+cmake -G "Visual Studio 15 2017" -DCMAKE_BUILD_TYPE=Release -DCEF_ROOT="D:/username/Documents/Visual Studio 2017/CEF/cef_binary_3.3626.1895.g7001d56_windows32" "D:/username/Documents/Visual Studio 2017/Projects/cef-pdf"
 
 
 cd /d "D:\Stefan.Steiger\Documents\Visual Studio 2017\Projects\cef-pdf\buildx64" 

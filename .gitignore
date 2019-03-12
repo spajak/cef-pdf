@@ -1,3 +1,5 @@
 build/
 cef/
 .DS_Store
+/buildx64
+/buildx86
