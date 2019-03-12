@@ -108,3 +108,11 @@ cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCEF_ROOT=/root/Desktop/na
 
 
 
+
+Remove werror: 
+https://stackoverflow.com/questions/41182827/disable-werror-for-one-of-cmakelists-txt
+
+
+https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html
+Make all warnings into errors.
+-Werror and -Wno-error
