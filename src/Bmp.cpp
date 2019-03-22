@@ -49,7 +49,7 @@ bool write_bmp(FILE *fp, BMPImage *image, char **error)
 {
     // Write header
     rewind(fp);
-    int num_read = fwrite(&image->header, sizeof(image->header), 1, fp);
+    size_t num_read = fwrite(&image->header, sizeof(image->header), 1, fp);
     if (!_check(num_read == 1, error, "Cannot write image"))
     {
         return false;
