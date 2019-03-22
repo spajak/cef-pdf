@@ -11,155 +11,165 @@
 #include <queue>
 #include <set>
 
-namespace cefpdf {
-
-class Client : public CefApp,
-               public CefBrowserProcessHandler,
-               public CefClient,
-               public CefLifeSpanHandler,
-               public CefLoadHandler,
-               public CefRequestHandler
+namespace cefpdf
 {
 
-public:
-    Client();
-    Client(const Client&) = delete;
-    Client& operator=(const Client&) = delete;
+	class Client : public CefApp,
+		public CefBrowserProcessHandler,
+		public CefClient,
+		public CefLifeSpanHandler,
+		public CefLoadHandler,
+		public CefRequestHandler
+	{
 
-    // Execute subprocess, if any
-    int ExecuteSubProcess(const CefMainArgs&);
+	public:
+		Client();
+		Client(const Client&) = delete;
+		Client& operator=(const Client&) = delete;
 
-    // Initialize CEF
-    void Initialize(const CefMainArgs&);
+		// Execute subprocess, if any
+		int ExecuteSubProcess(const CefMainArgs&);
 
-    // De-initialize CEF
-    void Shutdown();
+		// Initialize CEF
+		void Initialize(const CefMainArgs&);
 
-    // Run message loop
-    void Run();
+		// De-initialize CEF
+		void Shutdown();
 
-    // Stop message loop and/or shutdown CEF
-    void Stop();
+		// Run message loop
+		void Run();
 
-    // Add new job to the queue and process it
-    void AddJob(CefRefPtr<job::Job> job);
+		// Stop message loop and/or shutdown CEF
+		void Stop();
 
-    // Get the number of running job processes
-    unsigned int GetProcessCount() {
-        return m_browsersCount;
-    }
+		// Add new job to the queue and process it
+		void AddJob(CefRefPtr<job::Job> job);
 
-    void SetStopAfterLastJob(bool flag) {
-        m_stopAfterLastJob = flag;
-    }
+		// Get the number of running job processes
+		unsigned int GetProcessCount()
+		{
+			return m_browsersCount;
+		}
 
-    void SetDisableJavaScript(bool flag) {
-        m_browserSettings.javascript = flag ? STATE_DISABLED : STATE_ENABLED;
-    }
+		void SetStopAfterLastJob(bool flag)
+		{
+			m_stopAfterLastJob = flag;
+		}
 
-    void AddAllowedScheme(const std::string& scheme) {
-        m_schemes.insert(scheme);
-    }
+		void SetDisableJavaScript(bool flag)
+		{
+			m_browserSettings.javascript = flag ? STATE_DISABLED : STATE_ENABLED;
+		}
 
-    void SetAllowedSchemes(const std::set<std::string>& schemes) {
-        for (const auto &s: schemes) {
-            AddAllowedScheme(s);
-        }
-    }
+		void AddAllowedScheme(const std::string& scheme)
+		{
+			m_schemes.insert(scheme);
+		}
 
-    void ClearAllowedSchemes() {
-        m_schemes.clear();
-    }
+		void SetAllowedSchemes(const std::set<std::string>& schemes)
+		{
+			for (const auto &s : schemes)
+			{
+				AddAllowedScheme(s);
+			}
+		}
 
-    void RemoveAllowedScheme(const std::string& scheme) {
-        auto i = m_schemes.find(scheme);
-        if (i != m_schemes.end()) {
-            m_schemes.erase(i);
-        }
-    }
+		void ClearAllowedSchemes()
+		{
+			m_schemes.clear();
+		}
 
-    // CefApp methods:
-    virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() override;
-    virtual void OnRegisterCustomSchemes(CefRawPtr<CefSchemeRegistrar> registrar) override;
-    virtual void OnBeforeCommandLineProcessing(const CefString& process_type, CefRefPtr<CefCommandLine> command_line) override;
-    virtual CefRefPtr<CefRenderProcessHandler> GetRenderProcessHandler() override;
+		void RemoveAllowedScheme(const std::string& scheme)
+		{
+			auto i = m_schemes.find(scheme);
+			if (i != m_schemes.end())
+			{
+				m_schemes.erase(i);
+			}
+		}
 
-    // CefBrowserProcessHandler methods:
-    virtual CefRefPtr<CefPrintHandler> GetPrintHandler() override;
-    virtual void OnContextInitialized() override;
-    virtual void OnBeforeChildProcessLaunch(CefRefPtr<CefCommandLine> command_line) override;
+		// CefApp methods:
+		virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() override;
+		virtual void OnRegisterCustomSchemes(CefRawPtr<CefSchemeRegistrar> registrar) override;
+		virtual void OnBeforeCommandLineProcessing(const CefString& process_type, CefRefPtr<CefCommandLine> command_line) override;
+		virtual CefRefPtr<CefRenderProcessHandler> GetRenderProcessHandler() override;
 
-    // CefClient methods:
-    virtual CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() override;
-    virtual CefRefPtr<CefLoadHandler> GetLoadHandler() override;
-    virtual CefRefPtr<CefRenderHandler> GetRenderHandler() override;
-    virtual CefRefPtr<CefRequestHandler> GetRequestHandler() override;
-    virtual bool OnProcessMessageReceived(
-        CefRefPtr<CefBrowser> browser,
-        CefProcessId source_process,
-        CefRefPtr<CefProcessMessage> message
-    ) override;
+		// CefBrowserProcessHandler methods:
+		virtual CefRefPtr<CefPrintHandler> GetPrintHandler() override;
+		virtual void OnContextInitialized() override;
+		virtual void OnBeforeChildProcessLaunch(CefRefPtr<CefCommandLine> command_line) override;
 
-    // CefLifeSpanHandler methods:
-    virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser) override;
-    virtual bool DoClose(CefRefPtr<CefBrowser> browser) override;
-    virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) override;
+		// CefClient methods:
+		virtual CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() override;
+		virtual CefRefPtr<CefLoadHandler> GetLoadHandler() override;
+		virtual CefRefPtr<CefRenderHandler> GetRenderHandler() override;
+		virtual CefRefPtr<CefRequestHandler> GetRequestHandler() override;
+		virtual bool OnProcessMessageReceived(
+			CefRefPtr<CefBrowser> browser,
+			CefProcessId source_process,
+			CefRefPtr<CefProcessMessage> message
+		) override;
 
-    // CefLoadHandler methods:
-    virtual void OnLoadStart(
-        CefRefPtr<CefBrowser> browser,
-        CefRefPtr<CefFrame> frame,
-        TransitionType transition_type
-    ) override;
-    virtual void OnLoadEnd(
-        CefRefPtr<CefBrowser> browser,
-        CefRefPtr<CefFrame> frame,
-        int httpStatusCode
-    ) override;
-    virtual void OnLoadError(
-        CefRefPtr<CefBrowser> browser,
-        CefRefPtr<CefFrame> frame,
-        ErrorCode errorCode,
-        const CefString& errorText,
-        const CefString& failedUrl
-    ) override;
+		// CefLifeSpanHandler methods:
+		virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser) override;
+		virtual bool DoClose(CefRefPtr<CefBrowser> browser) override;
+		virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) override;
 
-    // CefRequestHandler methods:
-    virtual bool OnBeforeBrowse(
-        CefRefPtr<CefBrowser> browser,
-        CefRefPtr<CefFrame> frame,
-        CefRefPtr<CefRequest> request,
-		bool user_gesture,
-        bool is_redirect
-    ) override;
+		// CefLoadHandler methods:
+		virtual void OnLoadStart(
+			CefRefPtr<CefBrowser> browser,
+			CefRefPtr<CefFrame> frame,
+			TransitionType transition_type
+		) override;
+		virtual void OnLoadEnd(
+			CefRefPtr<CefBrowser> browser,
+			CefRefPtr<CefFrame> frame,
+			int httpStatusCode
+		) override;
+		virtual void OnLoadError(
+			CefRefPtr<CefBrowser> browser,
+			CefRefPtr<CefFrame> frame,
+			ErrorCode errorCode,
+			const CefString& errorText,
+			const CefString& failedUrl
+		) override;
 
-    virtual void OnRenderProcessTerminated(
-        CefRefPtr<CefBrowser> browser,
-        CefRequestHandler::TerminationStatus status
-    ) override;
+		// CefRequestHandler methods:
+		virtual bool OnBeforeBrowse(
+			CefRefPtr<CefBrowser> browser,
+			CefRefPtr<CefFrame> frame,
+			CefRefPtr<CefRequest> request,
+			bool user_gesture,
+			bool is_redirect
+		) override;
 
-private:
-    void CreateBrowsers(unsigned int browserCount = 0);
+		virtual void OnRenderProcessTerminated(
+			CefRefPtr<CefBrowser> browser,
+			CefRequestHandler::TerminationStatus status
+		) override;
 
-    CefSettings m_settings;
-    CefWindowInfo m_windowInfo;
-    CefBrowserSettings m_browserSettings;
-    CefRefPtr<job::Manager> m_jobManager;
-    std::set<std::string> m_schemes;
-    unsigned int m_pendingBrowsersCount;
-    unsigned int m_browsersCount;
-    bool m_initialized;
-    bool m_contextInitialized;
-    bool m_running;
-    bool m_stopAfterLastJob;
+	private:
+		void CreateBrowsers(unsigned int browserCount = 0);
 
-    CefRefPtr<CefPrintHandler> m_printHandler;
-    CefRefPtr<CefRenderHandler> m_renderHandler;
-    CefRefPtr<CefRenderProcessHandler> m_renderProcessHandler;
+		CefSettings m_settings;
+		CefWindowInfo m_windowInfo;
+		CefBrowserSettings m_browserSettings;
+		CefRefPtr<job::Manager> m_jobManager;
+		std::set<std::string> m_schemes;
+		unsigned int m_pendingBrowsersCount;
+		unsigned int m_browsersCount;
+		bool m_initialized;
+		bool m_contextInitialized;
+		bool m_running;
+		bool m_stopAfterLastJob;
 
-    // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(Client)
-};
+		CefRefPtr<CefPrintHandler> m_printHandler;
+		CefRefPtr<CefRenderHandler> m_renderHandler;
+		CefRefPtr<CefRenderProcessHandler> m_renderProcessHandler;
+
+		// Include the default reference counting implementation.
+		IMPLEMENT_REFCOUNTING(Client)
+	};
 
 } // namespace cefpdf
 

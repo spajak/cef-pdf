@@ -3,23 +3,26 @@
 
 #include "Job.h"
 
-namespace cefpdf {
-namespace job {
-
-class StdInput : public Job
+namespace cefpdf
 {
+	namespace job
+	{
 
-public:
-    virtual void accept(CefRefPtr<Visitor> visitor) override {
-        visitor->visit(this);
-    }
+		class StdInput : public Job
+		{
 
-private:
-    // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(StdInput)
-};
+		public:
+			virtual void accept(CefRefPtr<Visitor> visitor) override
+			{
+				visitor->visit(this);
+			}
 
-} // namespace job
+		private:
+			// Include the default reference counting implementation.
+			IMPLEMENT_REFCOUNTING(StdInput)
+		};
+
+	} // namespace job
 } // namespace cefpdf
 
 #endif // JOB_STDINPUT_H_

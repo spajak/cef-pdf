@@ -12,47 +12,49 @@
 
 #include <asio.hpp>
 
-namespace cefpdf {
-namespace server {
-
-class Server : public CefBaseRefCounted
+namespace cefpdf
 {
+	namespace server
+	{
 
-public:
-    Server(CefRefPtr<cefpdf::Client> client, std::string const&, std::string const&);
+		class Server : public CefBaseRefCounted
+		{
 
-    void Start();
+		public:
+			Server(CefRefPtr<cefpdf::Client> client, std::string const&, std::string const&);
 
-private:
-    void Run();
+			void Start();
 
-    void Listen();
+		private:
+			void Run();
 
-    void OnSignal(std::error_code, int);
+			void Listen();
 
-    void OnConnection(std::error_code);
+			void OnSignal(std::error_code, int);
 
-    CefRefPtr<cefpdf::Client> m_client;
+			void OnConnection(std::error_code);
 
-    std::thread m_thread;
+			CefRefPtr<cefpdf::Client> m_client;
 
-    asio::io_service m_ioService;
+			std::thread m_thread;
 
-    asio::signal_set m_signals;
+			asio::io_service m_ioService;
 
-    asio::ip::tcp::acceptor m_acceptor;
+			asio::signal_set m_signals;
 
-    asio::ip::tcp::socket m_socket;
+			asio::ip::tcp::acceptor m_acceptor;
 
-    CefRefPtr<SessionManager> m_sessionManager;
+			asio::ip::tcp::socket m_socket;
 
-    int m_counter;
+			CefRefPtr<SessionManager> m_sessionManager;
 
-    // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(Server)
-};
+			int m_counter;
 
-} // namespace server
+			// Include the default reference counting implementation.
+			IMPLEMENT_REFCOUNTING(Server)
+		};
+
+	} // namespace server
 } // namespace cefpdf
 
 #endif // SERVER_SERVER_H_

@@ -9,81 +9,91 @@
 #include <string>
 #include <functional>
 
-namespace cefpdf {
-namespace job {
-
-class Job : public CefBaseRefCounted
+namespace cefpdf
 {
+	namespace job
+	{
 
-public:
-    typedef std::function<void(CefRefPtr<Job>)> Callback;
+		class Job : public CefBaseRefCounted
+		{
 
-    enum struct Status {
-        PENDING,
-        LOADING,
-        PRINTING,
-        SUCCESS,
-        HTTP_ERROR,
-        ABORTED,
-        LOAD_ERROR,
-        PRINT_ERROR
-    };
+		public:
+			typedef std::function<void(CefRefPtr<Job>)> Callback;
 
-    Job();
+			enum struct Status
+			{
+				PENDING,
+				LOADING,
+				PRINTING,
+				SUCCESS,
+				HTTP_ERROR,
+				ABORTED,
+				LOAD_ERROR,
+				PRINT_ERROR
+			};
 
-    void SetCallback(Callback callback) {
-        m_callback = callback;
-    }
+			Job();
 
-    void ExecuteCallback() {
-        if (m_callback != nullptr) {
-            m_callback(this);
-        }
-    }
+			void SetCallback(Callback callback)
+			{
+				m_callback = callback;
+			}
 
-    virtual void accept(CefRefPtr<Visitor> visitor) = 0;
+			void ExecuteCallback()
+			{
+				if (m_callback != nullptr)
+				{
+					m_callback(this);
+				}
+			}
 
-    const CefString& GetOutputPath() const {
-        return m_outputPath;
-    }
+			virtual void accept(CefRefPtr<Visitor> visitor) = 0;
 
-    void SetOutputPath(const CefString& outputPath) {
-        m_outputPath = outputPath;
-    }
+			const CefString& GetOutputPath() const
+			{
+				return m_outputPath;
+			}
 
-    void SetPageSize(const CefString& pageSize);
+			void SetOutputPath(const CefString& outputPath)
+			{
+				m_outputPath = outputPath;
+			}
 
-    void SetLandscape(bool flag = true);
+			void SetPageSize(const CefString& pageSize);
 
-    void SetPageMargin(const CefString& pageMargin);
+			void SetLandscape(bool flag = true);
 
-    void SetBackgrounds(bool flag = true);
+			void SetPageMargin(const CefString& pageMargin);
 
-    // Get prepared PDF setting for CEF
-    CefPdfPrintSettings GetCefPdfPrintSettings() const;
+			void SetBackgrounds(bool flag = true);
 
-    Status GetStatus() {
-        return m_status;
-    }
+			// Get prepared PDF setting for CEF
+			CefPdfPrintSettings GetCefPdfPrintSettings() const;
 
-    void SetStatus(Status status) {
-        m_status = status;
-    }
+			Status GetStatus()
+			{
+				return m_status;
+			}
 
-private:
-    CefString m_outputPath;
-    PageSize m_pageSize;
-    PageOrientation m_pageOrientation;
-    PageMargin m_pageMargin;
-    bool m_backgrounds;
-    Status m_status;
-    Callback m_callback;
+			void SetStatus(Status status)
+			{
+				m_status = status;
+			}
 
-    // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(Job)
-};
+		private:
+			CefString m_outputPath;
+			PageSize m_pageSize;
+			PageOrientation m_pageOrientation;
+			PageMargin m_pageMargin;
+			bool m_backgrounds;
+			Status m_status;
+			Callback m_callback;
 
-} // namespace job
+			// Include the default reference counting implementation.
+			IMPLEMENT_REFCOUNTING(Job)
+		};
+
+	} // namespace job
 } // namespace cefpdf
 
 #endif // JOB_JOB_H_

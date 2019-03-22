@@ -8,83 +8,86 @@
 #include <chrono>
 #include <ctime>
 
-namespace cefpdf {
-
-std::string getCurrentWorkingDirectory();
-
-std::string getTempDirectory();
-
-std::string getProcessId();
-
-namespace constants {
-    // cef-pdf version number
-    const std::string version = "0.3.4";
-    // Internal scheme
-    const std::string scheme = "cefpdf";
-    // Default page size
-    const std::string pageSize = "A4";
-    // Default character encoding
-    const std::string encoding = "utf-8";
-    // Max number of concurrent processes (browsers)
-    const int maxProcesses = 10;
-    // Default host name
-    const std::string serverHost = "127.0.0.1";
-    // Default TCP server port
-    const std::string serverPort = "9288";
-
-    // Current working directory
-    const std::string cwd = getCurrentWorkingDirectory();
-    // Temp directory (including trailing slash)
-    const std::string tmp = getTempDirectory();
-    // Current process ID
-    const std::string pid = getProcessId();
-
-    // JavaScript functions
-    const std::string jsQueryFunction = "cefPdfQuery";
-    const std::string jsCancelFunction = "cefPdfCancel";
-}
-
-struct PageSize
+namespace cefpdf
 {
-    std::string name;
-    int width, height;
-};
 
-typedef cef_pdf_print_margin_type_t PageMarginType;
+	std::string getCurrentWorkingDirectory();
 
-struct PageMargin
-{
-    PageMarginType type;
-    int top, right, bottom, left;
-};
+	std::string getTempDirectory();
 
-enum struct PageOrientation {
-    PORTRAIT, LANDSCAPE
-};
+	std::string getProcessId();
 
-typedef std::list<PageSize> PageSizesMap;
+	namespace constants
+	{
+		// cef-pdf version number
+		const std::string version = "0.3.4";
+		// Internal scheme
+		const std::string scheme = "cefpdf";
+		// Default page size
+		const std::string pageSize = "A4";
+		// Default character encoding
+		const std::string encoding = "utf-8";
+		// Max number of concurrent processes (browsers)
+		const int maxProcesses = 10;
+		// Default host name
+		const std::string serverHost = "127.0.0.1";
+		// Default TCP server port
+		const std::string serverPort = "9288";
 
-extern PageSizesMap pageSizesMap;
+		// Current working directory
+		const std::string cwd = getCurrentWorkingDirectory();
+		// Temp directory (including trailing slash)
+		const std::string tmp = getTempDirectory();
+		// Current process ID
+		const std::string pid = getProcessId();
 
-PageSize getPageSize(const CefString& str);
+		// JavaScript functions
+		const std::string jsQueryFunction = "cefPdfQuery";
+		const std::string jsCancelFunction = "cefPdfCancel";
+	}
 
-PageMargin getPageMargin(const CefString& str);
+	struct PageSize
+	{
+		std::string name;
+		int width, height;
+	};
 
-std::string pathToUri(const std::string&);
+	typedef cef_pdf_print_margin_type_t PageMarginType;
 
-bool fileExists(const std::string& path);
+	struct PageMargin
+	{
+		PageMarginType type;
+		int top, right, bottom, left;
+	};
 
-std::string reserveTempFile();
+	enum struct PageOrientation
+	{
+		PORTRAIT, LANDSCAPE
+	};
 
-std::string loadTempFile(const std::string&, bool remove = true);
+	typedef std::list<PageSize> PageSizesMap;
 
-bool deleteTempFile(const std::string&);
+	extern PageSizesMap pageSizesMap;
 
-std::string formatDate(const char* format = "%a, %d %h %Y %T GMT", std::time_t* arg = nullptr);
+	PageSize getPageSize(const CefString& str);
 
-bool stringsEqual(const std::string&, const std::string&);
+	PageMargin getPageMargin(const CefString& str);
 
-bool matchScheme(const std::string&, const std::string&);
+	std::string pathToUri(const std::string&);
+
+	bool fileExists(const std::string& path);
+
+	std::string reserveTempFile();
+
+	std::string loadTempFile(const std::string&, bool remove = true);
+
+	bool deleteTempFile(const std::string&);
+
+	std::string formatDate(const char* format = "%a, %d %h %Y %T GMT", std::time_t* arg = nullptr);
+
+	bool stringsEqual(const std::string&, const std::string&);
+
+	bool matchScheme(const std::string&, const std::string&);
 
 } // namespace cefpdf
 

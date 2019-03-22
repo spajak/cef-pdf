@@ -3,35 +3,41 @@
 
 #include "Job.h"
 
-namespace cefpdf {
-namespace job {
-
-class Local : public Job
+namespace cefpdf
 {
+	namespace job
+	{
 
-public:
-    Local(const std::string& content) : Job(), m_content(content) {}
+		class Local : public Job
+		{
 
-    virtual const std::string& GetContent() const {
-        return m_content;
-    }
+		public:
+			Local(const std::string& content) : Job(), m_content(content) {}
 
-    void SetContent(const std::string& content) {
-        m_content = content;
-    }
+			virtual const std::string& GetContent() const
+			{
+				return m_content;
+			}
 
-    virtual void accept(CefRefPtr<Visitor> visitor) override {
-        visitor->visit(this);
-    }
+			void SetContent(const std::string& content)
+			{
+				m_content = content;
+			}
 
-private:
-    std::string m_content;
+			virtual void accept(CefRefPtr<Visitor> visitor) override
+			{
+				visitor->visit(this);
+			}
 
-    // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(Local)
-};
+		private:
+			std::string m_content;
 
-} // namespace job
+			// Include the default reference counting implementation.
+			IMPLEMENT_REFCOUNTING(Local)
+		};
+
+	} // namespace job
+
 } // namespace cefpdf
 
 #endif // JOB_LOCAL_H_

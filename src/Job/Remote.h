@@ -3,32 +3,38 @@
 
 #include "Job.h"
 
-namespace cefpdf {
-namespace job {
-
-class Remote : public Job
+namespace cefpdf
 {
+	namespace job
+	{
 
-public:
-    Remote(const CefString& url) :
-        Job(), m_url(url) {}
+		class Remote : public Job
+		{
 
-    const CefString& GetUrl() const {
-        return m_url;
-    }
+		public:
+			Remote(const CefString& url) :
+				Job(), m_url(url)
+			{}
 
-    virtual void accept(CefRefPtr<Visitor> visitor) override {
-        visitor->visit(this);
-    }
+			const CefString& GetUrl() const
+			{
+				return m_url;
+			}
 
-private:
-    CefString m_url;
+			virtual void accept(CefRefPtr<Visitor> visitor) override
+			{
+				visitor->visit(this);
+			}
 
-    // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(Remote)
-};
+		private:
+			CefString m_url;
 
-} // namespace job
+			// Include the default reference counting implementation.
+			IMPLEMENT_REFCOUNTING(Remote)
+		};
+
+	} // namespace job
+
 } // namespace cefpdf
 
 #endif // JOB_REMOTE_H_

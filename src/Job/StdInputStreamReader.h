@@ -8,31 +8,33 @@
 #include <string>
 #include <iostream>
 
-namespace cefpdf {
-namespace job {
-
-class StdInputStreamReader : public CefReadHandler
+namespace cefpdf
 {
+	namespace job
+	{
 
-public:
-    StdInputStreamReader();
+		class StdInputStreamReader : public CefReadHandler
+		{
 
-    virtual int Eof() override;
+		public:
+			StdInputStreamReader();
 
-    virtual bool MayBlock() override;
+			virtual int Eof() override;
 
-    virtual std::size_t Read(void* ptr, std::size_t size, std::size_t n) override;
+			virtual bool MayBlock() override;
 
-    virtual int Seek(int64 offset, int whence) override;
+			virtual std::size_t Read(void* ptr, std::size_t size, std::size_t n) override;
 
-    virtual int64 Tell() override;
+			virtual int Seek(int64 offset, int whence) override;
 
-private:
-    // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(StdInputStreamReader)
-};
+			virtual int64 Tell() override;
 
-} // namespace job
+		private:
+			// Include the default reference counting implementation.
+			IMPLEMENT_REFCOUNTING(StdInputStreamReader)
+		};
+
+	} // namespace job
 } // namespace cefpdf
 
 #endif // JOB_STDINPUT_STREAM_READER_H_

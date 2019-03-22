@@ -9,51 +9,54 @@
 #include <vector>
 #include <queue>
 
-namespace cefpdf {
-namespace job {
-
-class Manager : public CefBaseRefCounted
+namespace cefpdf
 {
+	namespace job
+	{
 
-public:
-    Manager() {}
+		class Manager : public CefBaseRefCounted
+		{
 
-    std::size_t Queue(CefRefPtr<Job> job);
+		public:
+			Manager() {}
 
-    void Assign(CefRefPtr<CefBrowser> browser);
+			std::size_t Queue(CefRefPtr<Job> job);
 
-    CefRefPtr<CefStreamReader> GetStreamReader(CefRefPtr<CefBrowser> browser);
+			void Assign(CefRefPtr<CefBrowser> browser);
 
-    void Process(CefRefPtr<CefBrowser> browser, int httpStatusCode);
+			CefRefPtr<CefStreamReader> GetStreamReader(CefRefPtr<CefBrowser> browser);
 
-    void Finish(CefRefPtr<CefBrowser> browser, const CefString& path, bool ok);
+			void Process(CefRefPtr<CefBrowser> browser, int httpStatusCode);
 
-    void Abort(CefRefPtr<CefBrowser> browser, CefLoadHandler::ErrorCode errorCode);
+			void Finish(CefRefPtr<CefBrowser> browser, const CefString& path, bool ok);
 
-    void StopAll();
+			void Abort(CefRefPtr<CefBrowser> browser, CefLoadHandler::ErrorCode errorCode);
 
-private:
-    std::queue<CefRefPtr<Job>> m_jobsQueue;
+			void StopAll();
 
-    struct BrowserJob {
-        CefRefPtr<CefBrowser> browser;
-        CefRefPtr<Job> job;
-        CefRefPtr<CefStreamReader> streamReader;
-    };
+		private:
+			std::queue<CefRefPtr<Job>> m_jobsQueue;
 
-    std::vector<BrowserJob> m_jobs;
+			struct BrowserJob
+			{
+				CefRefPtr<CefBrowser> browser;
+				CefRefPtr<Job> job;
+				CefRefPtr<CefStreamReader> streamReader;
+			};
 
-    typedef std::vector<BrowserJob>::iterator Iterator;
+			std::vector<BrowserJob> m_jobs;
 
-    Iterator Find(CefRefPtr<CefBrowser> browser);
+			typedef std::vector<BrowserJob>::iterator Iterator;
 
-    void Resolve(Manager::Iterator it, const Job::Status&);
+			Iterator Find(CefRefPtr<CefBrowser> browser);
 
-    // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(Manager)
-};
+			void Resolve(Manager::Iterator it, const Job::Status&);
 
-} // namespace job
+			// Include the default reference counting implementation.
+			IMPLEMENT_REFCOUNTING(Manager)
+		};
+
+	} // namespace job
 } // namespace cefpdf
 
 #endif // JOB_MANAGER_H_

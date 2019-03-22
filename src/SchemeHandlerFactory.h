@@ -5,28 +5,29 @@
 
 #include "include/cef_scheme.h"
 
-namespace cefpdf {
-
-class SchemeHandlerFactory : public CefSchemeHandlerFactory
+namespace cefpdf
 {
 
-public:
-    SchemeHandlerFactory(CefRefPtr<job::Manager> jobsManager);
+	class SchemeHandlerFactory : public CefSchemeHandlerFactory
+	{
 
-    // CefSchemeHandlerFactory methods:
-    virtual CefRefPtr<CefResourceHandler> Create(
-        CefRefPtr<CefBrowser> browser,
-        CefRefPtr<CefFrame> frame,
-        const CefString& scheme_name,
-        CefRefPtr<CefRequest> request
-    ) override;
+	public:
+		SchemeHandlerFactory(CefRefPtr<job::Manager> jobsManager);
 
-private:
-    CefRefPtr<job::Manager> m_jobsManager;
+		// CefSchemeHandlerFactory methods:
+		virtual CefRefPtr<CefResourceHandler> Create(
+			CefRefPtr<CefBrowser> browser,
+			CefRefPtr<CefFrame> frame,
+			const CefString& scheme_name,
+			CefRefPtr<CefRequest> request
+		) override;
 
-    // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(SchemeHandlerFactory)
-};
+	private:
+		CefRefPtr<job::Manager> m_jobsManager;
+
+		// Include the default reference counting implementation.
+		IMPLEMENT_REFCOUNTING(SchemeHandlerFactory)
+	};
 
 } // namespace cefpdf
 

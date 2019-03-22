@@ -7,47 +7,55 @@
 #include "StdInput.h"
 #include "StdInputStreamReader.h"
 
-namespace cefpdf {
-namespace job {
-
-class ContentProvider : public Visitor
+namespace cefpdf
 {
+	namespace job
+	{
 
-public:
-    ContentProvider() {}
+		class ContentProvider 
+			: public Visitor
+		{
 
-    CefRefPtr<CefStreamReader> GetStreamReader() const {
-        return m_reader;
-    }
+		public:
+			ContentProvider() {}
 
-    virtual void visit(CefRefPtr<Local> job) override {
-        auto content = job->GetContent();
-        if (content.empty()) {
-            content = "<!DOCTYPE html>";
-        }
+			CefRefPtr<CefStreamReader> GetStreamReader() const
+			{
+				return m_reader;
+			}
 
-        m_reader = CefStreamReader::CreateForData(
-            static_cast<void*>(const_cast<char*>(content.c_str())),
-            content.size()
-        );
-    }
+			virtual void visit(CefRefPtr<Local> job) override
+			{
+				auto content = job->GetContent();
+				if (content.empty())
+				{
+					content = "<!DOCTYPE html>";
+				}
 
-    virtual void visit(CefRefPtr<Remote> job) override {
-        // no implementation
-    }
+				m_reader = CefStreamReader::CreateForData(
+					static_cast<void*>(const_cast<char*>(content.c_str())),
+					content.size()
+				);
+			}
 
-    virtual void visit(CefRefPtr<StdInput> job) override {
-        m_reader = CefStreamReader::CreateForHandler(new StdInputStreamReader);
-    }
+			virtual void visit(CefRefPtr<Remote> job) override
+			{
+				// no implementation
+			}
 
-private:
-    CefRefPtr<CefStreamReader> m_reader;
+			virtual void visit(CefRefPtr<StdInput> job) override
+			{
+				m_reader = CefStreamReader::CreateForHandler(new StdInputStreamReader);
+			}
 
-    // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(ContentProvider)
-};
+		private:
+			CefRefPtr<CefStreamReader> m_reader;
 
-} // namespace job
+			// Include the default reference counting implementation.
+			IMPLEMENT_REFCOUNTING(ContentProvider)
+		};
+
+	} // namespace job
 } // namespace cefpdf
 
 #endif // JOB_CONTENT_PROVIDER_H_

@@ -7,35 +7,37 @@
 
 #include <set>
 
-namespace cefpdf {
-namespace server {
-
-class SessionManager : public CefBaseRefCounted
+namespace cefpdf
 {
+	namespace server
+	{
 
-public:
-    SessionManager();
+		class SessionManager : public CefBaseRefCounted
+		{
 
-    SessionManager(const SessionManager&) = delete;
+		public:
+			SessionManager();
 
-    SessionManager& operator=(const SessionManager&) = delete;
+			SessionManager(const SessionManager&) = delete;
 
-    void Start(CefRefPtr<Session>);
+			SessionManager& operator=(const SessionManager&) = delete;
 
-    void Stop(CefRefPtr<Session>);
+			void Start(CefRefPtr<Session>);
 
-    void CloseAll();
+			void Stop(CefRefPtr<Session>);
 
-    void StopAll();
+			void CloseAll();
 
-private:
-    std::set<CefRefPtr<Session>> m_sessions;
+			void StopAll();
 
-    // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(SessionManager)
-};
+		private:
+			std::set<CefRefPtr<Session>> m_sessions;
 
-} // namespace server
+			// Include the default reference counting implementation.
+			IMPLEMENT_REFCOUNTING(SessionManager)
+		};
+
+	} // namespace server
 } // namespace cefpdf
 
 #endif // SERVER_SESSION_MANAGER_H_
