@@ -18,31 +18,26 @@
 #endif
 
 
-	#ifdef __linux__ 
-		//linux  specific code goes here
-	#elif _WIN32
-		// windows specific code goes here
-		#pragma warning(disable:4458)
+#if ( defined (__WIN32__) || defined (__WIN32) || defined (_WIN32) || defined (WIN32)  )
+	// windows specific code goes here
+	#pragma warning(disable:4458)
 
+	#pragma comment (lib,"gdiplus.lib")
 
-		#include <Windows.h>
-		#include <ObjIdl.h>
-		#include <minmax.h>
-		#include <gdiplus.h>
-		// #include <gdiplusheaders.h>
-		// #include <wingdi.h>
-		// #include <gdiplusbitmap.h>
-		// #include <gdiplusflat.h>
-		// #include <Gdipluspixelformats.h>
-
-		#pragma comment (lib,"gdiplus.lib")
-
-		// using namespace Gdiplus;
-
-		#pragma warning(default:4458)
-
-#else
-
+	#include <Windows.h>
+	#include <ObjIdl.h>
+	#include <minmax.h>
+	#include <gdiplus.h>
+	// #include <gdiplusheaders.h>
+	// #include <wingdi.h>
+	// #include <gdiplusbitmap.h>
+	// #include <gdiplusflat.h>
+	// #include <Gdipluspixelformats.h>
+	
+	
+	// using namespace Gdiplus;
+	
+	#pragma warning(default:4458)
 #endif
 
 
@@ -92,7 +87,7 @@ typedef struct
 
 
 #ifdef _MSC_VER
-#pragma pack(pop)  // restore the previous pack setting
+	#pragma pack(pop)  // restore the previous pack setting
 #endif
 
 
