@@ -3,17 +3,46 @@
 
 
 #ifdef __cplusplus
-#include <iostream>
-#include <cstdio>
-#include <cstdlib>
-#include <cstdint>
-#include <cstring>
+	// #include <iostream>
+	// #include <fstream>
+	#include <cstdio>
+	#include <cstdlib>
+	#include <cstdint>
+	#include <cstring>
 #else
-#include <stdio.h>
-    #include <stdlib.h>  // for malloc
-    #include <stdint.h>
-    #include <stdbool.h>
-    #include <string.h>  // for strlen, strcopy
+	#include <stdio.h> // printf 
+	#include <stdlib.h> // for malloc
+	#include <stdint.h> // for int32_t, int8_t, etc. 
+	#include <stdbool.h> // true, false in plain old C 
+	#include <string.h>  // for strlen, strcopy
+#endif
+
+
+	#ifdef __linux__ 
+		//linux  specific code goes here
+	#elif _WIN32
+		// windows specific code goes here
+		#pragma warning(disable:4458)
+
+
+		#include <Windows.h>
+		#include <ObjIdl.h>
+		#include <minmax.h>
+		#include <gdiplus.h>
+		// #include <gdiplusheaders.h>
+		// #include <wingdi.h>
+		// #include <gdiplusbitmap.h>
+		// #include <gdiplusflat.h>
+		// #include <Gdipluspixelformats.h>
+
+		#pragma comment (lib,"gdiplus.lib")
+
+		// using namespace Gdiplus;
+
+		#pragma warning(default:4458)
+
+#else
+
 #endif
 
 
@@ -77,8 +106,14 @@ typedef struct {
 } BMPImage;
 
 
-BMPImage * CreateBitmapFromScan0(int32_t w, int32_t h, uint8_t* scan0);
-void write_image(const char *filename, BMPImage *image, char **error);
+// #define USE_GDI true 
+
+#ifndef USE_GDI
+	BMPImage * CreateBitmapFromScan0(int32_t w, int32_t h, uint8_t* scan0);
+#endif 
+
+void WriteBitmapToFile(const char *filename, int width, int height, const void* buffer);
+
 
 
 #endif //BITMAPLION_BITMAPINFORMATION_H
