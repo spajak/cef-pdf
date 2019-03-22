@@ -2,12 +2,14 @@
 #include "RenderHandler.h"
 #include "Bmp.h"
 
-namespace cefpdf {
+namespace cefpdf
+{
 
 	bool _hasBeenRendered;
 
 
-	RenderHandler::RenderHandler() {
+	RenderHandler::RenderHandler()
+	{
 		_hasBeenRendered = false;
 	}
 
@@ -28,14 +30,14 @@ namespace cefpdf {
 		CefRenderHandler::PaintElementType type,
 		const CefRenderHandler::RectList& dirtyRects,
 		const void* buffer, int width, int height
-	) 
+	)
 	{
 		if (_hasBeenRendered)
 			return;
 
 		//BMPImage * image = CreateBitmapFromScan0((int32_t)width, (int32_t) height, (uint8_t*)buffer);
 		// bool result = write_bmp(FILE *fp, BMPImage *image, char **error);
-		
+
 
 #ifdef USE_GDI
 		const char* filename = "D:\\TestImageSmall.png";
@@ -44,7 +46,7 @@ namespace cefpdf {
 #endif 
 
 		WriteBitmapToFile(filename, width, height, buffer);
-		
+
 		printf("\n\nfinished rendering image.\n");
 		printf("Note:\n");
 		printf("If the webpage-background has no background-color set, it is rendered as black, because transparency is not implemented.\n");

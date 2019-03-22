@@ -1,59 +1,61 @@
 #include "Job.h"
 
-namespace cefpdf {
-namespace job {
-
-Job::Job() :
-    m_outputPath(),
-    m_pageSize(),
-    m_pageOrientation(PageOrientation::PORTRAIT),
-    m_pageMargin(),
-    m_backgrounds(false),
-    m_status(Job::Status::PENDING),
-    m_callback()
+namespace cefpdf
 {
-    SetPageSize(cefpdf::constants::pageSize);
-    SetPageMargin("default");
-}
+	namespace job
+	{
 
-void Job::SetPageSize(const CefString& pageSize)
-{
-    m_pageSize = getPageSize(pageSize);
-}
+		Job::Job() :
+			m_outputPath(),
+			m_pageSize(),
+			m_pageOrientation(PageOrientation::PORTRAIT),
+			m_pageMargin(),
+			m_backgrounds(false),
+			m_status(Job::Status::PENDING),
+			m_callback()
+		{
+			SetPageSize(cefpdf::constants::pageSize);
+			SetPageMargin("default");
+		}
 
-void Job::SetLandscape(bool flag)
-{
-    m_pageOrientation = (flag ? PageOrientation::LANDSCAPE : PageOrientation::PORTRAIT);
-}
+		void Job::SetPageSize(const CefString& pageSize)
+		{
+			m_pageSize = getPageSize(pageSize);
+		}
 
-void Job::SetPageMargin(const CefString& pageMargin)
-{
-    m_pageMargin = getPageMargin(pageMargin);
-}
+		void Job::SetLandscape(bool flag)
+		{
+			m_pageOrientation = (flag ? PageOrientation::LANDSCAPE : PageOrientation::PORTRAIT);
+		}
 
-void Job::SetBackgrounds(bool flag)
-{
-    m_backgrounds = flag;
-}
+		void Job::SetPageMargin(const CefString& pageMargin)
+		{
+			m_pageMargin = getPageMargin(pageMargin);
+		}
 
-CefPdfPrintSettings Job::GetCefPdfPrintSettings() const
-{
-    CefPdfPrintSettings pdfSettings;
+		void Job::SetBackgrounds(bool flag)
+		{
+			m_backgrounds = flag;
+		}
 
-    pdfSettings.backgrounds_enabled = m_backgrounds;
-    pdfSettings.landscape = (m_pageOrientation == PageOrientation::LANDSCAPE);
+		CefPdfPrintSettings Job::GetCefPdfPrintSettings() const
+		{
+			CefPdfPrintSettings pdfSettings;
 
-    pdfSettings.page_width  = m_pageSize.width * 1000;
-    pdfSettings.page_height = m_pageSize.height * 1000;
+			pdfSettings.backgrounds_enabled = m_backgrounds;
+			pdfSettings.landscape = (m_pageOrientation == PageOrientation::LANDSCAPE);
 
-    pdfSettings.margin_type = m_pageMargin.type;
-    pdfSettings.margin_top = m_pageMargin.top;
-    pdfSettings.margin_right = m_pageMargin.right;
-    pdfSettings.margin_bottom = m_pageMargin.bottom;
-    pdfSettings.margin_left = m_pageMargin.left;
+			pdfSettings.page_width = m_pageSize.width * 1000;
+			pdfSettings.page_height = m_pageSize.height * 1000;
 
-    return pdfSettings;
-}
+			pdfSettings.margin_type = m_pageMargin.type;
+			pdfSettings.margin_top = m_pageMargin.top;
+			pdfSettings.margin_right = m_pageMargin.right;
+			pdfSettings.margin_bottom = m_pageMargin.bottom;
+			pdfSettings.margin_left = m_pageMargin.left;
 
-} // namespace job
+			return pdfSettings;
+		}
+
+	} // namespace job
 } // namespace cefpdf

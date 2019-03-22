@@ -1,35 +1,39 @@
 #include "SessionManager.h"
 
-namespace cefpdf {
-namespace server {
-
-SessionManager::SessionManager()
-{}
-
-void SessionManager::Start(CefRefPtr<Session> session)
+namespace cefpdf
 {
-    session->Start();
-    m_sessions.insert(session);
-}
+	namespace server
+	{
 
-void SessionManager::Stop(CefRefPtr<Session> session)
-{
-    session->Close();
-    m_sessions.erase(session);
-}
+		SessionManager::SessionManager()
+		{}
 
-void SessionManager::CloseAll()
-{
-    for (auto c: m_sessions) {
-        c->Close();
-    }
-}
+		void SessionManager::Start(CefRefPtr<Session> session)
+		{
+			session->Start();
+			m_sessions.insert(session);
+		}
 
-void SessionManager::StopAll()
-{
-    CloseAll();
-    m_sessions.clear();
-}
+		void SessionManager::Stop(CefRefPtr<Session> session)
+		{
+			session->Close();
+			m_sessions.erase(session);
+		}
 
-} // namespace server
+		void SessionManager::CloseAll()
+		{
+			for (auto c : m_sessions)
+			{
+				c->Close();
+			}
+		}
+
+		void SessionManager::StopAll()
+		{
+			CloseAll();
+			m_sessions.clear();
+		}
+
+	} // namespace server
+
 } // namespace cefpdf
