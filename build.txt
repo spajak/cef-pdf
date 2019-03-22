@@ -116,3 +116,43 @@ https://stackoverflow.com/questions/41182827/disable-werror-for-one-of-cmakelist
 https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html
 Make all warnings into errors.
 -Werror and -Wno-error
+
+
+
+
+
+
+------------------------
+
+
+
+return commandLine->HasSwitch("server") ? runServer(app, commandLine) : runJob(app, commandLine);
+
+if (commandLine->HasSwitch("port")) {
+
+if (commandLine->HasSwitch("host")) {
+
+
+app->SetDisableJavaScript(!commandLine->HasSwitch("javascript"));
+
+
+
+if (commandLine->HasSwitch("list-sizes")) 
+
+
+commandLine->HasSwitch("stdin")) 
+{
+      if (!args.empty()) { job->SetOutputPath(args[0]); } 
+       else 
+      { writeToStdOut = true; }
+
+
+
+
+
+
+
+
+
+
+
