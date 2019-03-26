@@ -1,6 +1,7 @@
 
 #include "RenderHandler.h"
 #include "Bmp.h"
+#include "lodepng.h"
 
 namespace cefpdf
 {
@@ -25,6 +26,18 @@ namespace cefpdf
 	}
 
 
+	void encodeOneStep(const char* filename, const unsigned char* image, unsigned width, unsigned height)
+	{
+		/*Encode the image*/
+		unsigned error = lodepng_encode32_file(filename, image, width, height);
+
+		/*if there's an error, display it*/
+		if (error) printf("error %u: %s\n", error, lodepng_error_text(error));
+	}
+
+
+
+
 	void RenderHandler::OnPaint(
 		CefRefPtr<CefBrowser> browser,
 		CefRenderHandler::PaintElementType type,
@@ -42,10 +55,12 @@ namespace cefpdf
 #ifdef USE_GDI
 		const char* filename = "D:\\TestImageSmall.png";
 #else 
-		const char* filename = "D:\\TestImageSmall.bmp";
+		// const char* filename = "D:\\TestImageSmall.bmp";
+		const char* filename = "D:\\TestImageSmall.png";
 #endif 
 
-		WriteBitmapToFile(filename, width, height, buffer);
+		encodeOneStep(filename, (const unsigned char*)buffer, width, height);
+		// WriteBitmapToFile(filename, width, height, buffer);
 
 		printf("\n\nfinished rendering image.\n");
 		printf("Note:\n");
