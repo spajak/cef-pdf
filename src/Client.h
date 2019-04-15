@@ -2,6 +2,7 @@
 #define CLIENT_H_
 
 #include "Job/Manager.h"
+#include "RenderHandler.h"
 
 #include "include/cef_app.h"
 #include "include/cef_client.h"
@@ -78,6 +79,15 @@ public:
         }
     }
 
+    void SetDelay(int delay) {
+        m_delay = delay;
+    }
+
+    void SetViewWidth(int viewWidth);
+    void SetViewHeight(int viewHeight);
+
+    void Process(CefRefPtr<CefBrowser> browser);
+
     // CefApp methods:
     virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() override;
     virtual void OnRegisterCustomSchemes(CefRawPtr<CefSchemeRegistrar> registrar) override;
@@ -152,9 +162,10 @@ private:
     bool m_contextInitialized;
     bool m_running;
     bool m_stopAfterLastJob;
+    int  m_delay;
 
     CefRefPtr<CefPrintHandler> m_printHandler;
-    CefRefPtr<CefRenderHandler> m_renderHandler;
+    CefRefPtr<RenderHandler> m_renderHandler;
     CefRefPtr<CefRenderProcessHandler> m_renderProcessHandler;
 
     // Include the default reference counting implementation.

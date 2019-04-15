@@ -59,6 +59,8 @@ public:
 
     void SetBackgrounds(bool flag = true);
 
+    void SetScale(int scale);
+
     // Get prepared PDF setting for CEF
     CefPdfPrintSettings GetCefPdfPrintSettings() const;
 
@@ -78,6 +80,7 @@ private:
     bool m_backgrounds;
     Status m_status;
     Callback m_callback;
+    int m_scale;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(Job)

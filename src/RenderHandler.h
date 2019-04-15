@@ -11,6 +11,9 @@ class RenderHandler : public CefRenderHandler
 public:
     RenderHandler();
 
+    void SetViewWidth(int viewWidth);
+    void SetViewHeight(int viewHeight);
+
     // CefRenderHandler methods:
     virtual void GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) override;
 
@@ -24,7 +27,10 @@ public:
 private:
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(RenderHandler)
-};
+
+    int m_viewWidth;
+    int m_viewHeight;
+   };
 
 } // namespace cefpdf
 
