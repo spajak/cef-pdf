@@ -324,14 +324,12 @@ void Client::OnRenderProcessTerminated(
 
 void Client::SetViewWidth(int viewWidth)
 {
-   RenderHandler *renderHandler = (RenderHandler*)(m_renderHandler.get());
-   renderHandler->SetViewWidth(viewWidth);
+   m_renderHandler->SetViewWidth(viewWidth);
 }
 
 void Client::SetViewHeight(int viewHeight)
 {
-   RenderHandler *renderHandler = (RenderHandler*)(m_renderHandler.get());
-   renderHandler->SetViewHeight(viewHeight);
+   m_renderHandler->SetViewHeight(viewHeight);
 }
 
 } // namespace cefpdf

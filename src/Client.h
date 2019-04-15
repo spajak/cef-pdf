@@ -2,6 +2,7 @@
 #define CLIENT_H_
 
 #include "Job/Manager.h"
+#include "RenderHandler.h"
 
 #include "include/cef_app.h"
 #include "include/cef_client.h"
@@ -163,7 +164,7 @@ private:
     int  m_delay;
 
     CefRefPtr<CefPrintHandler> m_printHandler;
-    CefRefPtr<CefRenderHandler> m_renderHandler;
+    CefRefPtr<RenderHandler> m_renderHandler;
     CefRefPtr<CefRenderProcessHandler> m_renderProcessHandler;
 
     // Include the default reference counting implementation.
