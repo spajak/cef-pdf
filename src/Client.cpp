@@ -113,7 +113,7 @@ CefRefPtr<CefBrowserProcessHandler> Client::GetBrowserProcessHandler()
 
 void Client::OnRegisterCustomSchemes(CefRawPtr<CefSchemeRegistrar> registrar)
 {
-    registrar->AddCustomScheme(constants::scheme, true, false, false, false, true, false);
+    registrar->AddCustomScheme(constants::scheme, CEF_SCHEME_OPTION_STANDARD);
 }
 
 void Client::OnBeforeCommandLineProcessing(const CefString& process_type, CefRefPtr<CefCommandLine> command_line)
@@ -296,6 +296,7 @@ bool Client::OnBeforeBrowse(
     CefRefPtr<CefBrowser> browser,
     CefRefPtr<CefFrame> frame,
     CefRefPtr<CefRequest> request,
+    bool user_gesture,
     bool is_redirect
 ) {
     DLOG(INFO) << "Client::OnBeforeBrowse";

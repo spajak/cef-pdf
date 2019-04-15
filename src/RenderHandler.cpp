@@ -22,13 +22,12 @@ void RenderHandler::SetViewHeight(int viewHeight)
 
 // CefRenderHandler methods:
 // -------------------------------------------------------------------------
-bool RenderHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect)
+void RenderHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect)
 {
     rect.x = 0;
     rect.y = 0;
     rect.width = m_viewWidth;
     rect.height = m_viewHeight;
-    return true;
 }
 
 void RenderHandler::OnPaint(
