@@ -39,7 +39,7 @@ public:
 
 private:
     // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(PrintHandler)
+    IMPLEMENT_REFCOUNTING(PrintHandler);
 };
 
 } // namespace cefpdf

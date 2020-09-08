@@ -49,7 +49,7 @@ private:
     int m_counter;
 
     // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(Server)
+    IMPLEMENT_REFCOUNTING(Server);
 };
 
 } // namespace server

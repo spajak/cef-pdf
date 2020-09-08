@@ -50,7 +50,7 @@ private:
     void Resolve(Manager::Iterator it, const Job::Status&);
 
     // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(Manager)
+    IMPLEMENT_REFCOUNTING(Manager);
 };
 
 } // namespace job

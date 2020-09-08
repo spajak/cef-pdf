@@ -32,7 +32,7 @@ private:
     std::set<CefRefPtr<Session>> m_sessions;
 
     // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(SessionManager)
+    IMPLEMENT_REFCOUNTING(SessionManager);
 };
 
 } // namespace server

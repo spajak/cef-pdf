@@ -44,7 +44,7 @@ private:
     CefRefPtr<CefStreamReader> m_reader;
 
     // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(ContentProvider)
+    IMPLEMENT_REFCOUNTING(ContentProvider);
 };
 
 } // namespace job

@@ -83,7 +83,7 @@ private:
     int m_scale;
 
     // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(Job)
+    IMPLEMENT_REFCOUNTING(Job);
 };
 
 } // namespace job
