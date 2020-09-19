@@ -106,6 +106,7 @@ public:
     virtual CefRefPtr<CefRequestHandler> GetRequestHandler() override;
     virtual bool OnProcessMessageReceived(
         CefRefPtr<CefBrowser> browser,
+        CefRefPtr<CefFrame> frame,
         CefProcessId source_process,
         CefRefPtr<CefProcessMessage> message
     ) override;
@@ -169,7 +170,7 @@ private:
     CefRefPtr<CefRenderProcessHandler> m_renderProcessHandler;
 
     // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(Client)
+    IMPLEMENT_REFCOUNTING(Client);
 };
 
 } // namespace cefpdf

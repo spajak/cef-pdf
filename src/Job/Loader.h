@@ -35,7 +35,7 @@ private:
     CefRefPtr<CefFrame> m_frame;
 
     // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(Loader)
+    IMPLEMENT_REFCOUNTING(Loader);
 };
 
 } // namespace job

@@ -25,7 +25,7 @@ private:
     CefString m_url;
 
     // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(Remote)
+    IMPLEMENT_REFCOUNTING(Remote);
 };
 
 } // namespace job

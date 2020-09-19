@@ -100,7 +100,7 @@ void Client::CreateBrowsers(unsigned int browserCount)
     while (m_pendingBrowsersCount > 0 && m_browsersCount <= constants::maxProcesses) {
         --m_pendingBrowsersCount;
         ++m_browsersCount;
-        CefBrowserHost::CreateBrowser(m_windowInfo, this, "", m_browserSettings, NULL);
+        CefBrowserHost::CreateBrowser(m_windowInfo, this, "", m_browserSettings, NULL, NULL);
     }
 }
 
@@ -185,6 +185,7 @@ CefRefPtr<CefRequestHandler> Client::GetRequestHandler()
 
 bool Client::OnProcessMessageReceived(
     CefRefPtr<CefBrowser> browser,
+    CefRefPtr<CefFrame> frame,
     CefProcessId source_process,
     CefRefPtr<CefProcessMessage> message
 ) {
