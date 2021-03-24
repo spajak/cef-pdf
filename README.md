@@ -1,6 +1,6 @@
 # cef-pdf
 
-`cef-pdf` is a command line utility (with embedded HTTP server as an optional mode) for creating PDF documents from HTML content. It uses Google Chrome browser's [Chromium Embedded Framework (CEF)](https://bitbucket.org/chromiumembedded/cef/overview) library for all it's internal work; loading urls, rendering HTML & CSS pages and PDF printing, therefore, it produces perfect, accurate, excellent quality PDF documents.
+`cef-pdf` is a command line utility for creating PDF documents from HTML content. It uses Google Chrome browser's [Chromium Embedded Framework (CEF)](https://bitbucket.org/chromiumembedded/cef/overview) library for all it's internal work; loading urls, rendering HTML & CSS pages and PDF printing, therefore, it produces perfect, accurate and excellent quality PDF documents.
 
 ### Usage:
 
@@ -21,31 +21,12 @@
       --javascript     Enable JavaScript.
       --backgrounds    Print with backgrounds. Default is without.
 
-    Server options:
-      --server         Start HTTP server
-      --host=<host>    If starting server, specify ip address to bind to.
-                       Default is 127.0.0.1
-      --port=<port>    Specify server port number. Default is 9288
-
     Output:
       PDF file name to create. Default is to write binary data to standard output.
 
-### HTTP server usage
-
-Execute `cef-pdf` with `--server` option and visit `localhost:9288` with web browser. Default json response, with status and version number, should indicate the server is up and running on local machine:
-
-    {
-        "status": "ok",
-        "version": "0.2.0"
-    }
-
-To receive a PDF, just make POST request to `localhost:9288/foo.pdf`with some HTML content as the request body. `foo` may be any name you choose, `.pdf` suffix is always required. The response will contain the PDF data, with `application/pdf` as the content type.
-
-In addition to POSTing content inside the request body, special HTTP header `Content-Location` is supported, which should be an URL to some external content. `cef-pdf` will try to grab the content from this URL and use it just like it was the request's body.
-
 ### Building
 
-`cef-pdf` should compile without problems with cmake/ninja on Windows (7, x64), Linux (tested on Debian 8.5.0, x64) and Mac OS X (10.11.6) using decent C++11 compiler. In order to build, [CEF build distribution files](http://opensource.spotify.com/cefbuilds/index.html) must be downloaded and placed in some directory, like `/path/to/cef/release` in the example below.
+`cef-pdf` should compile without problems with cmake/ninja on Windows (7, x64), Linux (tested on Debian 8.5.0, x64) and Mac OS X (10.11.6) using decent C++11 compiler. In order to build, [CEF build distribution files](https://cef-builds.spotifycdn.com/index.html) must be downloaded and placed in some directory, like `/path/to/cef/release` in the example below.
 
 ```
 $ mkdir ~/build

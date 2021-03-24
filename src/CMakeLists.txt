@@ -8,14 +8,12 @@
 
 set(CEF_TARGET "cef-pdf")
 set(CEF_HELPER_TARGET "cef-pdf Helper")
-
-file(GLOB_RECURSE CEFPDF_SRCS "*.cpp")
+file(GLOB_RECURSE CEFPDF_SRCS "cefpdf/*.cpp")
 set(CEFPDF_HELPER_SRCS ${CEFPDF_SRCS})
-list(FILTER CEFPDF_SRCS EXCLUDE REGEX "subprocess\\.cpp$")
-list(FILTER CEFPDF_HELPER_SRCS EXCLUDE REGEX "main\\.cpp$")
-
+list(APPEND CEFPDF_SRCS "main.cpp")
+list(APPEND CEFPDF_HELPER_SRCS "subprocess.cpp")
 source_group("${CEF_TARGET}" FILES ${CEFPDF_SRCS})
-#source_group("${CEF_HELPER_TARGET}" FILES ${CEFPDF_HELPER_SRCS})
+source_group("${CEF_HELPER_TARGET}" FILES ${CEFPDF_HELPER_SRCS})
 
 #
 # Shared configuration.
@@ -48,6 +46,9 @@ if(OS_LINUX)
   # Copy binary and resource files to the target output directory.
   COPY_FILES("${CEF_TARGET}" "${CEF_BINARY_FILES}" "${CEF_BINARY_DIR}" "${CEF_TARGET_OUT_DIR}")
   COPY_FILES("${CEF_TARGET}" "${CEF_RESOURCE_FILES}" "${CEF_RESOURCE_DIR}" "${CEF_TARGET_OUT_DIR}")
+  if (EXISTS "${CEF_BINARY_DIR}/libminigbm.so")
+    COPY_FILES("${CEF_TARGET}" "libminigbm.so" "${CEF_BINARY_DIR}" "${CEF_TARGET_OUT_DIR}")
+  endif()
 
   # Set SUID permissions on the chrome-sandbox target.
   SET_LINUX_SUID_PERMISSIONS("${CEF_TARGET}" "${CEF_TARGET_OUT_DIR}/chrome-sandbox")
@@ -143,6 +144,7 @@ if(OS_WINDOWS)
   )
 
   SET_EXECUTABLE_TARGET_PROPERTIES(${CEF_TARGET})
+
   target_link_libraries(${CEF_TARGET} libcef_lib libcef_dll_wrapper ${CEF_STANDARD_LIBS})
 
   if(USE_SANDBOX)
@@ -152,9 +154,19 @@ if(OS_WINDOWS)
   endif()
 
   # Add the custom manifest files to the executable.
-  ADD_WINDOWS_MANIFEST("${CMAKE_SOURCE_DIR}/resource" "${CEF_TARGET}" "exe")
+  ADD_WINDOWS_MANIFEST("${CMAKE_SOURCE_DIR}/resources" "${CEF_TARGET}" "exe")
 
   # Copy binary and resource files to the target output directory.
   COPY_FILES("${CEF_TARGET}" "${CEF_BINARY_FILES}" "${CEF_BINARY_DIR}" "${CEF_TARGET_OUT_DIR}")
   COPY_FILES("${CEF_TARGET}" "${CEF_RESOURCE_FILES}" "${CEF_RESOURCE_DIR}" "${CEF_TARGET_OUT_DIR}")
+
 endif()
+
+message(STATUS "--")
+get_property(TMP TARGET ${CEF_TARGET} PROPERTY LINK_FLAGS)
+message(STATUS "LINK_FLAGS: ${TMP}")
+get_property(TMP TARGET ${CEF_TARGET} PROPERTY COMPILE_DEFINITIONS)
+message(STATUS "COMPILE_DEFINITIONS: ${TMP}")
+get_property(TMP TARGET ${CEF_TARGET} PROPERTY COMPILE_OPTIONS)
+message(STATUS "COMPILE_OPTIONS: ${TMP}")
+message(STATUS "--")
