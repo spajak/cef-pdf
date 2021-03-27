@@ -262,6 +262,11 @@ std::chrono::microseconds::rep microtime()
     return std::chrono::duration_cast<std::chrono::microseconds>(tt).count();
 }
 
+void sleep(int ms)
+{
+    std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+}
+
 std::string pathToUri(const std::string& path)
 {
     if (path.empty()) {

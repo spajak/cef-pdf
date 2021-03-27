@@ -1,17 +1,17 @@
 // Copyright (c) 2021, Sebastian Pająk. MIT License.
 
-#ifndef CEFPDF_PRINT_HANDLER_H_
-#define CEFPDF_PRINT_HANDLER_H_
+#ifndef CEFPDF_LINUX_PRINT_HANDLER_H_
+#define CEFPDF_LINUX_PRINT_HANDLER_H_
 
 #include "include/cef_print_handler.h"
 
 namespace cefpdf {
 
-class PrintHandler : public CefPrintHandler
+class LinuxPrintHandler : public CefPrintHandler
 {
 
 public:
-    PrintHandler();
+    LinuxPrintHandler();
 
     // CefPrintHandler methods:
     virtual CefSize GetPdfPaperSize(int device_units_per_inch) override;
@@ -41,9 +41,9 @@ public:
 
 private:
     // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(PrintHandler);
+    IMPLEMENT_REFCOUNTING(LinuxPrintHandler);
 };
 
 } // namespace cefpdf
 
-#endif // CEFPDF_PRINT_HANDLER_H_
+#endif // CEFPDF_LINUX_PRINT_HANDLER_H_

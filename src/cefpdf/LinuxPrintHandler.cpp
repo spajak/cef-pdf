@@ -1,23 +1,23 @@
 // Copyright (c) 2021, Sebastian Pająk. MIT License.
 
-#include "PrintHandler.h"
+#include "LinuxPrintHandler.h"
 
 #include "include/wrapper/cef_helpers.h"
 
 namespace cefpdf {
 
-PrintHandler::PrintHandler() {}
+LinuxPrintHandler::LinuxPrintHandler() {}
 
 // CefPrintHandler methods:
 // -------------------------------------------------------------------------
-CefSize PrintHandler::GetPdfPaperSize(int device_units_per_inch)
+CefSize LinuxPrintHandler::GetPdfPaperSize(int device_units_per_inch)
 {
-    DLOG(INFO) << "PrintHandler::GetPdfPaperSize (" << device_units_per_inch << ")";
+    DLOG(INFO) << "LinuxPrintHandler::GetPdfPaperSize (" << device_units_per_inch << ")";
 
     return CefSize(device_units_per_inch*100, device_units_per_inch*100*2);
 }
 
-bool PrintHandler::OnPrintDialog(
+bool LinuxPrintHandler::OnPrintDialog(
     CefRefPtr<CefBrowser> browser,
     bool has_selection,
     CefRefPtr<CefPrintDialogCallback> callback
@@ -25,7 +25,7 @@ bool PrintHandler::OnPrintDialog(
     return true;
 }
 
-bool PrintHandler::OnPrintJob(
+bool LinuxPrintHandler::OnPrintJob(
     CefRefPtr<CefBrowser> browser,
     const CefString& document_name,
     const CefString& pdf_file_path,
@@ -34,12 +34,12 @@ bool PrintHandler::OnPrintJob(
     return true;
 }
 
-void PrintHandler::OnPrintReset(CefRefPtr<CefBrowser> browser)
+void LinuxPrintHandler::OnPrintReset(CefRefPtr<CefBrowser> browser)
 {
 
 }
 
-void PrintHandler::OnPrintSettings(
+void LinuxPrintHandler::OnPrintSettings(
     CefRefPtr<CefBrowser> browser,
     CefRefPtr<CefPrintSettings> settings,
     bool get_defaults
@@ -47,7 +47,7 @@ void PrintHandler::OnPrintSettings(
 
 }
 
-void PrintHandler::OnPrintStart(CefRefPtr<CefBrowser> browser)
+void LinuxPrintHandler::OnPrintStart(CefRefPtr<CefBrowser> browser)
 {
 
 }

@@ -136,6 +136,7 @@ if(OS_WINDOWS)
 
   list(APPEND CEF_CXX_COMPILER_FLAGS
     /EHsc
+    /std:c++latest
   )
 
   list(APPEND CEF_EXE_LINKER_FLAGS

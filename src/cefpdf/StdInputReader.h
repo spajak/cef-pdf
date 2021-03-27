@@ -1,7 +1,7 @@
 // Copyright (c) 2021, Sebastian Pająk. MIT License.
 
-#ifndef CEFPDF_STDINPUT_STREAM_READER_H_
-#define CEFPDF_STDINPUT_STREAM_READER_H_
+#ifndef CEFPDF_STDINPUT_READER_H_
+#define CEFPDF_STDINPUT_READER_H_
 
 #include <cstdlib>
 #include <cstdio>
@@ -12,11 +12,11 @@
 
 namespace cefpdf {
 
-class StdInputStreamReader : public CefReadHandler
+class StdInputReader : public CefReadHandler
 {
 
 public:
-    StdInputStreamReader();
+    StdInputReader();
 
     virtual int Eof() override;
 
@@ -30,9 +30,9 @@ public:
 
 private:
     // Include the default reference counting implementation.
-    IMPLEMENT_REFCOUNTING(StdInputStreamReader);
+    IMPLEMENT_REFCOUNTING(StdInputReader);
 };
 
 } // namespace cefpdf
 
-#endif // CEFPDF_STDINPUT_STREAM_READER_H_
+#endif // CEFPDF_STDINPUT_READER_H_

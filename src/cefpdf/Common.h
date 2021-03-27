@@ -6,6 +6,7 @@
 #include <ctime>
 #include <string>
 #include <list>
+#include <thread>
 #include <chrono>
 
 #include "include/internal/cef_types.h"
@@ -21,14 +22,21 @@ std::string getProcessId();
 namespace constants {
     // cef-pdf version number
     const std::string version = "0.4.0";
-    // Internal scheme
-    const std::string scheme = "cefpdf";
     // Default page size
     const std::string pageSize = "A4";
     // Default character encoding
     const std::string encoding = "utf-8";
+    // Internal scheme
+    const std::string scheme = "cefpdf";
+    // Internal url for file content
+    const std::string stringUrl = scheme + "://string";
+    // Internal url for standard input content
+    const std::string stdinUrl = scheme + "://stdin";
+    // Internal url for string content
+    const std::string fileUrl = scheme + "://file";
+
     // Max number of concurrent processes (browsers)
-    const int maxProcesses = 16;
+    const std::size_t maxProcesses = 8;
 
     // Current working directory
     const std::string cwd = getCurrentWorkingDirectory();
@@ -85,6 +93,10 @@ bool stringsEqual(const std::string&, const std::string&);
 bool matchScheme(const std::string&, const std::string&);
 
 int strToInt(const std::string&);
+
+std::chrono::microseconds::rep microtime();
+
+void sleep(int ms);
 
 } // namespace cefpdf
 

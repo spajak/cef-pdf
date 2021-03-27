@@ -10,9 +10,10 @@
 #endif // OS_WIN
 
 #include "cefpdf/App.h"
-#include "cefpdf/job/Remote.h"
-#include "cefpdf/job/StdInput.h"
+#include "cefpdf/PrintJob.h"
+#include "cefpdf/Common.h"
 
+#include "include/cef_base.h"
 #include "include/base/cef_logging.h"
 
 void printHelp()
@@ -39,8 +40,6 @@ void printHelp()
     std::cout << "  --backgrounds     Print with backgrounds. Default is without." << std::endl;
     std::cout << "  --scale=<%>       Scale the output. Default is 100." << std::endl;
     std::cout << "  --delay=<ms>      Wait after page load before creating PDF. Default is 0." << std::endl;
-    std::cout << "  --viewwidth=<px>  Width of viewport. Default is 128." << std::endl;
-    std::cout << "  --viewheight=<px> Height of viewport. Default is 128." << std::endl;
     std::cout << std::endl;
     std::cout << "Output:" << std::endl;
     std::cout << "  PDF file name to create. Default is to write binary data to standard output." << std::endl;
@@ -55,7 +54,7 @@ void printSizes()
     }
 }
 
-void setOptions(CefRefPtr<cefpdf::job::Job> job, CefRefPtr<CefCommandLine> commandLine)
+void setOptions(CefRefPtr<cefpdf::PrintJob> job, CefRefPtr<CefCommandLine> commandLine)
 {
     if (commandLine->HasSwitch("size")) {
         job->SetPageSize(commandLine->GetSwitchValue("size"));
@@ -94,20 +93,19 @@ void setOptions(CefRefPtr<cefpdf::job::Job> job, CefRefPtr<CefCommandLine> comma
 
 int runJob(CefRefPtr<cefpdf::App> app, CefRefPtr<CefCommandLine> commandLine)
 {
-    CefRefPtr<cefpdf::job::Job> job;
+    std::string url;
+    CefRefPtr<cefpdf::PrintJob> job;
     bool readFromStdIn = false;
     bool writeToStdOut = false;
 
     if (commandLine->HasSwitch("stdin")) {
-        job = new cefpdf::job::StdInput();
         readFromStdIn = true;
+        url = "cefpdf://stdin";
     } else {
-        std::string url;
-
         if (commandLine->HasSwitch("url")) {
             url = commandLine->GetSwitchValue("url").ToString();
         } else if (commandLine->HasSwitch("file")) {
-            auto path = commandLine->GetSwitchValue("file").ToString();
+            std::string path = commandLine->GetSwitchValue("file").ToString();
 
             if (!cefpdf::fileExists(path)) {
                 std::cerr << "ERROR: " << "Input file does not exist" << std::endl;
@@ -121,9 +119,9 @@ int runJob(CefRefPtr<cefpdf::App> app, CefRefPtr<CefCommandLine> commandLine)
             std::cerr << "ERROR: " << "No input specified" << std::endl;
             return 1;
         }
-
-        job = new cefpdf::job::Remote(url);
     }
+
+    job = new cefpdf::PrintJob(url);
 
     // Set output file
     CefCommandLine::ArgumentList args;
@@ -134,13 +132,17 @@ int runJob(CefRefPtr<cefpdf::App> app, CefRefPtr<CefCommandLine> commandLine)
         writeToStdOut = true;
     }
 
+    if (readFromStdIn) {
+        job->SetStreamReader(app->CreateStreamReaderFromStdInput());
+    }
+
     setOptions(job, commandLine);
 
     if (readFromStdIn && !writeToStdOut) {
         std::cout << "Waiting for input until EOF (Unix: Ctrl+D, Windows: Ctrl+Z)" << std::endl;
     }
 
-    app->Queue(job);
+    app->AddPrintJob(job);
     app->Run();
 
     if (writeToStdOut) {
@@ -181,9 +183,7 @@ int main(int argc, char* argv[])
     commandLine->InitFromArgv(argc, argv);
 #endif // OS_WIN
 
-    CefRefPtr<cefpdf::App> app = new cefpdf::App(mainArgs);
-
-    DLOG(INFO) << "Starting process \"" << app->GetProcessType(commandLine) << "\"";
+    CefRefPtr<cefpdf::App> app = new cefpdf::App(mainArgs, commandLine->HasSwitch("javascript"));
 
 #if !defined(OS_MACOSX)
     // Execute the sub-process logic, if any. This will either return immediately for the browser

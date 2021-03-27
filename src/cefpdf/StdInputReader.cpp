@@ -1,29 +1,29 @@
 // Copyright (c) 2021, Sebastian Pająk. MIT License.
 
-#include "StdInputStreamReader.h"
+#include "StdInputReader.h"
 
 namespace cefpdf {
 
-StdInputStreamReader::StdInputStreamReader()
+StdInputReader::StdInputReader()
 {}
 
-int StdInputStreamReader::Eof()
+int StdInputReader::Eof()
 {
     return std::cin.eof() ? 1 : 0;
 }
 
-bool StdInputStreamReader::MayBlock()
+bool StdInputReader::MayBlock()
 {
     return true;
 }
 
-std::size_t StdInputStreamReader::Read(void* ptr, std::size_t size, std::size_t n)
+std::size_t StdInputReader::Read(void* ptr, std::size_t size, std::size_t n)
 {
     std::cin.read(static_cast<char*>(ptr), size);
     return std::cin.gcount();
 }
 
-int StdInputStreamReader::Seek(int64 offset, int whence)
+int StdInputReader::Seek(int64 offset, int whence)
 {
     std::ios_base::seekdir dir;
 
@@ -44,7 +44,7 @@ int StdInputStreamReader::Seek(int64 offset, int whence)
     return std::cin.good() ? 0 : 1;
 }
 
-int64 StdInputStreamReader::Tell()
+int64 StdInputReader::Tell()
 {
     return std::cin.tellg();
 }

@@ -3,14 +3,13 @@
 #ifndef CEFPDF_APP_H_
 #define CEFPDF_APP_H_
 
-#include <queue>
-
-#include "Client.h"
-#include "ClientHandler.h"
-#include "PrintHandler.h"
-#include "SchemeHandlerFactory.h"
+#include "PrintJob.h"
+#include "BrowserHandler.h"
+#include "LinuxPrintHandler.h"
+#include "PrintJobCallback.h"
 
 #include "include/cef_app.h"
+#include "include/cef_stream.h"
 #include "include/cef_browser_process_handler.h"
 #include "include/cef_render_process_handler.h"
 
@@ -19,28 +18,30 @@ namespace cefpdf {
 class App : public CefApp,
             public CefBrowserProcessHandler,
             public CefRenderProcessHandler,
-            public ClientHandler
+            public PrintJobCallback
 {
 
 public:
-    typedef std::queue<CefRefPtr<Client>> ClientQueue;
-
-    explicit App(const CefMainArgs&);
+    explicit App(const CefMainArgs&, bool enableJavaScript = false);
 
     App(const App&) = delete;
     App& operator=(const App&) = delete;
 
-    void Queue(CefRefPtr<job::Job>);
+    void AddPrintJob(CefRefPtr<PrintJob>);
     void Run();
     void Stop();
+
+    CefRefPtr<CefStreamReader> CreateStreamReaderFromString(const CefString& content);
+    CefRefPtr<CefStreamReader> CreateStreamReaderFromStdInput();
+    CefRefPtr<CefStreamReader> CreateStreamReaderFromFile(const CefString& fileName);
 
     CefString GetProcessType(CefRefPtr<CefCommandLine>);
 
     // CefApp methods:
     virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() override;
-    virtual void OnRegisterCustomSchemes(CefRawPtr<CefSchemeRegistrar> registrar) override;
-    virtual void OnBeforeCommandLineProcessing(const CefString& process_type, CefRefPtr<CefCommandLine> command_line) override;
     virtual CefRefPtr<CefRenderProcessHandler> GetRenderProcessHandler() override;
+    virtual void OnBeforeCommandLineProcessing(const CefString& process_type, CefRefPtr<CefCommandLine> command_line) override;
+    virtual void OnRegisterCustomSchemes(CefRawPtr<CefSchemeRegistrar> registrar) override;
 
     // CefBrowserProcessHandler methods:
     virtual CefRefPtr<CefPrintHandler> GetPrintHandler() override;
@@ -48,29 +49,28 @@ public:
     virtual void OnBeforeChildProcessLaunch(CefRefPtr<CefCommandLine> command_line) override;
 
     // CefRenderProcessHandler methods:
+    virtual void OnBrowserCreated(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDictionaryValue> extra_info) override;
+    virtual void OnBrowserDestroyed(CefRefPtr<CefBrowser> browser) override;
     virtual void OnContextCreated(
         CefRefPtr<CefBrowser> browser,
         CefRefPtr<CefFrame> frame,
         CefRefPtr<CefV8Context> context
     ) override;
-
     virtual void OnContextReleased(
         CefRefPtr<CefBrowser> browser,
         CefRefPtr<CefFrame> frame,
         CefRefPtr<CefV8Context> context
     ) override;
 
-    // ClientHandler methods:
-    void OnFinished(CefRefPtr<job::Job>, Client::Status) override;
+    // JobPrintCallback methods:
+    virtual void OnPrintStarted(CefRefPtr<PrintJob>) override;
+    virtual void OnPrintFinished(CefRefPtr<PrintJob>) override;
 
 private:
     const CefMainArgs m_mainArgs;
-    CefRefPtr<CefPrintHandler> m_printHandler;
-    CefRefPtr<SchemeHandlerFactory> m_schemeHandlerFactory;
+    CefRefPtr<BrowserHandler> m_browserHandler;
+    CefRefPtr<LinuxPrintHandler> m_linuxPrintHandler;
     bool m_initialized;
-    ClientQueue m_queue;
-
-    void ProcessQueue();
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(App);
