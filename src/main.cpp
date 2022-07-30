@@ -30,32 +30,34 @@ void printHelp(std::string name)
     std::cout << "  cef-pdf [options] --url=<url>|--file=<path> [output]" << std::endl;
     std::cout << std::endl;
     std::cout << "Options:" << std::endl;
-    std::cout << "  --help -h         This help screen." << std::endl;
-    std::cout << "  --url=<url>       URL to load, may be http, file, data, anything supported by Chromium." << std::endl;
-    std::cout << "  --file=<path>     File path to load using file:// scheme. May be relative to current directory." << std::endl;
-    std::cout << "  --stdin           Read content from standard input until EOF (Unix: Ctrl+D, Windows: Ctrl+Z)." << std::endl;
-    std::cout << "  --size=<spec>     Size (format) of the paper: A3, B2.. or custom <width>x<height> in mm." << std::endl;
-    std::cout << "                    " << cefpdf::constants::pageSize << " is the default." << std::endl;
-    std::cout << "  --list-sizes      Show all defined page sizes." << std::endl;
-    std::cout << "  --landscape       Wheather to print with a landscape page orientation." << std::endl;
-    std::cout << "                    Default is portrait." << std::endl;
-    std::cout << "  --margin=<spec>   Paper margins in mm (much like CSS margin but without units)" << std::endl;
-    std::cout << "                    If omitted some default margin is applied." << std::endl;
-    std::cout << "  --javascript      Enable JavaScript." << std::endl;
-    std::cout << "  --backgrounds     Print with backgrounds. Default is without." << std::endl;
-    std::cout << "  --scale=<%>       Scale the output. Default is 100." << std::endl;
-    std::cout << "  --delay=<ms>      Wait after page load before creating PDF. Default is 0." << std::endl;
-    std::cout << "  --viewwidth=<px>  Width of viewport. Default is 128." << std::endl;
-    std::cout << "  --viewheight=<px> Height of viewport. Default is 128." << std::endl;
+    std::cout << "  --help -h              This help screen." << std::endl;
+    std::cout << "  --url=<url>            URL to load, may be http, file, data, anything supported by Chromium." << std::endl;
+    std::cout << "  --file=<path>          File path to load using file:// scheme. May be relative to current directory." << std::endl;
+    std::cout << "  --stdin                Read content from standard input until EOF (Unix: Ctrl+D, Windows: Ctrl+Z)." << std::endl;
+    std::cout << "  --size=<spec>          Size (format) of the paper: A3, B2.. or custom <width>x<height> in mm." << std::endl;
+    std::cout << "                         " << cefpdf::constants::pageSize << " is the default." << std::endl;
+    std::cout << "  --list-sizes           Show all defined page sizes." << std::endl;
+    std::cout << "  --landscape            Wheather to print with a landscape page orientation." << std::endl;
+    std::cout << "                         Default is portrait." << std::endl;
+    std::cout << "  --margin=<spec>        Paper margins in mm (much like CSS margin but without units)" << std::endl;
+    std::cout << "                         If omitted some default margin is applied." << std::endl;
+    std::cout << "  --javascript           Enable JavaScript." << std::endl;
+    std::cout << "  --backgrounds          Print with backgrounds. Default is without." << std::endl;
+    std::cout << "  --scale=<%>            Scale the output. Default is 100." << std::endl;
+    std::cout << "  --delay=<ms>           Wait after page load before creating PDF. Default is 0." << std::endl;
+    std::cout << "  --viewwidth=<px>       Width of viewport. Default is 128." << std::endl;
+    std::cout << "  --viewheight=<px>      Height of viewport. Default is 128." << std::endl;
+    std::cout << "  --pdf-cover=<file>     Specify the cover pdf file path, Default is empty" << std::endl;
+    std::cout << "  --pdf-appendix=<file>  Specify the appendix pdf file path, Default is empty" << std::endl;
     std::cout << std::endl;
     std::cout << "Server options:" << std::endl;
-    std::cout << "  --server          Start HTTP server" << std::endl;
-    std::cout << "  --host=<host>     If starting server, specify ip address to bind to." << std::endl;
-    std::cout << "                    Default is " << cefpdf::constants::serverHost << std::endl;
-    std::cout << "  --port=<port>     Specify server port number. Default is " << cefpdf::constants::serverPort << std::endl;
-    std::cout << "  --save=<save>     Specify file save path. Default is " << cefpdf::constants::save << std::endl;
-    std::cout << "  --temp=<temp>     Specify temp path. Default is " << cefpdf::constants::tmp << std::endl;
-    std::cout << "  --persistent      Specify persistent save file. Default is false";
+    std::cout << "  --server               Start HTTP server" << std::endl;
+    std::cout << "  --host=<host>          If starting server, specify ip address to bind to." << std::endl;
+    std::cout << "                         Default is " << cefpdf::constants::serverHost << std::endl;
+    std::cout << "  --port=<port>          Specify server port number. Default is " << cefpdf::constants::serverPort << std::endl;
+    std::cout << "  --save=<save>          Specify file save path. Default is " << cefpdf::constants::save << std::endl;
+    std::cout << "  --temp=<temp>          Specify temp path. Default is " << cefpdf::constants::tmp << std::endl;
+    std::cout << "  --persistent           Specify persistent save file. Default is false";
     std::cout << std::endl;
     std::cout << "Output:" << std::endl;
     std::cout << "  PDF file name to create. Default is to write binary data to standard output." << std::endl;
@@ -141,6 +143,13 @@ int runJob(CefRefPtr<cefpdf::Client> app, CefRefPtr<CefCommandLine> commandLine)
 
         if (commandLine->HasSwitch("scale")) {
             job->SetScale(std::atoi(commandLine->GetSwitchValue("scale").ToString().c_str()));
+        }
+
+        if (commandLine->HasSwitch("pdf-cover")) {
+            job->SetCover(commandLine->GetSwitchValue("pdf-cover").ToString());
+        }
+        if (commandLine->HasSwitch("pdf-appendix")) {
+            job->SetAppendix(commandLine->GetSwitchValue("pdf-appendix").ToString());
         }
 
         if (commandLine->HasSwitch("delay")) {
