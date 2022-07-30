@@ -1,5 +1,9 @@
 #include "Job.h"
 
+#include <podofo.h>
+
+#include <filesystem>
+
 namespace cefpdf {
 namespace job {
 
@@ -41,6 +45,60 @@ void Job::SetScale(int scale)
 {
     DLOG(INFO) << "Scale factor: " << scale;
     m_scale = scale;
+}
+
+void Job::SetCover(const std::string& path)
+{
+    m_cover = path;
+}
+
+void Job::SetAppendix(const std::string& path)
+{
+    m_appendix = path;
+}
+
+void Job::SetStatus(Status status) {
+    m_status = status;
+
+    if (Status::SUCCESS == status) {
+        std::error_code code;
+        std::string orgFile = m_outputPath.ToString() + ".org.pdf";
+        if (!m_cover.empty() || !m_appendix.empty()) {
+            std::filesystem::rename(m_outputPath.ToString(), orgFile, code);
+        }
+        if (0 == code.value()) {
+            try {
+                if (!m_cover.empty() && m_appendix.empty()) {
+                    PoDoFo::PdfMemDocument cover( m_cover.c_str() );
+                    PoDoFo::PdfMemDocument save( orgFile.c_str() );
+
+                    cover.Append( save );
+
+                    cover.Write( m_outputPath.c_str() );
+                } else if (!m_cover.empty() && !m_appendix.empty()) {
+                    PoDoFo::PdfMemDocument cover( m_cover.c_str() );
+                    PoDoFo::PdfMemDocument save( orgFile.c_str() );
+                    PoDoFo::PdfMemDocument appendix( m_appendix.c_str() );
+
+                    cover.Append( save );
+                    cover.Append( appendix );
+
+                    cover.Write( m_outputPath.c_str() );
+                } else if (m_cover.empty() && !m_appendix.empty()) {
+                    PoDoFo::PdfMemDocument save( orgFile.c_str() );
+                    PoDoFo::PdfMemDocument appendix( m_appendix.c_str() );
+
+                    save.Append( appendix );
+
+                    save.Write( m_outputPath.c_str() );
+                }
+
+                std::filesystem::remove(orgFile);
+            } catch( PoDoFo::PdfError & e ) {
+                throw e;
+            }
+        }
+    }
 }
 
 CefPdfPrintSettings Job::GetCefPdfPrintSettings() const

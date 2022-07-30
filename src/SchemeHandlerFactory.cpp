@@ -20,7 +20,7 @@ CefRefPtr<CefResourceHandler> SchemeHandlerFactory::Create(
     auto streamReader = m_jobsManager->GetStreamReader(browser);
 
     if (!streamReader.get()) {
-        return NULL;
+        return nullptr;
     }
 
     return new CefStreamResourceHandler("text/html",  streamReader);

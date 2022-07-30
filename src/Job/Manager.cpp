@@ -43,7 +43,7 @@ void Manager::Assign(CefRefPtr<CefBrowser> browser)
 
         m_jobsQueue.pop();
 
-        m_jobs.push_back(BrowserJob({browser, job, NULL}));
+        m_jobs.push_back(BrowserJob({browser, job, nullptr}));
 
         job->SetStatus(Job::Status::LOADING);
 
@@ -62,9 +62,9 @@ void Manager::Process(CefRefPtr<CefBrowser> browser, int httpStatusCode)
     if (it != m_jobs.end()) {
         if (!httpStatusCode || (200 <= httpStatusCode && 300 > httpStatusCode)) {
             // Generate file name if empty
-            if (it->job->GetOutputPath().empty()) {
-                it->job->SetOutputPath(reserveTempFile());
-            }
+            // if (it->job->GetOutputPath().empty()) {
+            //     it->job->SetOutputPath(reserveTempFile());
+            // }
 
             it->job->SetStatus(Job::Status::PRINTING);
 

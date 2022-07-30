@@ -11,13 +11,16 @@
 #include <random>
 #include <sstream>
 #include <iomanip>
+#include <filesystem>
 
 #if !defined(OS_WIN)
 #include <sys/types.h> // pid_t
 #include <sys/stat.h> // stat()
 #include <unistd.h> // access(), getcwd()
 #else
-#include "Shlwapi.h" // PathFileExistsW
+#include <direct.h>
+#include <shlobj.h>
+#include <Shlwapi.h> // PathFileExistsW
 #endif
 
 namespace cefpdf {
@@ -284,6 +287,23 @@ std::string pathToUri(const std::string& path)
 #endif // OS_WIN
 
     return std::string("file://") + uri;
+}
+
+std::string getDownloadDirectory() {
+  TCHAR szFolderPath[MAX_PATH];
+  std::string path;
+
+#if defined(OS_WIN)
+  // Save the file in the user's "My Documents" folder.
+  if (SUCCEEDED(SHGetFolderPath(nullptr, CSIDL_PERSONAL | CSIDL_FLAG_CREATE,
+                                nullptr, 0, szFolderPath))) {
+    path = CefString(szFolderPath);
+  }
+#else
+    path = getenv("HOME");
+#endif // OS_WIN
+
+  return path;
 }
 
 std::string getCurrentWorkingDirectory()

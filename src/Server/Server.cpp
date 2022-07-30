@@ -1,7 +1,7 @@
 #include "Server.h"
 
+#include "include/base/cef_callback.h"
 #include "include/wrapper/cef_helpers.h"
-#include "include/base/cef_bind.h"
 #include "include/wrapper/cef_closure_task.h"
 
 #include <iostream>
@@ -14,7 +14,10 @@ namespace server {
 Server::Server(
     CefRefPtr<cefpdf::Client> client,
     const std::string& address,
-    const std::string& port
+    const std::string& port,
+    const std::string& save,
+    const std::string& temp,
+    const bool& persistent
 ) :
     m_client(client),
     m_thread(),
@@ -22,7 +25,7 @@ Server::Server(
     m_signals(m_ioService),
     m_acceptor(m_ioService),
     m_socket(m_ioService),
-    m_sessionManager(new SessionManager),
+    m_sessionManager(new SessionManager(save, temp, persistent)),
     m_counter(0)
 {
     m_signals.add(SIGINT);
@@ -71,7 +74,7 @@ void Server::Run()
     Listen();
     m_ioService.run();
 
-    CefPostTask(TID_UI, base::Bind(&cefpdf::Client::Stop, m_client));
+    CefPostTask(TID_UI, base::BindOnce(&cefpdf::Client::Stop, m_client));
 
     DLOG(INFO) << "HTTP server thread finished";
 }

@@ -61,6 +61,10 @@ public:
 
     void SetScale(int scale);
 
+    void SetCover(const std::string& path);
+
+    void SetAppendix(const std::string& path);
+
     // Get prepared PDF setting for CEF
     CefPdfPrintSettings GetCefPdfPrintSettings() const;
 
@@ -68,9 +72,7 @@ public:
         return m_status;
     }
 
-    void SetStatus(Status status) {
-        m_status = status;
-    }
+    void SetStatus(Status status);
 
 private:
     CefString m_outputPath;
@@ -81,6 +83,8 @@ private:
     Status m_status;
     Callback m_callback;
     int m_scale;
+    std::string m_cover;
+    std::string m_appendix;
 
     // Include the default reference counting implementation.
     IMPLEMENT_REFCOUNTING(Job);

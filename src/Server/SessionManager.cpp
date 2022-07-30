@@ -3,7 +3,8 @@
 namespace cefpdf {
 namespace server {
 
-SessionManager::SessionManager()
+SessionManager::SessionManager(std::string const& save, std::string const& temp, bool const& persistent):
+m_save(save), m_temp(temp), m_persistent(persistent)
 {}
 
 void SessionManager::Start(CefRefPtr<Session> session)
