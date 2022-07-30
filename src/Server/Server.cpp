@@ -1,7 +1,7 @@
 #include "Server.h"
 
+#include "include/base/cef_callback.h"
 #include "include/wrapper/cef_helpers.h"
-#include "include/base/cef_bind.h"
 #include "include/wrapper/cef_closure_task.h"
 
 #include <iostream>
@@ -71,7 +71,7 @@ void Server::Run()
     Listen();
     m_ioService.run();
 
-    CefPostTask(TID_UI, base::Bind(&cefpdf::Client::Stop, m_client));
+    CefPostTask(TID_UI, base::BindOnce(&cefpdf::Client::Stop, m_client));
 
     DLOG(INFO) << "HTTP server thread finished";
 }

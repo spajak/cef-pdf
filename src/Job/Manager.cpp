@@ -43,7 +43,7 @@ void Manager::Assign(CefRefPtr<CefBrowser> browser)
 
         m_jobsQueue.pop();
 
-        m_jobs.push_back(BrowserJob({browser, job, NULL}));
+        m_jobs.push_back(BrowserJob({browser, job, nullptr}));
 
         job->SetStatus(Job::Status::LOADING);
 

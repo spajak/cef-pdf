@@ -5,7 +5,7 @@
 #include "../Job/Remote.h"
 #include "../Common.h"
 
-#include "include/base/cef_bind.h"
+#include "include/base/cef_callback.h"
 #include "include/wrapper/cef_closure_task.h"
 
 #include <iostream>
@@ -402,7 +402,7 @@ void Session::HandlePDF(const std::string& fileName)
         std::placeholders::_1
     ));
 
-    CefPostTask(TID_UI, base::Bind(&cefpdf::Client::AddJob, m_client, job));
+    CefPostTask(TID_UI, base::BindOnce(&cefpdf::Client::AddJob, m_client, job));
 }
 
 void Session::OnResolve(CefRefPtr<cefpdf::job::Job> job)

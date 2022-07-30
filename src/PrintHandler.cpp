@@ -8,7 +8,8 @@ PrintHandler::PrintHandler() {}
 
 // CefPrintHandler methods:
 // -------------------------------------------------------------------------
-CefSize PrintHandler::GetPdfPaperSize(int device_units_per_inch)
+CefSize PrintHandler::GetPdfPaperSize(CefRefPtr<CefBrowser> browser,
+        int device_units_per_inch)
 {
     DLOG(INFO)
         << "PrintHandler::GetPdfPaperSize"
