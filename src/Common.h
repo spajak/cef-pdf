@@ -10,6 +10,8 @@
 
 namespace cefpdf {
 
+std::string getDownloadDirectory();
+
 std::string getCurrentWorkingDirectory();
 
 std::string getTempDirectory();
@@ -34,6 +36,8 @@ namespace constants {
 
     // Current working directory
     const std::string cwd = getCurrentWorkingDirectory();
+    // File save directory (including trailing slash)
+    const std::string save = getDownloadDirectory();
     // Temp directory (including trailing slash)
     const std::string tmp = getTempDirectory();
     // Current process ID

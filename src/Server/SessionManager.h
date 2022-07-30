@@ -14,7 +14,7 @@ class SessionManager : public CefBaseRefCounted
 {
 
 public:
-    SessionManager();
+    SessionManager(std::string const& save, std::string const& temp, bool const& persistent);
 
     SessionManager(const SessionManager&) = delete;
 
@@ -27,6 +27,12 @@ public:
     void CloseAll();
 
     void StopAll();
+
+    std::string m_save;
+
+    std::string m_temp;
+
+    bool m_persistent;
 
 private:
     std::set<CefRefPtr<Session>> m_sessions;

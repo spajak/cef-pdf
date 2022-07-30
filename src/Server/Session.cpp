@@ -8,12 +8,13 @@
 #include "include/base/cef_callback.h"
 #include "include/wrapper/cef_closure_task.h"
 
-#include <iostream>
+#include <regex>
 #include <string>
 #include <sstream>
 #include <ostream>
+#include <iostream>
 #include <functional>
-#include <regex>
+#include <filesystem>
 
 namespace cefpdf {
 namespace server {
@@ -130,7 +131,7 @@ void Session::OnReadHeaders(const std::error_code& ec, std::size_t bytes_transfe
 {
     ParseRequestHeaders();
 
-    if (m_request.method == "GET") {
+    if (m_request.method == "GET" || m_request.method == "HEAD" || m_request.method == "DELETE") {
         Handle();
     } else if (m_request.method == "POST") {
         if (!(m_request.encoding.empty() || m_request.chunked)) {
@@ -267,6 +268,7 @@ void Session::ParseRequestHeaders()
     it = match[0].second;
     end = headerData.end();
     m_request.chunked = false;
+    m_request.download = false;
     m_request.length = 0;
 
     while (std::regex_search(it, end, match, re2)) {
@@ -278,6 +280,12 @@ void Session::ParseRequestHeaders()
                 if (stringsEqual(m_request.encoding, "chunked")) {
                     m_request.chunked = true;
                 }
+            }
+        } else if (stringsEqual(match[1], http::headers::download)) {
+            if (stringsEqual(match[2], "yes")) {
+                m_request.download = true;
+            } else {
+                m_request.download = false;
             }
         } else if (stringsEqual(match[1], http::headers::length)) {
             m_request.length = std::stoi(match[2]);
@@ -310,17 +318,49 @@ void Session::Handle()
         Write();
     } else {
         // Parse url path
-        std::regex re("([^/]+\\.pdf)($|[^\\w])", std::regex_constants::icase);
+        std::regex re("([^/]+\\.(pdf|png))($|[^\\w])", std::regex_constants::icase);
         std::smatch match;
+        std::string path;
 
         if (std::regex_search(m_request.url, match, re)) {
-            if (m_request.method == "GET" && m_request.location.empty()) {
-                Write(http::statuses::badMethod);
-            } else {
+            if ((m_request.method == "GET" || m_request.method == "HEAD" || m_request.method == "DELETE") && m_request.location.empty()) {
+                if (m_sessionManager->m_persistent) {
+                    path = m_sessionManager->m_save + m_request.url;
+                    if (std::filesystem::is_regular_file(std::filesystem::status(path))) {
+                        if (m_request.method == "GET") {
+                            m_response.SetHeader(http::headers::disposition, "inline; filename=\"" + std::string(match[1]) + "\"");
+                            m_response.SetContent(loadTempFile(path, false), "application/pdf");
+                        } else if (m_request.method == "HEAD") {
+                            if (std::string::npos == m_request.url.find(".pdf")) {
+                                m_response.SetHeader(cefpdf::server::http::headers::type, "image/png");
+                            } else {
+                                m_response.SetHeader(cefpdf::server::http::headers::type, "application/pdf");
+                            }
+
+                            size_t fileSize =  std::filesystem::file_size(std::filesystem::path(path));
+                            m_response.SetHeader(cefpdf::server::http::headers::length, std::to_string(fileSize));
+                        } else {
+                            if (std::filesystem::remove(std::filesystem::path(path))) {
+                                m_response.SetContent("{\"status\":\"ok\"}", "application/json");
+                            } else {
+                                m_response.SetContent("{\"status\":\"fail\"}", "application/json");
+                            }
+                        }
+
+                        Write();
+                    } else {
+                        Write(http::statuses::notFound);
+                    }
+                } else {
+                    Write(http::statuses::badMethod);
+                }
+            } else if (m_request.method == "POST") {
                 HandlePDF(match[1]);
+            } else {
+                Write(http::statuses::badMethod);
             }
         } else {
-            Write(http::statuses::notFound);
+            Write(http::statuses::badMethod);
         }
     }
 }
@@ -332,10 +372,12 @@ std::string Session::GetAboutReply()
     content += "{";
     content += "\"status\": \"ok\", ";
     content += "\"version\": \"" + cefpdf::constants::version + "\", ";
+    content += "\"persistent\": " + (m_sessionManager->m_persistent ? std::string("true") : std::string("false")) + ", ";
     content += "\"headers\": [";
     content += "\"" + http::headers::location + "\", ";
     content += "\"" + http::headers::pageSize + "\", ";
     content += "\"" + http::headers::pageMargin + "\", ";
+    content += "\"" + http::headers::download + "\", ";
     content += "\"" + http::headers::pdfOptions + "(landscape|backgrounds)\"";
     content += "]}";
 
@@ -366,7 +408,20 @@ void Session::HandlePDF(const std::string& fileName)
 {
     m_response.SetHeader(http::headers::disposition, "inline; filename=\"" + fileName + "\"");
 
+    std::string path;
     CefRefPtr<cefpdf::job::Job> job;
+
+    if (fileName.length() + 1 == m_request.url.length()) {
+        path = m_sessionManager->m_save;
+    } else {
+        path = m_sessionManager->m_save + m_request.url.substr(0, m_request.url.find_last_of("/"));
+    }
+    if (!std::filesystem::is_directory(std::filesystem::status(path))) {
+        if (!std::filesystem::create_directories(path)) {
+            m_response.SetContent("{\"status\":\"fail\",\"msg\":\"create directory fail\"}", "application/json");
+            return;
+        }
+    }
 
     if (m_request.location.empty()) {
         job = new cefpdf::job::Local(m_request.content);
@@ -396,6 +451,8 @@ void Session::HandlePDF(const std::string& fileName)
         }
     }
 
+    job->SetOutputPath(m_sessionManager->m_save + m_request.url);
+
     job->SetCallback(std::bind(
         &Session::OnResolve,
         this,
@@ -412,7 +469,11 @@ void Session::OnResolve(CefRefPtr<cefpdf::job::Job> job)
     }
 
     if (job->GetStatus() == cefpdf::job::Job::Status::SUCCESS) {
-        m_response.SetContent(loadTempFile(job->GetOutputPath()), "application/pdf");
+        if (m_request.download) {
+            m_response.SetContent(loadTempFile(job->GetOutputPath(), !m_sessionManager->m_persistent), "application/pdf");
+        } else {
+            m_response.SetContent("{\"status\":\"ok\",\"path\":\"" + m_request.url + "\"}", "application/json");
+        }
     } else {
         m_response.SetStatus(http::statuses::error);
     }

@@ -19,7 +19,7 @@ class Server : public CefBaseRefCounted
 {
 
 public:
-    Server(CefRefPtr<cefpdf::Client> client, std::string const&, std::string const&);
+    Server(CefRefPtr<cefpdf::Client> client, std::string const& host, std::string const& port, std::string const& save, std::string const& temp, bool const& persistent);
 
     void Start();
 

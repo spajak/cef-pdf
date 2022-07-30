@@ -53,6 +53,9 @@ void printHelp(std::string name)
     std::cout << "  --host=<host>     If starting server, specify ip address to bind to." << std::endl;
     std::cout << "                    Default is " << cefpdf::constants::serverHost << std::endl;
     std::cout << "  --port=<port>     Specify server port number. Default is " << cefpdf::constants::serverPort << std::endl;
+    std::cout << "  --save=<save>     Specify file save path. Default is " << cefpdf::constants::save << std::endl;
+    std::cout << "  --temp=<temp>     Specify temp path. Default is " << cefpdf::constants::tmp << std::endl;
+    std::cout << "  --persistent      Specify persistent save file. Default is false";
     std::cout << std::endl;
     std::cout << "Output:" << std::endl;
     std::cout << "  PDF file name to create. Default is to write binary data to standard output." << std::endl;
@@ -202,7 +205,28 @@ int runServer(CefRefPtr<cefpdf::Client> app, CefRefPtr<CefCommandLine> commandLi
         host = commandLine->GetSwitchValue("host").ToString();
     }
 
-    CefRefPtr<cefpdf::server::Server> server = new cefpdf::server::Server(app, host, port);
+    std::string save = cefpdf::constants::save;
+    if (commandLine->HasSwitch("save")) {
+        save = commandLine->GetSwitchValue("save").ToString();
+        if (save.length() > 2 && (save.back() == '\\' || save.back() == '/')) {
+            save.pop_back();
+        }
+    }
+
+    std::string temp = cefpdf::constants::tmp;
+    if (commandLine->HasSwitch("temp")) {
+        temp = commandLine->GetSwitchValue("temp").ToString();
+        if (temp.length() > 2 && (temp.back() == '\\' || temp.back() == '/')) {
+            temp.pop_back();
+        }
+    }
+
+    bool persistent = false;
+    if (commandLine->HasSwitch("persistent")) {
+        persistent = true;
+    }
+
+    CefRefPtr<cefpdf::server::Server> server = new cefpdf::server::Server(app, host, port, save, temp, persistent);
 
     server->Start();
 

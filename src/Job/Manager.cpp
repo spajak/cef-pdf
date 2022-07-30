@@ -62,9 +62,9 @@ void Manager::Process(CefRefPtr<CefBrowser> browser, int httpStatusCode)
     if (it != m_jobs.end()) {
         if (!httpStatusCode || (200 <= httpStatusCode && 300 > httpStatusCode)) {
             // Generate file name if empty
-            if (it->job->GetOutputPath().empty()) {
-                it->job->SetOutputPath(reserveTempFile());
-            }
+            // if (it->job->GetOutputPath().empty()) {
+            //     it->job->SetOutputPath(reserveTempFile());
+            // }
 
             it->job->SetStatus(Job::Status::PRINTING);
 

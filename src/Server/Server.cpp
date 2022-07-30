@@ -14,7 +14,10 @@ namespace server {
 Server::Server(
     CefRefPtr<cefpdf::Client> client,
     const std::string& address,
-    const std::string& port
+    const std::string& port,
+    const std::string& save,
+    const std::string& temp,
+    const bool& persistent
 ) :
     m_client(client),
     m_thread(),
@@ -22,7 +25,7 @@ Server::Server(
     m_signals(m_ioService),
     m_acceptor(m_ioService),
     m_socket(m_ioService),
-    m_sessionManager(new SessionManager),
+    m_sessionManager(new SessionManager(save, temp, persistent)),
     m_counter(0)
 {
     m_signals.add(SIGINT);

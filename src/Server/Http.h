@@ -32,6 +32,7 @@ namespace headers {
     const std::string location    = "Content-Location";
     const std::string encoding    = "Transfer-Encoding";
     const std::string expect      = "Expect";
+    const std::string download    = "Download";
     const std::string pageSize    = "PDF-Page-Size";
     const std::string pageMargin  = "PDF-Page-Margin";
     const std::string pdfOptions  = "PDF-Options";
@@ -52,6 +53,7 @@ struct Request {
     std::size_t length;
     std::string encoding;
     bool chunked;
+    bool download;
     std::string expect;
     std::string location;
     std::string pageSize;
